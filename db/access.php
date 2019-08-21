@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+
 /**
- * Embedded questions progress report language strings.
+ * Embedded questions progress report capability definitions.
  *
  * @package   report_embedquestion
  * @copyright 2019 The Open University
@@ -24,6 +25,29 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['embedquestion:viewallprogress'] = 'See embedded questions progress for others';
-$string['embedquestion:viewmyprogress'] = 'See your own embedded questions progress';
-$string['pluginname'] = 'Embedded questions progress';
+$capabilities = [
+
+    // Ability for a user to see their own progress at embedded questions.
+    'report/embedquestion:viewmyprogress' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+
+    // Ability for a user to see the progress of other users (subject to
+    // other conditions like separate groups mode).
+    'report/embedquestion:viewallprogress' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+];
