@@ -26,4 +26,9 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['embedquestion:viewallprogress'] = 'See embedded questions progress for others';
 $string['embedquestion:viewmyprogress'] = 'See your own embedded questions progress';
+$string['eventactivityreportviewed'] = 'Embedded questions progress activity report viewed';
+$string['eventcoursereportviewed'] = 'Embedded questions progress course report viewed';
+$string['page-report-embedquestion-*'] = 'Any embedded questions progress report';
+$string['page-report-embedquestion-activity'] = 'Activity embedded questions progress report';
+$string['page-report-embedquestion-index'] = 'Course embedded questions progress report';
 $string['pluginname'] = 'Embedded questions progress';
