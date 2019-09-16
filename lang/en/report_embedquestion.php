@@ -25,6 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['activityreporttitle'] = 'Embedded question progress for {$a}';
+$string['attempts'] = 'Embedded question attempts';
+$string['attemptsatquestion'] = 'Attempts at question {$a}';
 $string['coursereporttitle'] = 'Embedded question progress for {$a}';
 $string['embedquestion:viewallprogress'] = 'See embedded questions progress for others';
 $string['embedquestion:viewmyprogress'] = 'See your own embedded questions progress';
@@ -34,3 +36,12 @@ $string['page-report-embedquestion-*'] = 'Any embedded questions progress report
 $string['page-report-embedquestion-activity'] = 'Activity embedded questions progress report';
 $string['page-report-embedquestion-index'] = 'Course embedded questions progress report';
 $string['pluginname'] = 'Embedded questions progress';
+$string['privacy:metadata:core_question'] = 'The embedded questions progress report stores question usage information in the core_question subsystem.';
+$string['privacy:metadata:report_embedquestion_attempt'] = 'Information about which embedded questions each user has attempted.';
+$string['privacy:metadata:report_embedquestion_attempt:contextid'] = 'The Moodle context where the question was attempted';
+$string['privacy:metadata:report_embedquestion_attempt:embedid'] = 'The internal id of the question that was embedded';
+$string['privacy:metadata:report_embedquestion_attempt:pagename'] = 'The name of the page where the question was embedded';
+$string['privacy:metadata:report_embedquestion_attempt:pageurl'] = 'The URL of the page where the question was embedded';
+$string['privacy:metadata:report_embedquestion_attempt:timecreated'] = 'The time when the user started attempting this question';
+$string['privacy:metadata:report_embedquestion_attempt:timemodified'] = 'The time when the user most recently interacted with this question';
+$string['privacy:metadata:report_embedquestion_attempt:userid'] = 'The user who attempted the question';

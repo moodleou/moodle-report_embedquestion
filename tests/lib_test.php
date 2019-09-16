@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tests for report library functions.
+ * Tests for the Embedded questions progress Moodle core integration.
  *
- * @package    report_log
- * @copyright  2014 onwards Ankit agarwal <ankit.agrr@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
+ * @package   report_embedquestion
+ * @copyright 2019 The Open University
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -30,7 +30,6 @@ require_once(__DIR__ . '/../lib.php');
 /**
  * Tests for the Embedded questions progress Moodle core integration.
  *
- * @package   report_embedquestion
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
