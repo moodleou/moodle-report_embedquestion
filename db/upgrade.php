@@ -116,6 +116,32 @@ function xmldb_report_embedquestion_upgrade(int $oldversion) {
         upgrade_plugin_savepoint(true, 2019090902, 'report', 'embedquestion');
     }
 
+    if ($oldversion < 2019091600) {
+
+        // Define key questionusageid (foreign) to be dropped form report_embedquestion_attempt.
+        $table = new xmldb_table('report_embedquestion_attempt');
+        $key = new xmldb_key('questionusageid', XMLDB_KEY_FOREIGN, ['questionusageid'], 'question_usages', ['id']);
+
+        // Launch drop key questionusageid.
+        $dbman->drop_key($table, $key);
+
+        // Embedquestion savepoint reached.
+        upgrade_plugin_savepoint(true, 2019091600, 'report', 'embedquestion');
+    }
+
+    if ($oldversion < 2019091601) {
+
+        // Define key questionusageid (foreign-unique) to be added to report_embedquestion_attempt.
+        $table = new xmldb_table('report_embedquestion_attempt');
+        $key = new xmldb_key('questionusageid', XMLDB_KEY_FOREIGN_UNIQUE, ['questionusageid'], 'question_usages', ['id']);
+
+        // Launch add key questionusageid.
+        $dbman->add_key($table, $key);
+
+        // Embedquestion savepoint reached.
+        upgrade_plugin_savepoint(true, 2019091601, 'report', 'embedquestion');
+    }
+
     return true;
 }
 
