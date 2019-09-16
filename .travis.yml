@@ -49,16 +49,17 @@ install:
   - moodle-plugin-ci install
 
 script:
-  - moodle-plugin-ci validate
-  - moodle-plugin-ci savepoints
   - moodle-plugin-ci phplint
   - moodle-plugin-ci phpcpd
   - moodle-plugin-ci phpmd
   - moodle-plugin-ci codechecker
-  - moodle-plugin-ci phpdoc
   - moodle-plugin-ci validate
   - moodle-plugin-ci savepoints
   - moodle-plugin-ci mustache || true
   - moodle-plugin-ci grunt
   - moodle-plugin-ci phpunit
   - moodle-plugin-ci behat
+
+  # Also check that the filter tests all pass when the report is installed and staring responses.
+  - moodle-plugin-ci phpunit -- /home/travis/build/moodle/filter/embedquestion
+  - moodle-plugin-ci behat -- /home/travis/build/moodle/filter/embedquestion
