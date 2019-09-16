@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Display the Embedded questions progress report for a course.
+ * Display the Embedded questions progress report for an activity.
  *
  * @package   report_embedquestion
  * @copyright 2019 The Open University

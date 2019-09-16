@@ -9,7 +9,7 @@
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the user whose attempt this is. References user.id."/>
                 <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the context where this attempt happened. References context.id"/>
-                <FIELD NAME="embedcode" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The identity of the question that was embedded, in the form used by the filer: question_category.idnumber/question.idnumber, or question_category.idnumber/* for random selection."/>
+                <FIELD NAME="embedid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The identity of the question that was embedded, in the form used by the filer: question_category.idnumber/question.idnumber, or question_category.idnumber/* for random selection."/>
                 <FIELD NAME="questionusageid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Points to the question attempt data for this attempt. References question_usages.id. This usage will contain all the attempts at the question(s) in this location."/>
                 <FIELD NAME="pagename" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="For information, the name of the page where this question was embedded."/>
                 <FIELD NAME="pageurl" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="For information, the URL of the page (relative to wwwroot) where this question appeared."/>
@@ -23,7 +23,7 @@
                 <KEY NAME="questionusageid" TYPE="foreign" FIELDS="questionusageid" REFTABLE="question_usages" REFFIELDS="id"/>
             </KEYS>
             <INDEXES>
-                <INDEX NAME="userid-contextid-embedcode" UNIQUE="true" FIELDS="userid, contextid, embedcode"/>
+                <INDEX NAME="userid-contextid-embedid" UNIQUE="true" FIELDS="userid, contextid, embedid"/>
             </INDEXES>
         </TABLE>
     </TABLES>

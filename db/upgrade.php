@@ -73,6 +73,49 @@ function xmldb_report_embedquestion_upgrade(int $oldversion) {
         upgrade_plugin_savepoint(true, 2019082101, 'report', 'embedquestion');
     }
 
+    if ($oldversion < 2019090900) {
+
+        // Define index userid-contextid-embedcode (unique) to be dropped form report_embedquestion_attempt.
+        $table = new xmldb_table('report_embedquestion_attempt');
+        $index = new xmldb_index('userid-contextid-embedcode', XMLDB_INDEX_UNIQUE, ['userid', 'contextid', 'embedcode']);
+
+        // Conditionally launch drop index userid-contextid-embedcode.
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+
+        // Embedquestion savepoint reached.
+        upgrade_plugin_savepoint(true, 2019090900, 'report', 'embedquestion');
+    }
+
+    if ($oldversion < 2019090901) {
+
+        // Rename field embedid on table report_embedquestion_attempt to NEWNAMEGOESHERE.
+        $table = new xmldb_table('report_embedquestion_attempt');
+        $field = new xmldb_field('embedcode', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, 'contextid');
+
+        // Launch rename field embedid.
+        $dbman->rename_field($table, $field, 'embedid');
+
+        // Embedquestion savepoint reached.
+        upgrade_plugin_savepoint(true, 2019090901, 'report', 'embedquestion');
+    }
+
+    if ($oldversion < 2019090902) {
+
+        // Define index userid-contextid-embedid (unique) to be added to report_embedquestion_attempt.
+        $table = new xmldb_table('report_embedquestion_attempt');
+        $index = new xmldb_index('userid-contextid-embedid', XMLDB_INDEX_UNIQUE, ['userid', 'contextid', 'embedid']);
+
+        // Conditionally launch add index userid-contextid-embedid.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Embedquestion savepoint reached.
+        upgrade_plugin_savepoint(true, 2019090902, 'report', 'embedquestion');
+    }
+
     return true;
 }
 
