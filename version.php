@@ -30,6 +30,6 @@ $plugin->component = 'report_embedquestion';
 $plugin->maturity  = MATURITY_ALPHA;
 $plugin->release   = '0.x for Moodle 3.6+';
 
-$plugin->dependencies = ['filter_embedquestion' => 2019073100];
+$plugin->dependencies = ['filter_embedquestion' => 2019091600];
 
 $plugin->outestssufficient = true;
