@@ -41,7 +41,7 @@ before_install:
   - nvm install 8.9
   - nvm use 8.9
   - cd ../..
-  - composer create-project -n --no-dev --prefer-dist moodlerooms/moodle-plugin-ci ci ^2
+  - composer create-project -n --no-dev --prefer-dist moodlerooms/moodle-plugin-ci ci
   - export PATH="$(cd ci/bin; pwd):$(cd ci/vendor/bin; pwd):$PATH"
 
 install:
@@ -59,3 +59,7 @@ script:
   - moodle-plugin-ci grunt
   - moodle-plugin-ci phpunit
   - moodle-plugin-ci behat
+
+  # Also check that the filter tests all pass when the report is installed and staring responses.
+  - moodle-plugin-ci phpunit -- /home/travis/build/moodle/filter/embedquestion
+  - moodle-plugin-ci behat -- /home/travis/build/moodle/filter/embedquestion
