@@ -1,7 +1,7 @@
 # The Embedded questions progress report
 
 This report works with the [embed questions filter](https://moodle.org/plugins/filter_embedquestion).
-It shows students an staff the progress they have made on all the embedded questions
+It shows students and staff the progress they have made on all the embedded questions
 in a particular course or activity.
 
 

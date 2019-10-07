@@ -73,5 +73,5 @@ $PAGE->set_title($title);
 $PAGE->set_heading($title);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($title);
-echo $OUTPUT->render($report);
+$report->display_content();
 echo $OUTPUT->footer();

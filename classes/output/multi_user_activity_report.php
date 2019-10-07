@@ -24,8 +24,10 @@
  */
 
 namespace report_embedquestion\output;
-defined('MOODLE_INTERNAL') || die();
+use report_embedquestion\latest_attempt_table;
+use report_embedquestion\utils;
 
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Renderable for the Embedded questions progress report for for staff
@@ -34,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
  * @package   report_embedquestion
  * @copyright 2019 The Open University
  */
-class multi_user_activity_report implements \renderable, \templatable {
+class multi_user_activity_report implements \renderable {
 
     /** @var \stdClass the course containing the activity we are showing the report for. */
     protected $course;
@@ -47,6 +49,9 @@ class multi_user_activity_report implements \renderable, \templatable {
 
     /** @var \context the activity context. */
     protected $context;
+
+    /** @var int number of rows in the progress report table per page. */
+    protected $pagesize = 10;
 
     /**
      * Constructor.
@@ -74,8 +79,12 @@ class multi_user_activity_report implements \renderable, \templatable {
 
     }
 
-    public function export_for_template(\renderer_base $output): array {
-        return [
-        ];
+    /**
+     * Display the report.
+     */
+    public function display_content() {
+        $table = new latest_attempt_table($this->context, $this->course->id, $this->groupid, $this->cm);
+        $table->setup();
+        $table->out($this->pagesize, true, null);
     }
 }

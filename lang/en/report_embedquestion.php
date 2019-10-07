@@ -25,8 +25,17 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['activityreporttitle'] = 'Embedded question progress for {$a}';
+$string['attemptedon'] = 'Attempted on';
+$string['attemptfinal'] = 'Latest attempt';
 $string['attempts'] = 'Embedded question attempts';
 $string['attemptsatquestion'] = 'Attempts at question {$a}';
+$string['attemptsummary'] = 'Attempt summary';
+$string['attemptsummaryfor'] = 'Attempt summary for:';
+$string['attemptsummaryby'] = 'Attempted by: {$a}';
+$string['attemptsummaryembedid'] = 'Embed id: {$a}';
+$string['attemptsummarycontext'] = 'Context: {$a}';
+$string['attemptsummaryquestion'] = 'Question: {$a}';
+$string['context'] = 'Context';
 $string['coursereporttitle'] = 'Embedded question progress for {$a}';
 $string['embedquestion:viewallprogress'] = 'See embedded questions progress for others';
 $string['embedquestion:viewmyprogress'] = 'See your own embedded questions progress';
@@ -45,3 +54,4 @@ $string['privacy:metadata:report_embedquestion_attempt:pageurl'] = 'The URL of t
 $string['privacy:metadata:report_embedquestion_attempt:timecreated'] = 'The time when the user started attempting this question';
 $string['privacy:metadata:report_embedquestion_attempt:timemodified'] = 'The time when the user most recently interacted with this question';
 $string['privacy:metadata:report_embedquestion_attempt:userid'] = 'The user who attempted the question';
+$string['type'] = 'Type';

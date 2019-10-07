@@ -23,8 +23,11 @@
  */
 
 namespace report_embedquestion\output;
-defined('MOODLE_INTERNAL') || die();
+use report_embedquestion\latest_attempt_table;
+use report_embedquestion\attempt_summary_table;
+use html_writer;
 
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Renderable for the Embedded questions progress report for one user at course level.
@@ -32,7 +35,7 @@ defined('MOODLE_INTERNAL') || die();
  * @package   report_embedquestion
  * @copyright 2019 The Open University
  */
-class single_user_course_report implements \renderable, \templatable {
+class single_user_course_report implements \renderable {
 
     /** @var int the id of the course we are showing the report for. */
     protected $courseid;
@@ -42,6 +45,9 @@ class single_user_course_report implements \renderable, \templatable {
 
     /** @var \context the course context. */
     protected $context;
+
+    /** @var int number of rows in the progress report table per page. */
+    protected $pagesize = 10;
 
     /**
      * Constructor.
@@ -66,8 +72,26 @@ class single_user_course_report implements \renderable, \templatable {
 
     }
 
-    public function export_for_template(\renderer_base $output): array {
-        return [
-        ];
+    /**
+     * Display the report.
+     */
+    public function display_content() {
+        $usageid = optional_param('usageid', 0, PARAM_INT);
+        $useinitialsbar = false;
+        if ($usageid > 0) {
+            $table = new attempt_summary_table($this->context, $this->courseid, 0, null, $this->userid, $usageid);
+        } else {
+            $table = new latest_attempt_table($this->context, $this->courseid, 0, null, $this->userid);
+        }
+        $table->setup();
+
+        // Display the attempt summary for a question attempted by a user.
+        if ($usageid > 0) {
+            $attempt = end($table->rawdata);
+            // Diaplay heading content.
+            echo \report_embedquestion\utils::get_heading($this->courseid, $attempt);
+        }
+        // Display the table.
+        $table->out($this->pagesize, $useinitialsbar, '');
     }
 }
