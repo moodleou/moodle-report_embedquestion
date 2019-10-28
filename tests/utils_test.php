@@ -74,16 +74,4 @@ class report_embedquestion_utils_testcase extends advanced_testcase {
         $actual = \report_embedquestion\utils::get_user_link($this->course->id, $user->id, $user->username);
         $this->assertEquals($expected, $actual);
     }
-
-    public function test_get_formatted_date () {
-        $timestamp = time();
-        $datetimeformat = 'd M Y, H:i:s';
-        $date = new \DateTime();
-        $date->setTimestamp($timestamp);
-        $expected = $date->format($datetimeformat);
-        $actual = userdate($timestamp);
-        print_object($actual);
-        $actual = \report_embedquestion\utils::get_formatted_date($timestamp, $datetimeformat);
-        $this->assertEquals($expected, $actual);
-    }
 }

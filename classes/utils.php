@@ -39,12 +39,13 @@ require_once(__DIR__ . '/../../../question/engine/datalib.php');
 class utils
 {
     /**
-     * Return the heading content
+     * Used at the top of the drill-down for a single question. Give more info about the location.
+     *
      * @param int $courseid, the course id
      * @param object $attempt the question attempt object
      * @return string
      */
-    public static function get_heading($courseid, $attempt) {
+    public static function get_embed_location_summary($courseid, $attempt) {
         global $USER;
         $context = html_writer::tag('span', get_string('attemptsummarycontext', 'report_embedquestion',
             \report_embedquestion\utils::get_activity_link($attempt)), ['class' => 'heading-context']);
@@ -59,8 +60,7 @@ class utils
                 'attemptsummaryby', 'report_embedquestion', $userlink), ['class' => 'heading-user']);
         }
         $heading = get_string('attemptsummaryfor', 'report_embedquestion');
-        echo html_writer::tag('div', $heading, ['class' => 'heading']);
-        echo html_writer::tag('div', $questionlink . '|' . $userlink . $context , ['class' => 'headingcontent']);
+        echo html_writer::tag('p', $heading . ' ' . $questionlink . ' | ' . $userlink . ' ' . $context);
     }
 
     /**
@@ -74,7 +74,9 @@ class utils
 
     /**
      * Return the question icon.
-     * @param $qtype the question type string
+     *
+     * @param string $qtype the question type string.
+     * @return string HTML fragment.
      */
     public static function get_question_icon($qtype) {
         global $OUTPUT;
@@ -142,26 +144,13 @@ class utils
     }
 
     /**
-     * Return firmatted date
-     * @param $timestamp the unix timestamp
-     * @param string $datetimeformat the date format default 'd M Y, H:i:s'.
-     * @return string, formatted date, eg. 09 Oct 2019, 12:22:20
-     */
-    public static function get_formatted_date ($timestamp, $datetimeformat = 'd M Y, H:i:s') {
-        $date = new \DateTime();
-        $date->setTimestamp($timestamp);
-        return  $date->format($datetimeformat);
-    }
-
-    /**
      * Return the activity link.
      * @param $attempt
      * @return string
      */
     public static function get_activity_link($attempt) {
         global $CFG;
-        $name = trim(preg_split('/:/', $attempt->pagename)[1]);
-        $url = \html_writer::link($CFG->wwwroot . $attempt->pageurl . '#' . $attempt->embedid , $name);
+        $url = \html_writer::link($CFG->wwwroot . $attempt->pageurl . '#' . $attempt->embedid, $attempt->pagename);
         return $url;
     }
 

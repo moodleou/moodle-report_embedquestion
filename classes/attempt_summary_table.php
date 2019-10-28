@@ -30,7 +30,7 @@ use html_writer;
 use moodle_url;
 use stdClass;
 use table_sql;
-use user_picture;
+
 
 /**
  * Display the report for attempt summary table.
@@ -57,9 +57,14 @@ class attempt_summary_table extends table_sql {
     public $attempts = null;
 
     /**
-     * @var string, the name used an 'id' field for the user which is used by parent class in col_fullname() method.
+     * @var string the name used an 'id' field for the user which is used by parent class in col_fullname() method.
      */
     public $useridfield = 'userid';
+
+    /**
+     * @var array required user fields (e.g. all the name fields and extra profile fields).
+     */
+    public $userfields = 'userid';
 
     /**
      * @var int $tablemaxrows maximum number of rows.
@@ -83,7 +88,7 @@ class attempt_summary_table extends table_sql {
      * @param int $usageid, the questionusage id as an optional param
      */
     public function __construct(\context $context, $courseid, $groupid = 0, \cm_info $cm = null, $userid = 0, $usageid = 0) {
-        global $CFG, $DB;
+        global $CFG;
         parent::__construct('report_embedquestion_attempt_summary');
         $this->context = $context;
         $this->courseid = $courseid;
@@ -91,10 +96,10 @@ class attempt_summary_table extends table_sql {
         $this->cm = $cm;
         $this->userid = $userid;
         $this->usageid = $usageid;
-        $this->userfields = \report_embedquestion\utils::get_user_fields($context);
+        $this->userfields = utils::get_user_fields($context);
 
-        $this->define_headers($this->get_headers($userid, $usageid));
-        $this->define_columns($this->get_columns($userid, $usageid));
+        $this->define_headers($this->get_headers());
+        $this->define_columns($this->get_columns());
 
         $this->collapsible(false);
 
@@ -140,7 +145,7 @@ class attempt_summary_table extends table_sql {
      * @return string HTML content to go inside the td.
      */
     public function col_questionstate($attempt) {
-        return \report_embedquestion\utils::get_icon_for_question_state($attempt->questionstate);
+        return utils::get_icon_for_question_state($attempt->questionstate);
     }
 
     public function col_fraction($attempt) {
@@ -151,11 +156,10 @@ class attempt_summary_table extends table_sql {
     }
 
     protected function col_questionattemptsteptime($row) {
-        global $CFG;
         if ($this->is_downloading()) {
             return $row->questionattemptstepid;
         }
-        return \report_embedquestion\utils::get_attempt_summary_link($row, $this->usageid);
+        return utils::get_attempt_summary_link($row, $this->usageid);
     }
 
     protected function set_sql_data_fields($userfields) {
@@ -196,7 +200,6 @@ class attempt_summary_table extends table_sql {
      * @param $contextid
      */
     protected function generate_query($contextid, $userfields, $usageid = 0) {
-        global $CFG, $DB;
 
         // Set sql data.
         $this->set_sql_data_fields($userfields);
@@ -211,7 +214,6 @@ class attempt_summary_table extends table_sql {
         // Report is called from course->report.
         if ($this->cm === null) {
             $coursecontextid = $this->context->id;
-            $cotextlevel = CONTEXT_COURSE;
             $this->sqldata->from[] = 'JOIN {context} cxt ON cxt.id = r.contextid';
             if ($usageid === 0) {
                 $this->sqldata->where[] = " OR cxt.path LIKE '%/$coursecontextid/%'";

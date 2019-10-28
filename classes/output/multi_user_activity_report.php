@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
  * @package   report_embedquestion
  * @copyright 2019 The Open University
  */
-class multi_user_activity_report implements \renderable {
+class multi_user_activity_report {
 
     /** @var \stdClass the course containing the activity we are showing the report for. */
     protected $course;

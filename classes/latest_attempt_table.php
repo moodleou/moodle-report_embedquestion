@@ -26,11 +26,11 @@ namespace report_embedquestion;
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/tablelib.php');
 
-use html_writer;
 use moodle_url;
 use stdClass;
 use table_sql;
 use user_picture;
+
 
 /**
  * Display the report for latest attempt table.
@@ -56,15 +56,14 @@ class latest_attempt_table extends table_sql {
     protected $attempts = null;
 
     /**
-     * @var int $tablemaxrows maximum number of rows.
-     */
-    protected $tablemaxrows = 10000;
-
-    /**
      * @var string, the name used an 'id' field for the user which is used by parent class in col_fullname() method.
      */
     public $useridfield = 'userid';
 
+    /**
+     * @var array required user fields (e.g. all the name fields and extra profile fields).
+     */
+    public $userfields = 'userid';
 
     protected $courseid = 0;
     protected $cm = null;
@@ -83,18 +82,18 @@ class latest_attempt_table extends table_sql {
      * @param int $usageid, the questionusage id as an optional param
      */
     public function __construct(\context $context, $courseid, $groupid = 0, \cm_info $cm = null, $userid = 0) {
-        global $CFG, $DB;
+        global $CFG;
         parent::__construct('report_embedquestion_latest_attempt');
         $this->context = $context;
         $this->courseid = $courseid;
         $this->groupid = $groupid;
         $this->cm = $cm;
         $this->userid = $userid;
-        $this->userfields = \report_embedquestion\utils::get_user_fields($context);
+        $this->userfields = utils::get_user_fields($context);
         $this->generate_query($this->context->id, $this->userfields);
 
-        $this->define_headers($this->get_headers($userid));
-        $this->define_columns($this->get_columns($userid));
+        $this->define_headers($this->get_headers());
+        $this->define_columns($this->get_columns());
         $this->collapsible(false);
 
         // Set base url.
@@ -168,19 +167,17 @@ class latest_attempt_table extends table_sql {
     }
 
     protected function col_questiontype($row) {
-        global $CFG;
         if ($this->is_downloading()) {
             return get_string('pluginname', 'qtype_' . $row->questiontype);
         }
-        return \report_embedquestion\utils::get_question_icon($row->questiontype);
+        return utils::get_question_icon($row->questiontype);
     }
 
     protected function col_questionname($row) {
-        global $CFG;
         if ($this->is_downloading()) {
             return $row->questionname;
         }
-        return \report_embedquestion\utils::get_question_link($this->courseid, $row->questionid, null, $row->questionname);
+        return utils::get_question_link($this->courseid, $row->questionid, null, $row->questionname);
     }
 
     /**
@@ -189,11 +186,10 @@ class latest_attempt_table extends table_sql {
      * @return string HTML content to go inside the td.
      */
     protected function col_questionstate($attempt) {
-        return \report_embedquestion\utils::get_icon_for_question_state($attempt->questionstate);
+        return utils::get_icon_for_question_state($attempt->questionstate);
     }
 
     protected function col_embedid($row) {
-        global $CFG;
         if ($this->is_downloading()) {
             return $row->embedid;
         }
@@ -201,19 +197,17 @@ class latest_attempt_table extends table_sql {
     }
 
     protected function col_pagename($row) {
-        global $CFG;
         if ($this->is_downloading()) {
             return $row->pagename;
         }
-        return \report_embedquestion\utils::get_activity_link($row, $this->courseid, $this->cm);
+        return utils::get_activity_link($row);
     }
 
     protected function col_questionattemptstepid($row) {
-        global $CFG;
         if ($this->is_downloading()) {
             return $row->questionattemptstepid;
         }
-        return \report_embedquestion\utils::get_attempt_summary_link($row, $this->usageid);
+        return utils::get_attempt_summary_link($row, $this->usageid);
     }
 
     protected function set_sql_data_fields($userfields) {
@@ -251,13 +245,14 @@ class latest_attempt_table extends table_sql {
         $this->sqldata->from[] = 'JOIN {question_attempt_steps} qas ON (qa.id = qas.questionattemptid AND qas.sequencenumber <> 0)';
     }
 
-        /**
+    /**
      * Generate the intermediate SQL data structure to retrieve the information required.
      *
-     * @param $contextid
+     * @param int $contextid
+     * @param array $userfields required user fields.
+     * @parame int $usageid if set, show only attempts from this usage.
      */
     protected function generate_query($contextid, $userfields, $usageid = 0) {
-        global $CFG, $DB;
         // Set the sql data.
         $this->set_sql_data_fields($userfields);
         $this->set_sql_data_from();

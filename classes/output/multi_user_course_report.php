@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
  * @package   report_embedquestion
  * @copyright 2019 The Open University
  */
-class multi_user_course_report implements \renderable {
+class multi_user_course_report {
 
     /** @var int the id of the course we are showing the report for. */
     protected $courseid;
@@ -78,6 +78,6 @@ class multi_user_course_report implements \renderable {
     public function display_content() {
         $table = new latest_attempt_table($this->context, $this->courseid, $this->groupid);
         $table->setup();
-        $table->out($this->pagesize,true,null);
+        $table->out($this->pagesize, true, null);
     }
 }

@@ -35,7 +35,7 @@ defined('MOODLE_INTERNAL') || die();
  * @package   report_embedquestion
  * @copyright 2019 The Open University
  */
-class single_user_course_report implements \renderable {
+class single_user_course_report {
 
     /** @var int the id of the course we are showing the report for. */
     protected $courseid;
@@ -89,7 +89,7 @@ class single_user_course_report implements \renderable {
         if ($usageid > 0) {
             $attempt = end($table->rawdata);
             // Diaplay heading content.
-            echo \report_embedquestion\utils::get_heading($this->courseid, $attempt);
+            echo \report_embedquestion\utils::get_embed_location_summary($this->courseid, $attempt);
         }
         // Display the table.
         $table->out($this->pagesize, $useinitialsbar, '');
