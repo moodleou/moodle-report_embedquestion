@@ -152,7 +152,7 @@ class attempt_summary_table extends table_sql {
         if ($attempt->questionstate === 'todo') {
             return null;
         }
-        return $attempt->fraction . '/' . $attempt->maxmark;
+        return utils::get_grade($this->courseid, $attempt->fraction, $attempt->maxmark);
     }
 
     protected function col_questionattemptsteptime($row) {
