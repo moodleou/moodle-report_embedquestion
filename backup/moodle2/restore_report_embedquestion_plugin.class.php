@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
  * Restore step for report_embedquestion.
  */
 class restore_report_embedquestion_plugin extends restore_report_plugin {
-    use restore_questions_activity_data_trait;
+    use restore_questions_attempt_data_trait;
 
     /**
      * @var stdClass data can only be inserted after the question attept

@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
  * Backup task for report_embedquestion.
  */
 class backup_report_embedquestion_plugin extends backup_report_plugin {
-    use backup_questions_activity_data_trait;
+    use backup_questions_attempt_data_trait;
 
     /**
      * Is there any data to backup here?
