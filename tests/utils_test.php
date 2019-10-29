@@ -59,7 +59,7 @@ class report_embedquestion_utils_testcase extends advanced_testcase {
         $attempt->pageurl = '/mod/page/view.php?id=' . $page1->id;
         $attempt->embedid = $catid . '/' . $question->idnumber;
         $embedid = $attempt->embedid;
-        $expected = "<a href=\"https://www.example.com/moodle/mod/page/view.php?id=$cmid#$embedid\">Page 1</a>";
+        $expected = "<a href=\"https://www.example.com/moodle/mod/page/view.php?id=$cmid#$embedid\">$attempt->pagename</a>";
         $actual = \report_embedquestion\utils::get_activity_link($attempt);
         $this->assertEquals($expected, $actual);
     }
@@ -73,5 +73,17 @@ class report_embedquestion_utils_testcase extends advanced_testcase {
         $expected = "<a href=\"https://www.example.com/moodle/user/view.php?id=$userid&amp;course=$courseid\">$username</a>";
         $actual = \report_embedquestion\utils::get_user_link($this->course->id, $user->id, $user->username);
         $this->assertEquals($expected, $actual);
+    }
+
+    public function test_get_grade() {
+        global $CFG;
+        $courseid = $this->course->id;
+        $fraction = 0.6666667;
+        $amaxmark = 1.0000000;
+        $decimalpoints = grade_get_setting($courseid, 'decimalpoints', $CFG->grade_decimalpoints);
+        if ($decimalpoints == 2) { // Default decimal point
+            $actual = utils::get_grade($courseid, $fraction, $amaxmark);
+            $this->assertEquals('0.67/1.00', $actual);
+        }
     }
 }

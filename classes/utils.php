@@ -186,4 +186,19 @@ class utils
         }
         return $url;
     }
+
+    /**
+     * Return formatted grade base on greade_decimalpoints setting.
+     * @param int $courseid
+     * @param float $fraction
+     * @param float $amaxmark
+     * @return string
+     */
+    public static function get_grade($courseid, $fraction, $amaxmark) {
+        global $CFG;
+        $decimalpoints = grade_get_setting($courseid, 'decimalpoints', $CFG->grade_decimalpoints);
+        $grade = format_float($fraction, $decimalpoints);
+        $maxgrade = format_float($amaxmark, $decimalpoints);
+        return $grade . '/' . $maxgrade;
+    }
 }
