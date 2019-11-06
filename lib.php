@@ -73,3 +73,27 @@ function report_embedquestion_page_type_list(string $pagetype, context $parentco
         'report-embedquestion-index'    => get_string('page-report-embedquestion-index', 'report_embedquestion'),
     ];
 }
+
+/**
+ * Called via pluginfile.php -> question_pluginfile to serve files belonging to
+ * a question in a question_attempt when that attempt an embedded question.
+ *
+ * @category files
+ * @param stdClass $givencourse course settings object
+ * @param stdClass $context context object
+ * @param string $component the name of the component we are serving files for.
+ * @param string $filearea the name of the file area.
+ * @param int $qubaid the question_usage this image belongs to.
+ * @param int $slot the relevant slot within the usage.
+ * @param array $args the remaining bits of the file path.
+ * @param bool $forcedownload whether the user must be forced to download the file.
+ * @param array $fileoptions additional options affecting the file serving
+ */
+function report_embedquestion_question_pluginfile($givencourse, $context, $component,
+        $filearea, $qubaid, $slot, $args, $forcedownload, $fileoptions) {
+    global $CFG;
+
+    require_once($CFG->dirroot . '/filter/embedquestion/lib.php');
+    filter_embedquestion_question_pluginfile($givencourse, $context, $component,
+            $filearea, $qubaid, $slot, $args, $forcedownload, $fileoptions);
+}
