@@ -56,6 +56,9 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
 
     protected function setUp() {
         parent::setUp();
+        if (!trait_exists('backup_questions_attempt_data_trait')) {
+            $this->markTestSkipped('Backup for this plugin only work in Moodle 3.8 or later.');
+        }
         $this->generator = $this->getDataGenerator();
         $this->attemptgenerator = $this->generator->get_plugin_generator('filter_embedquestion');
     }
