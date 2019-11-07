@@ -81,7 +81,7 @@ class single_user_course_report {
         if ($usageid > 0) {
             $table = new attempt_summary_table($this->context, $this->courseid, 0, null, $this->userid, $usageid);
         } else {
-            $table = new latest_attempt_table($this->context, $this->courseid, 0, null, $this->userid);
+            $table = new latest_attempt_table($this->context, $this->courseid, 0, null, $this->userid, true);
         }
         $table->setup();
 
