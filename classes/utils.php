@@ -69,7 +69,7 @@ class utils
      * @return array
      */
     public static function get_user_fields($context) {
-        return array_merge(get_all_user_name_fields(), get_extra_user_fields($context));
+        return array_unique(array_merge(['username'], get_all_user_name_fields(), get_extra_user_fields($context)));
     }
 
     /**
