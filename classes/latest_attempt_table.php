@@ -82,7 +82,8 @@ class latest_attempt_table extends table_sql {
      * @param int $usageid, the questionusage id as an optional param
      * @param bool $showuserinfo
      */
-    public function __construct(\context $context, $courseid, $groupid = 0, \cm_info $cm = null, $userid = 0, $showuserinfo = false) {
+    public function __construct(\context $context, $courseid, $groupid = 0,
+            \cm_info $cm = null, $userid = 0, $showuserinfo = false) {
         global $CFG;
         parent::__construct('report_embedquestion_latest_attempt');
         $this->context = $context;
@@ -241,11 +242,12 @@ class latest_attempt_table extends table_sql {
     protected function set_sql_data_from() {
         $this->sqldata->from[] = '{report_embedquestion_attempt} r';
         $this->sqldata->from[] = 'JOIN {user} u ON u.id = r.userid';
-        $this->sqldata->from[] = 'JOIN {question_usages} qu ON (qu.id = r.questionusageid AND qu.component = \'report_embedquestion\')';
+        $this->sqldata->from[] = "JOIN {question_usages} qu ON " .
+                "(qu.id = r.questionusageid AND qu.component = 'report_embedquestion')";
 
         // Select latest question attempt steps.
-        $this->sqldata->from[] = 'JOIN {question_attempts} qa ON (qa.questionusageid = r.questionusageid AND qa.slot = 
-                (SELECT MAX(slot) FROM {question_attempts} WHERE questionusageid = qu.id))';
+        $this->sqldata->from[] = 'JOIN {question_attempts} qa ON (qa.questionusageid = r.questionusageid ' .
+                'AND qa.slot = (SELECT MAX(slot) FROM {question_attempts} WHERE questionusageid = qu.id))';
         $this->sqldata->from[] = 'JOIN {question} q ON (q.id = qa.questionid)';
         $this->sqldata->from[] = 'JOIN {question_attempt_steps} qas ON (qa.id = qas.questionattemptid AND qas.sequencenumber <> 0)';
     }
@@ -271,7 +273,7 @@ class latest_attempt_table extends table_sql {
             $this->sqldata->from[] = 'JOIN {context} cxt ON cxt.id = r.contextid';
             $this->sqldata->where[] = " OR cxt.path LIKE '%/$coursecontextid/%'";
         }
-        // Single user report
+        // Single user report.
         if ($this->userid > 0) {
             $this->sqldata->where[]  = ' AND r.userid = :userid';
             $this->sqldata->params['userid'] = $this->userid;

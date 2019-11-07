@@ -106,9 +106,11 @@ class attempt_summary_table extends table_sql {
         $this->generate_query($this->context->id, $this->userfields, $usageid);
 
         if ($cm) {
-            $url = new moodle_url($CFG->wwwroot . '/report/embedquestion/activity.php', ['cmid' => $cm->id, 'usageid' => $usageid]);
+            $url = new moodle_url('/report/embedquestion/activity.php',
+                    ['cmid' => $cm->id, 'usageid' => $usageid]);
         } else {
-            $url = new moodle_url($CFG->wwwroot . '/report/embedquestion/index.php', ['courseid' => $courseid, 'usageid' => $usageid]);
+            $url = new moodle_url('/report/embedquestion/index.php',
+                    ['courseid' => $courseid, 'usageid' => $usageid]);
         }
         $this->define_baseurl($url);
         $this->setup();
@@ -188,7 +190,8 @@ class attempt_summary_table extends table_sql {
     public function set_sql_data_from() {
         $this->sqldata->from[] = '{report_embedquestion_attempt} r';
         $this->sqldata->from[] = 'JOIN {user} u ON u.id = r.userid';
-        $this->sqldata->from[] = 'JOIN {question_usages} qu ON (qu.id = r.questionusageid AND qu.component = \'report_embedquestion\')';
+        $this->sqldata->from[] = 'JOIN {question_usages} qu ON (qu.id = r.questionusageid ' .
+                'AND qu.component = \'report_embedquestion\')';
         $this->sqldata->from[] = "JOIN {question_attempts} qa ON (qa.questionusageid = :usageid)";
         $this->sqldata->from[] = 'JOIN {question} q ON (q.id = qa.questionid)';
         $this->sqldata->from[] = 'JOIN {question_attempt_steps} qas ON (qa.id = qas.questionattemptid)';
@@ -219,7 +222,7 @@ class attempt_summary_table extends table_sql {
                 $this->sqldata->where[] = " OR cxt.path LIKE '%/$coursecontextid/%'";
             }
         }
-        // Single user report
+        // Single user report.
         if ($this->userid > 0) {
             $this->sqldata->where[]  = ' AND r.userid = :userid';
             $this->sqldata->params['userid'] = $this->userid;

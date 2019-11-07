@@ -81,7 +81,7 @@ class report_embedquestion_utils_testcase extends advanced_testcase {
         $fraction = 0.6666667;
         $amaxmark = 1.0000000;
         $decimalpoints = grade_get_setting($courseid, 'decimalpoints', $CFG->grade_decimalpoints);
-        if ($decimalpoints == 2) { // Default decimal point
+        if ($decimalpoints == 2) { // Default decimal point.
             $actual = utils::get_grade($courseid, $fraction, $amaxmark);
             $this->assertEquals('0.67/1.00', $actual);
         }

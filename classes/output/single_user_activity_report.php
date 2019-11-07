@@ -25,8 +25,6 @@
 namespace report_embedquestion\output;
 use report_embedquestion\latest_attempt_table;
 use report_embedquestion\attempt_summary_table;
-//use report_embedquestion\utils;
-use html_writer;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -97,7 +95,7 @@ class single_user_activity_report {
         if ($usageid > 0) {
             $attempt = end($table->rawdata);
             // Diaplay heading content.
-            echo \report_embedquestion\utils::get_embed_location_summary($this->course->id, $attempt, $this->cm);
+            echo \report_embedquestion\utils::get_embed_location_summary($this->course->id, $attempt);
         }
         // Display the table.
         $table->out($this->pagesize, $useinitialsbar, null);

@@ -40,14 +40,12 @@ Feature: Teachers can see their students progress on embedded questions.
       | pagename        | question    | response |
       | Course:Course 1 | embed/test1 | True     |
 
-  @javascript
   Scenario: A teacher can see their students progress in a course
     When I log in as "teacher"
     And I am on "Course 1" course homepage
     Then I navigate to "Reports > Embedded questions progress" in current page administration
     And I should see "Embedded question progress for Course 1"
 
-  @javascript
   Scenario: A teacher can see their students progress in an activity
     When I log in as "teacher"
     When I am on "Course 1" course homepage

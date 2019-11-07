@@ -48,16 +48,17 @@ class utils
     public static function get_embed_location_summary($courseid, $attempt) {
         global $USER;
         $context = html_writer::tag('span', get_string('attemptsummarycontext', 'report_embedquestion',
-            \report_embedquestion\utils::get_activity_link($attempt)), ['class' => 'heading-context']);
-        $questionlink = \report_embedquestion\utils::get_question_link($courseid, $attempt->questionid, $attempt->questiontype, $attempt->questionname);
+                self::get_activity_link($attempt)), ['class' => 'heading-context']);
+        $questionlink = self::get_question_link($courseid, $attempt->questionid,
+                $attempt->questiontype, $attempt->questionname);
         $questionlink = html_writer::tag('span', $questionlink, ['class' => 'heading-question']);
 
         // Print users link when the viewer is not the current user.
         $userlink = '';
         if ($USER->id !== $attempt->userid) {
-            $userlink = \report_embedquestion\utils::get_user_link($courseid, $attempt->userid, $attempt->firstname . ' ' . $attempt->lastname);
+            $userlink = self::get_user_link($courseid, $attempt->userid, fullname($attempt));
             $userlink = html_writer::tag('span', get_string(
-                'attemptsummaryby', 'report_embedquestion', $userlink), ['class' => 'heading-user']);
+                    'attemptsummaryby', 'report_embedquestion', $userlink), ['class' => 'heading-user']);
         }
         $heading = get_string('attemptsummaryfor', 'report_embedquestion');
         echo html_writer::tag('p', $heading . ' ' . $questionlink . ' | ' . $userlink . ' ' . $context);
@@ -80,8 +81,7 @@ class utils
      */
     public static function get_question_icon($qtype) {
         global $OUTPUT;
-        $alt =  get_string('pluginname', 'qtype_' . $qtype);
-        return $OUTPUT->pix_icon('icon', $alt, 'qtype_' . $qtype);
+        return $OUTPUT->pix_icon('icon', get_string('pluginname', 'qtype_' . $qtype), 'qtype_' . $qtype);
     }
 
     /**
@@ -112,7 +112,7 @@ class utils
         }
         $icon = null;
         if ($qtype) {
-            $icon =  self::get_question_icon($qtype);
+            $icon = self::get_question_icon($qtype);
         }
         return html_writer::tag('span', $icon . $questionname . $previewlink, []);
     }
