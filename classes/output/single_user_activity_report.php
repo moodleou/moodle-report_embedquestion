@@ -89,7 +89,7 @@ class single_user_activity_report {
         if ($usageid > 0) {
             $table = new attempt_summary_table($this->context, $this->course->id, 0, $this->cm, $this->userid, $usageid);
         } else {
-            $table = new latest_attempt_table($this->context, $this->course->id, 0, $this->cm, $this->userid);
+            $table = new latest_attempt_table($this->context, $this->course->id, 0, $this->cm, $this->userid, true);
         }
         $table->setup();
 

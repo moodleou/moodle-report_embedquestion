@@ -80,8 +80,9 @@ class latest_attempt_table extends table_sql {
      * @param \cm_info|null $cm, the course-module object
      * @param int $userid, the userid as an optional param
      * @param int $usageid, the questionusage id as an optional param
+     * @param bool $showuserinfo
      */
-    public function __construct(\context $context, $courseid, $groupid = 0, \cm_info $cm = null, $userid = 0) {
+    public function __construct(\context $context, $courseid, $groupid = 0, \cm_info $cm = null, $userid = 0, $showuserinfo = false) {
         global $CFG;
         parent::__construct('report_embedquestion_latest_attempt');
         $this->context = $context;
@@ -92,8 +93,8 @@ class latest_attempt_table extends table_sql {
         $this->userfields = utils::get_user_fields($context);
         $this->generate_query($this->context->id, $this->userfields);
 
-        $this->define_headers($this->get_headers());
-        $this->define_columns($this->get_columns());
+        $this->define_headers($this->get_headers($showuserinfo));
+        $this->define_columns($this->get_columns($showuserinfo));
         $this->collapsible(false);
 
         // Set base url.
@@ -109,15 +110,17 @@ class latest_attempt_table extends table_sql {
      * Return an array of the headers
      * @return array
      */
-    private function get_headers() {
+    private function get_headers($showuserinfo = false) {
         $headers = [];
-        $headers[] = '';// User's picture or place holder.
-        $headers[] = get_string('fullname');
-        $headers[] = get_string('username');
+        if ($showuserinfo === false) {
+            $headers[] = '';// User's picture or place holder.
+            $headers[] = get_string('fullname');
+            $headers[] = get_string('username');
+        }
         $headers[] = get_string('type', 'report_embedquestion');
         $headers[] = get_string('question');
         $headers[] = get_string('status');
-        $headers[] = get_string('context', 'report_embedquestion');
+        $headers[] = get_string('location');
         $headers[] = get_string('attemptfinal', 'report_embedquestion');
         return $headers;
     }
@@ -126,11 +129,13 @@ class latest_attempt_table extends table_sql {
      * Return an array of columns.
      * @return array
      */
-    private function get_columns() {
+    private function get_columns($showuserinfo = false) {
         $columns = [];
-        $columns[] = 'picture';
-        $columns[] = 'fullname';
-        $columns[] = 'username';
+        if ($showuserinfo === false) {
+            $columns[] = 'picture';
+            $columns[] = 'fullname';
+            $columns[] = 'username';
+        }
         $columns[] = 'questiontype';
         $columns[] = 'questionname';
         $columns[] = 'questionstate';
