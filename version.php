@@ -28,7 +28,7 @@ $plugin->version   = 2019091601;
 $plugin->requires  = 2018120300;
 $plugin->component = 'report_embedquestion';
 $plugin->maturity  = MATURITY_BETA;
-$plugin->release   = '0.9 for Moodle 3.6+';
+$plugin->release   = '0.9.1 for Moodle 3.6+';
 
 $plugin->dependencies = ['filter_embedquestion' => 2019091600];
 
