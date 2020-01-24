@@ -31,6 +31,7 @@ use \report_embedquestion\event\course_report_viewed,
 $courseid = required_param('courseid', PARAM_INT);
 $groupid = optional_param('groupid', 0, PARAM_INT);
 $userid = optional_param('userid', 0, PARAM_INT);
+$download = optional_param('download', null, PARAM_RAW);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
@@ -66,12 +67,15 @@ if ($userid) {
 } else {
     $report = new multi_user_course_report($courseid, $groupid, $context);
 }
-
 // Display the report.
-$title = $report->get_title();
-$PAGE->set_title($title);
-$PAGE->set_heading($title);
-echo $OUTPUT->header();
-echo $OUTPUT->heading($title);
-$report->display_content();
-echo $OUTPUT->footer();
+if (!$download) {
+    $title = $report->get_title();
+    $PAGE->set_title($title);
+    $PAGE->set_heading($title);
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading($title);
+    $report->display_download_content();
+    echo $OUTPUT->footer();
+} else {
+    $report->display_download_content($download);
+}

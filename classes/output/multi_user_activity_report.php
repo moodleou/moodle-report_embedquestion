@@ -80,11 +80,26 @@ class multi_user_activity_report {
     }
 
     /**
-     * Display the report.
+     * Display or download the report.
+     * @param string|null $download
      */
-    public function display_content() {
-        $table = new latest_attempt_table($this->context, $this->course->id, $this->groupid, $this->cm);
+    public function display_download_content($download = null) {
+        global $COURSE;
+        list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['cmid' => $this->cm->id], 'activity'));
+        $filename = $COURSE->shortname . '_' . str_replace(' ', '_', $this->get_title());
+        if (!$download) {
+            $table = new latest_attempt_table($this->context, $this->course->id, $this->groupid, $this->cm, $filter);
+            // Display the filter form.
+            echo $filterform;
+            utils::allow_downloadability_for_attempt_table($table, $this->get_title(), $this->context);
+        } else {
+            $table = new latest_attempt_table($this->context, $this->course->id, $this->groupid, $this->cm, $filter, $download);
+            $table->is_downloading($download, $filename);
+            if ($table->is_downloading()) {
+                raise_memory_limit(MEMORY_EXTRA);
+            }
+        }
         $table->setup();
-        $table->out($this->pagesize, true, null);
+        $table->out($this->pagesize, true);
     }
 }

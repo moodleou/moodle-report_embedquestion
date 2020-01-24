@@ -70,10 +70,15 @@ if ($userid) {
 }
 
 // Display the report.
-$title = $report->get_title();
-$PAGE->set_title($title);
-$PAGE->set_heading($title);
-echo $OUTPUT->header();
-echo $OUTPUT->heading($title);
-$report->display_content();
-echo $OUTPUT->footer();
+$download = optional_param('download', null, PARAM_RAW);
+if (!$download) {
+    $title = $report->get_title();
+    $PAGE->set_title($title);
+    $PAGE->set_heading($title);
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading($title);
+    $report->display_download_content();
+    echo $OUTPUT->footer();
+} else {
+    $report->display_download_content($download);
+}

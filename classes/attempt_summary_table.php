@@ -147,7 +147,7 @@ class attempt_summary_table extends table_sql {
      * @return string HTML content to go inside the td.
      */
     public function col_questionstate($attempt) {
-        return utils::get_icon_for_question_state($attempt->questionstate);
+        return utils::get_question_state($attempt->questionstate);
     }
 
     public function col_fraction($attempt) {

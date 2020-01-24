@@ -25,12 +25,11 @@ namespace report_embedquestion;
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/tablelib.php');
-
 use moodle_url;
 use stdClass;
 use table_sql;
 use user_picture;
-
+use html_writer;
 
 /**
  * Display the report for latest attempt table.
@@ -48,7 +47,7 @@ class latest_attempt_table extends table_sql {
     /**
      * @var int $pagesize the default number of rows on a page.
      */
-    protected $perpage = 10;
+    public $perpage = 10;
 
     /**
      * @var object $attempt
@@ -63,27 +62,25 @@ class latest_attempt_table extends table_sql {
     /**
      * @var array required user fields (e.g. all the name fields and extra profile fields).
      */
-    public $userfields = 'userid';
+    public $userfields = null;
 
     protected $courseid = 0;
     protected $cm = null;
     protected $groupid = 0;
     protected $userid = 0;
     protected $context = null;
-    protected $usageid = 0;
 
     /**
-     * progress_table constructor.
+     * latest_attempt_table constructor.
      * @param \context $context, the context object
      * @param int $courseid the id of the current course
      * @param int $groupid, the id of the group in a course
      * @param \cm_info|null $cm, the course-module object
+     * @param object|null $filter the filter object('look-back, datefrom, dateto).
+     * @param string|null $download the string used for file extension
      * @param int $userid, the userid as an optional param
-     * @param int $usageid, the questionusage id as an optional param
-     * @param bool $showuserinfo
      */
-    public function __construct(\context $context, $courseid, $groupid = 0,
-            \cm_info $cm = null, $userid = 0, $showuserinfo = false) {
+    public function __construct(\context $context, $courseid, $groupid = 0, \cm_info $cm = null, $filter = null, $download = null, $userid = 0) {
         global $CFG;
         parent::__construct('report_embedquestion_latest_attempt');
         $this->context = $context;
@@ -92,18 +89,19 @@ class latest_attempt_table extends table_sql {
         $this->cm = $cm;
         $this->userid = $userid;
         $this->userfields = utils::get_user_fields($context);
-        $this->generate_query($this->context->id, $this->userfields);
-
-        $this->define_headers($this->get_headers($showuserinfo));
-        $this->define_columns($this->get_columns($showuserinfo));
-        $this->collapsible(false);
 
         // Set base url.
-        if ($cm) {
-            $url = new moodle_url($CFG->wwwroot . '/report/embedquestion/activity.php', ['cmid' => $cm->id]);
+        if ($cm !== null) {
+            $url = utils::get_url(['cmid' => $cm->id], 'activity');
         } else {
-            $url = new moodle_url($CFG->wwwroot . '/report/embedquestion/index.php', ['courseid' => $courseid]);
+            $url = utils::get_url(['courseid' => $this->courseid]);
         }
+
+        $this->generate_query($this->context->id, $this->userfields, $filter);
+        $this->define_headers($this->get_headers());
+        $this->define_columns($this->get_columns());
+        $this->collapsible(false);
+
         $this->define_baseurl($url);
     }
 
@@ -111,13 +109,11 @@ class latest_attempt_table extends table_sql {
      * Return an array of the headers
      * @return array
      */
-    private function get_headers($showuserinfo = false) {
+    private function get_headers() {
         $headers = [];
-        if ($showuserinfo === false) {
-            $headers[] = '';// User's picture or place holder.
-            $headers[] = get_string('fullname');
-            $headers[] = get_string('username');
-        }
+        $headers[] = '';// User's picture or place holder.
+        $headers[] = get_string('fullname');
+        $headers[] = get_string('username');
         $headers[] = get_string('type', 'report_embedquestion');
         $headers[] = get_string('question');
         $headers[] = get_string('status');
@@ -130,13 +126,11 @@ class latest_attempt_table extends table_sql {
      * Return an array of columns.
      * @return array
      */
-    private function get_columns($showuserinfo = false) {
+    private function get_columns() {
         $columns = [];
-        if ($showuserinfo === false) {
-            $columns[] = 'picture';
-            $columns[] = 'fullname';
-            $columns[] = 'username';
-        }
+        $columns[] = 'picture';
+        $columns[] = 'fullname';
+        $columns[] = 'username';
         $columns[] = 'questiontype';
         $columns[] = 'questionname';
         $columns[] = 'questionstate';
@@ -156,6 +150,9 @@ class latest_attempt_table extends table_sql {
         $additionalfields = explode(',', user_picture::fields());
         $user = username_load_fields_from_object($user, $attempt, null, $additionalfields);
         $user->id = $attempt->userid;
+        if ($this->is_downloading()) {
+            return '';
+        }
         return $OUTPUT->user_picture($user);
     }
 
@@ -166,24 +163,24 @@ class latest_attempt_table extends table_sql {
      */
     public function col_fullname($attempt) {
         $html = parent::col_fullname($attempt);
-        if ($this->is_downloading() || empty($attempt->attempt)) {
-            return $html;
+        if ($this->is_downloading() || empty($attempt)) {
+            return strip_tags($html);
         }
         return $html;
     }
 
-    protected function col_questiontype($row) {
+    protected function col_questiontype($attempt) {
         if ($this->is_downloading()) {
-            return get_string('pluginname', 'qtype_' . $row->questiontype);
+            return $attempt->questiontype;
         }
-        return utils::get_question_icon($row->questiontype);
+        return utils::get_question_icon($attempt->questiontype);
     }
 
-    protected function col_questionname($row) {
+    protected function col_questionname($attempt) {
         if ($this->is_downloading()) {
-            return $row->questionname;
+            return $attempt->questionname;
         }
-        return utils::get_question_link($this->courseid, $row->questionid, null, $row->questionname);
+        return utils::get_question_link($this->courseid, $attempt->questionid, null, $attempt->questionname);
     }
 
     /**
@@ -192,36 +189,45 @@ class latest_attempt_table extends table_sql {
      * @return string HTML content to go inside the td.
      */
     protected function col_questionstate($attempt) {
-        return utils::get_icon_for_question_state($attempt->questionstate);
+        if ($this->is_downloading()) {
+            return strip_tags(utils::get_question_state($attempt->questionstate));
+        }
+        return utils::get_question_state($attempt->questionstate);
     }
 
-    protected function col_embedid($row) {
+    protected function col_embedid($attempt) {
         if ($this->is_downloading()) {
-            return $row->embedid;
+            return $attempt->embedid;
         }
-        return $row->embedid;
+        return $attempt->embedid;
     }
 
-    protected function col_pagename($row) {
+    protected function col_pagename($attempt) {
         if ($this->is_downloading()) {
-            return $row->pagename;
+            return $attempt->pagename;
         }
-        return utils::get_activity_link($row);
+        return utils::get_activity_link($attempt);
     }
 
-    protected function col_questionattemptstepid($row) {
+    protected function col_questionattemptstepid($attempt) {
         if ($this->is_downloading()) {
-            return $row->questionattemptstepid;
+            return userdate($attempt->questionattemptsteptime);
         }
-        return utils::get_attempt_summary_link($row, $this->usageid);
+        return utils::get_attempt_summary_link($attempt);
     }
 
     protected function set_sql_data_fields($userfields) {
         // Define the default fields.
         $this->sqldata->fields[] = 'qas.id              AS questionattemptstepid';
         $this->sqldata->fields[] = 'qas.timecreated     AS questionattemptsteptime';
-        foreach ($userfields as $field) {
-            $this->sqldata->fields[] = "u.$field        AS $field";
+        if ($userfields) {
+            foreach ($userfields as $field) {
+                $this->sqldata->fields[] = "u.$field        AS $field";
+            }
+        } else {
+            $this->sqldata->fields[] = 'u.username      AS username';
+            $this->sqldata->fields[] = 'u.firstname     AS firstname';
+            $this->sqldata->fields[] = 'u.lastname      AS lastname';
         }
         $this->sqldata->fields[] = 'u.id                AS userid';
         $this->sqldata->fields[] = 'q.qtype             AS questiontype';
@@ -257,9 +263,9 @@ class latest_attempt_table extends table_sql {
      *
      * @param int $contextid
      * @param array $userfields required user fields.
-     * @parame int $usageid if set, show only attempts from this usage.
+     * @param object|null $filter the filter object('look-back, datefrom, dateto).
      */
-    protected function generate_query($contextid, $userfields, $usageid = 0) {
+    protected function generate_query($contextid, $userfields, $filter = null) {
         // Set the sql data.
         $this->set_sql_data_fields($userfields);
         $this->set_sql_data_from();
@@ -277,6 +283,25 @@ class latest_attempt_table extends table_sql {
         if ($this->userid > 0) {
             $this->sqldata->where[]  = ' AND r.userid = :userid';
             $this->sqldata->params['userid'] = $this->userid;
+        }
+
+        // Filter data.
+        if ($filter && $filter->lookback > 0) { // Look back.
+            $this->sqldata->where[]  = ' AND qas.timecreated > :lookback';
+            $this->sqldata->params['lookback'] = time() - $filter->lookback;
+
+        } else if ($filter && $filter->datefrom > 0 && $filter->dateto > 0) { // From - To.
+            $this->sqldata->where[]  = ' AND (qas.timecreated > :datefrom AND qas.timecreated < :dateto)';
+            $this->sqldata->params['datefrom'] = $filter->datefrom;
+            $this->sqldata->params['dateto'] = $filter->dateto;
+
+        } else if ($filter && $filter->datefrom > 0) { // From.
+            $this->sqldata->where[]  = ' AND qas.timecreated > :datefrom';
+            $this->sqldata->params['datefrom'] = $filter->datefrom;
+
+        } else if ($filter && $filter->dateto > 0) { // To.
+            $this->sqldata->where[]  = ' AND qas.timecreated < :dateto';
+            $this->sqldata->params['dateto'] = $filter->dateto;
         }
 
         $this->sql = new stdClass();

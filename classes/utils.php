@@ -28,7 +28,6 @@ use moodle_url;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
-require_once(__DIR__ . '/../../../question/engine/datalib.php');
 
 /**
  * Helper functions for report_embedquestion.
@@ -119,12 +118,11 @@ class utils
 
     /**
      * Return an appropriate icon (green tick, red cross, etc.) for a grade.
-     * @param float $fraction grade on a scale 0..1.
+     * @param string $state the string such as 'gradedright', 'gradedwrong', 'gradedpartial'.
      * @return string html fragment.
      */
-    public static function get_icon_for_question_state(string $state) {
+    public static function get_question_state(string $state) {
         global $OUTPUT;
-
         $icon = 'i/grade_';
         if ($state === 'gradedright') {
             $correctness = 'correct';
@@ -139,8 +137,7 @@ class utils
         if ($correctness === null) {
             return \question_state::get($state)->default_string(true);
         }
-        return $OUTPUT->pix_icon('i/grade_' . $correctness,
-            get_string($correctness, 'question'), 'moodle', array('class' => 'icon'));
+        return html_writer::tag('span', get_string($correctness, 'question'), ['class' => "que correctness.$correctness"]);
     }
 
     /**
@@ -160,7 +157,7 @@ class utils
      * @param int $usageid, the question usageid
      * @return string
      */
-    public static function get_attempt_summary_link($attempt, $usageid) {
+    public static function get_attempt_summary_link($attempt, $usageid = 0) {
         global $CFG;
         $id = explode('=', $attempt->pageurl)[1];
         if (explode(':', $attempt->pagename)[0] === 'Course') {
@@ -182,7 +179,7 @@ class utils
 
         $url = \html_writer::link($url . $paramstring,  $formatteddate);
         if ($usageid > 0) {
-            return  $formatteddate;
+            return $formatteddate;
         }
         return $url;
     }
@@ -200,5 +197,52 @@ class utils
         $grade = format_float($fraction * $maxmark, $decimalpoints);
         $maxgrade = format_float($maxmark, $decimalpoints);
         return $grade . '/' . $maxgrade;
+    }
+
+    /**
+     * Display dataformt selector's form for latest_attempt_table to be downloadable,
+     * so that users who can view this report are able to download the latest attempt table.
+     * @param $table, the table object
+     * @param $title, the report title
+     * @param $context, the report context object
+     *
+     */
+    public static function allow_downloadability_for_attempt_table ($table, $title, $context) {
+        if (!has_capability('report/embedquestion:viewallprogress', $context)) {
+            return null;
+        }
+        $download = optional_param('download', '', PARAM_ALPHA);
+        $table->is_downloading($download);
+    }
+
+    /**
+     * Retun a moodle_url.
+     * @param array|null $params
+     * @param string $type php file name without extension ('index', 'activity')
+     * @return moodle_url
+     * @throws \moodle_exception
+     */
+    public static function get_url($params, $type = 'index') {
+        global $CFG;
+        return new moodle_url($CFG->wwwroot . "/report/embedquestion/$type.php", $params);
+    }
+
+    /**
+     * Return the rendered form and data for fltering.
+     * @param $url
+     * @return array
+     */
+    public static function get_filter_data($url) {
+        $mform = new \report_embedquestion\form\filter($url, ['url' => $url]);
+
+        // Default data.
+        $defaultdata = new stdClass();
+        $defaultdata->lookback = 0;
+        $defaultdata->datefrom = 0;
+        $defaultdata->dateto = 0;
+
+        // Check if we have a form submission.
+        $data = $mform->is_submitted() ? $mform->get_data() : $defaultdata;
+        return [$mform->render(), $data];
     }
 }
