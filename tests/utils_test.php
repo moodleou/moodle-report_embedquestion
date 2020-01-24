@@ -43,6 +43,7 @@ class report_embedquestion_utils_testcase extends advanced_testcase {
         $this->resetAfterTest();
         $this->generator = $this->getDataGenerator();
         $this->course = $this->generator->create_course();
+        $this->forumgenerator = $this->generator->get_plugin_generator('mod_forum');
         $this->attemptgenerator = $this->generator->get_plugin_generator('filter_embedquestion');
     }
 
@@ -85,5 +86,31 @@ class report_embedquestion_utils_testcase extends advanced_testcase {
             $actual = utils::get_grade($courseid, $fraction, $amaxmark);
             $this->assertEquals('0.67/1.00', $actual);
         }
+    }
+
+    public function test_get_url() {
+        global $CFG;
+        $params = ['courseid' => $this->course->id];
+        $expected = new moodle_url($CFG->wwwroot . "/report/embedquestion/index.php", $params);
+        $actual = utils::get_url($params);
+        $this->assertEquals($expected, $actual);
+
+        $forum1 = $this->forumgenerator->create_instance(['course' => $this->course]);
+        $params = ['cmid' => $forum1->id];
+        $expected = new moodle_url($CFG->wwwroot . "/report/embedquestion/activity.php", $params);
+        $actual = utils::get_url($params, 'activity');
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function test_get_filter_data() {
+        global $CFG;
+        $axpected = new stdClass();
+        $axpected->lookback = 0;
+        $axpected->datefrom = 0;
+        $axpected->dateto = 0;
+
+        list($notused, $actual) = utils::get_filter_data(new moodle_url($CFG->wwwroot . "/report/embedquestion/index.php",
+                ['courseid' => $this->course->id]));
+        $this->assertEquals($axpected, $actual);
     }
 }

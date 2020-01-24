@@ -81,13 +81,13 @@ class single_user_activity_report {
      * Display the report.
      * @throws \coding_exception
      */
-    public function display_content() {
+    public function display_download_content() {
         $usageid = optional_param('usageid', 0, PARAM_INT);
         $useinitialsbar = false;
         if ($usageid > 0) {
             $table = new attempt_summary_table($this->context, $this->course->id, 0, $this->cm, $this->userid, $usageid);
         } else {
-            $table = new latest_attempt_table($this->context, $this->course->id, 0, $this->cm, $this->userid, true);
+            $table = new latest_attempt_table($this->context, $this->course->id, 0, $this->cm, null, null, $this->userid);
         }
         $table->setup();
 
