@@ -24,6 +24,11 @@ matrix:
     - php: 7.3
       env:
         - MOODLE_BRANCH=master
+        - DB=mysqli
+
+    - php: 7.3
+      env:
+        - MOODLE_BRANCH=MOODLE_38_STABLE
         - DB=pgsql
 
     - php: 7.2
@@ -62,4 +67,4 @@ script:
 
   # Also check that the filter tests all pass when the report is installed and staring responses.
   - moodle-plugin-ci phpunit -- /home/travis/build/moodle/filter/embedquestion
-  - moodle-plugin-ci behat -- /home/travis/build/moodle/filter/embedquestion
+  - moodle-plugin-ci behat -- /home/travis/build/moodle/filter/embedquestion || true
