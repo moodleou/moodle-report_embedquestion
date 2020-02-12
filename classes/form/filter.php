@@ -75,14 +75,8 @@ class filter extends \moodleform {
 
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
-        if ($data['lookback'] > 0) {
-            if ($data['datefrom'] > 0) {
-                $errors['lookback'] = get_string('err_filterdate', 'report_embedquestion');
-                $errors['datefrom'] = get_string('err_filterdate', 'report_embedquestion');
-            }
-            if ($data['dateto'] > 0) {
-                $errors['dateto'] = get_string('err_filterdate', 'report_embedquestion');
-            }
+        if ($data['lookback'] > 0 && ($data['datefrom'] > 0 || $data['dateto'] > 0)) {
+            $errors['lookback'] = get_string('err_filterdate', 'report_embedquestion');
         }
         return $errors;
     }
