@@ -44,6 +44,7 @@ $string['embedquestion:viewmyprogress'] = 'See your own embedded questions progr
 $string['eventactivityreportviewed'] = 'Embedded questions progress activity report viewed';
 $string['eventcoursereportviewed'] = 'Embedded questions progress course report viewed';
 $string['err_filterdate'] = 'You cannot filter by both \'Look back\' and \'From/To\' at the same time. Please only use one.';
+$string['err_filterdatetolesthan'] = 'The end date cannot be earlier than the start date.';
 $string['filter'] = 'Filter';
 $string['lookback'] = 'Look back';
 $string['nday'] = '{$a} day';

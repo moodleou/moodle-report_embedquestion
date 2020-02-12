@@ -78,6 +78,9 @@ class filter extends \moodleform {
         if ($data['lookback'] > 0 && ($data['datefrom'] > 0 || $data['dateto'] > 0)) {
             $errors['lookback'] = get_string('err_filterdate', 'report_embedquestion');
         }
+        if ($data['datefrom'] > 0 && $data['dateto'] > 0 && $data['datefrom'] > $data['dateto']) {
+            $errors['dateto'] = get_string('err_filterdatetolesthan', 'report_embedquestion');
+        }
         return $errors;
     }
 }
