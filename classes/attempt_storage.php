@@ -103,4 +103,13 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
             require_capability('report/embedquestion:viewallprogress', $context);
         }
     }
+
+    public function delete_attempt(\question_usage_by_activity $quba) {
+        global $DB;
+
+        $transaction = $DB->start_delegated_transaction();
+        \question_engine::delete_questions_usage_by_activity($quba->get_id());
+        $DB->delete_records('report_embedquestion_attempt', ['questionusageid' => $quba->get_id()]);
+        $transaction->allow_commit();
+    }
 }

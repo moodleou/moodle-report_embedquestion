@@ -80,4 +80,26 @@ class report_embedquestion_lib_testcase extends advanced_testcase {
         $this->assertEquals(new moodle_url('/report/embedquestion/activity.php',
                 ['cmid' => $activity->cmid]), $reportnode->action());
     }
+
+    public function test_report_embedquestion_questions_in_use_detects_question_in_use() {
+        $this->markTestSkipped('This test cannot pass until MDL-67947 has been integrated. Skipping.');
+
+        $this->resetAfterTest();
+
+        $attemptgenerator = $this->getDataGenerator()->get_plugin_generator('filter_embedquestion');
+        $user = $this->getDataGenerator()->create_user();
+        $question = $attemptgenerator->create_embeddable_question('truefalse');
+        $attemptgenerator->create_attempt_at_embedded_question($question, $user, 'True');
+
+        $this->assertTrue(questions_in_use([$question->id]));
+    }
+
+    public function test_report_embedquestion_questions_in_use_does_not_report_unattempted_question() {
+        $this->resetAfterTest();
+
+        $attemptgenerator = $this->getDataGenerator()->get_plugin_generator('filter_embedquestion');
+        $question = $attemptgenerator->create_embeddable_question('truefalse');
+
+        $this->assertFalse(questions_in_use([$question->id]));
+    }
 }

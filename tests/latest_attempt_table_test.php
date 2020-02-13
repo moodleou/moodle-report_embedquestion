@@ -80,7 +80,7 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $this->assertEquals($expectedwhere, $table->sql->where);
 
         $this->assertEquals(['contextid' => $this->context->id, 'datefrom' => $filter->datefrom,
-            'dateto' => $filter->dateto], $table->sql->params);
+            'dateto' => $filter->dateto + DAYSECS], $table->sql->params);
     }
 
     public function test_latest_attempt_table_filter_datefrom() {
@@ -115,6 +115,7 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
      AND qas.timecreated < :dateto";
         $this->assertEquals($expectedwhere, $table->sql->where);
         $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
-        $this->assertEquals(['contextid' => $this->context->id, 'dateto' => $filter->dateto], $table->sql->params);
+        $this->assertEquals(['contextid' => $this->context->id, 'dateto' => $filter->dateto + DAYSECS],
+                $table->sql->params);
     }
 }

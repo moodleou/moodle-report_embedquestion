@@ -97,3 +97,18 @@ function report_embedquestion_question_pluginfile($givencourse, $context, $compo
     filter_embedquestion_question_pluginfile($givencourse, $context, $component,
             $filearea, $qubaid, $slot, $args, $forcedownload, $fileoptions);
 }
+
+/**
+ * Are any of these question used by any embedded question attempt?
+ *
+ * This is a callback used by the question engine, before it allows the question to be really deleted.
+ *
+ * @param int[] $questionids of question ids.
+ * @return bool whether any of these questions are used by any embedded question attempt.
+ */
+function report_embedquestion_questions_in_use($questionids) {
+    global $CFG;
+    require_once($CFG->libdir . '/questionlib.php');
+    return question_engine::questions_in_use($questionids,
+            new qubaid_join('{report_embedquestion_attempt} reqa', 'reqa.questionusageid'));
+}
