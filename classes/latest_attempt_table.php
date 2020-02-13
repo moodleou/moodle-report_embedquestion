@@ -301,7 +301,7 @@ class latest_attempt_table extends table_sql {
 
         } else if ($filter && $filter->dateto > 0) { // To.
             $this->sqldata->where[]  = ' AND qas.timecreated < :dateto';
-            $this->sqldata->params['dateto'] = $filter->dateto;
+            $this->sqldata->params['dateto'] = $filter->dateto + DAYSECS;
         }
 
         $this->sql = new stdClass();
