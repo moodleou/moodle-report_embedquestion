@@ -135,6 +135,8 @@ class utils
         }
 
         if ($correctness === null) {
+            global $CFG;
+            require_once($CFG->dirroot . '/question/engine/states.php');
             return \question_state::get($state)->default_string(true);
         }
         return html_writer::tag('span', get_string($correctness, 'question'), ['class' => "que correctness.$correctness"]);
