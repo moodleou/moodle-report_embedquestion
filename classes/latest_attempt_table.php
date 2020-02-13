@@ -293,7 +293,7 @@ class latest_attempt_table extends table_sql {
         } else if ($filter && $filter->datefrom > 0 && $filter->dateto > 0) { // From - To.
             $this->sqldata->where[]  = ' AND (qas.timecreated > :datefrom AND qas.timecreated < :dateto)';
             $this->sqldata->params['datefrom'] = $filter->datefrom;
-            $this->sqldata->params['dateto'] = $filter->dateto;
+            $this->sqldata->params['dateto'] = $filter->dateto + DAYSECS;
 
         } else if ($filter && $filter->datefrom > 0) { // From.
             $this->sqldata->where[]  = ' AND qas.timecreated > :datefrom';
