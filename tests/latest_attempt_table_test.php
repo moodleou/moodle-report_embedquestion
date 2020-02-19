@@ -58,7 +58,7 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
     public function test_latest_attempt_table_filter_lookback() {
         $now = time();
         $filter = new stdclass();
-        $filter->lookback = WEEKSECS * 3; // 3 weeksa
+        $filter->lookback = WEEKSECS * 3; // 3 weeks.
         $filter->datefrom = 0;
         $filter->dateto = 0;
         $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
@@ -74,8 +74,8 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
 
         $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
         $contextid = $this->context->id;
-        $expectedwhere = " r.contextid = :contextid
-     OR cxt.path LIKE '%/$contextid/%'
+        $expectedwhere = " (r.contextid = :contextid
+     OR cxt.path LIKE '%/$contextid/%')
      AND (qas.timecreated > :datefrom AND qas.timecreated < :dateto)";
         $this->assertEquals($expectedwhere, $table->sql->where);
 
@@ -92,8 +92,8 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
 
         $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
         $contextid = $this->context->id;
-        $expectedwhere = " r.contextid = :contextid
-     OR cxt.path LIKE '%/$contextid/%'
+        $expectedwhere = " (r.contextid = :contextid
+     OR cxt.path LIKE '%/$contextid/%')
      AND qas.timecreated > :datefrom";
         $this->assertEquals($expectedwhere, $table->sql->where);
 
@@ -110,8 +110,8 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
 
         $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
         $contextid = $this->context->id;
-        $expectedwhere = " r.contextid = :contextid
-     OR cxt.path LIKE '%/$contextid/%'
+        $expectedwhere = " (r.contextid = :contextid
+     OR cxt.path LIKE '%/$contextid/%')
      AND qas.timecreated < :dateto";
         $this->assertEquals($expectedwhere, $table->sql->where);
         $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);

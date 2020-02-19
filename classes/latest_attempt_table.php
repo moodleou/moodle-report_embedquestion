@@ -80,7 +80,8 @@ class latest_attempt_table extends table_sql {
      * @param string|null $download the string used for file extension
      * @param int $userid, the userid as an optional param
      */
-    public function __construct(\context $context, $courseid, $groupid = 0, \cm_info $cm = null, $filter = null, $download = null, $userid = 0) {
+    public function __construct(\context $context, $courseid, $groupid = 0, \cm_info $cm = null,
+                                $filter = null, $download = null, $userid = 0) {
         global $CFG;
         parent::__construct('report_embedquestion_latest_attempt');
         $this->context = $context;
@@ -270,14 +271,16 @@ class latest_attempt_table extends table_sql {
         $this->set_sql_data_fields($userfields);
         $this->set_sql_data_from();
 
-        $this->sqldata->where[]  = ' r.contextid = :contextid';
+        $this->sqldata->where[]  = ' (r.contextid = :contextid';
         $this->sqldata->params['contextid'] = $contextid;
 
         // Report is called from course->report.
         if ($this->cm === null) {
             $coursecontextid = $this->context->id;
             $this->sqldata->from[] = 'JOIN {context} cxt ON cxt.id = r.contextid';
-            $this->sqldata->where[] = " OR cxt.path LIKE '%/$coursecontextid/%'";
+            $this->sqldata->where[] = " OR cxt.path LIKE '%/$coursecontextid/%')";
+        } else {
+            $this->sqldata->where[] = ')';
         }
         // Single user report.
         if ($this->userid > 0) {
