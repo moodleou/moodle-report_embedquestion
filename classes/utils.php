@@ -210,11 +210,11 @@ class utils
      *
      */
     public static function allow_downloadability_for_attempt_table ($table, $title, $context) {
-        if (!has_capability('report/embedquestion:viewallprogress', $context)) {
-            return null;
+        if (has_capability('report/embedquestion:viewallprogress', $context) ||
+            has_capability('report/embedquestion:viewmyprogress', $context)) {
+            $download = optional_param('download', '', PARAM_ALPHA);
+            $table->is_downloading($download);
         }
-        $download = optional_param('download', '', PARAM_ALPHA);
-        $table->is_downloading($download);
     }
 
     /**

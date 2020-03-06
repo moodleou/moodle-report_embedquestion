@@ -26,6 +26,7 @@ namespace report_embedquestion\output;
 use report_embedquestion\latest_attempt_table;
 use report_embedquestion\attempt_summary_table;
 use html_writer;
+use report_embedquestion\utils;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -75,13 +76,27 @@ class single_user_course_report {
     /**
      * Display the report.
      */
-    public function display_content() {
+    public function display_download_content($download = null) {
+        global $COURSE;
         $usageid = optional_param('usageid', 0, PARAM_INT);
-        $useinitialsbar = false;
         if ($usageid > 0) {
-            $table = new attempt_summary_table($this->context, $this->courseid, 0, null, $this->userid, $usageid);
+            $table = new attempt_summary_table($this->context, $this->courseid,  0, null, $this->userid, $usageid);
         } else {
-            $table = new latest_attempt_table($this->context, $this->courseid, 0, null, null, null, $this->userid);
+            list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['courseid' => $this->courseid]));
+            if (!$download) {
+                $table = new latest_attempt_table($this->context, $this->courseid, 0, null, $filter, null, $this->userid);
+                // Display the filter form.
+                echo $filterform;
+                utils::allow_downloadability_for_attempt_table($table, $this->get_title(), $this->context);
+            } else {
+                $table = new latest_attempt_table($this->context, $this->courseid, 0, null, $filter, $download, $this->userid);
+
+                $filename = $COURSE->shortname . '_' . str_replace(' ', '_', $this->get_title());
+                $table->is_downloading($download, $filename);
+                if ($table->is_downloading()) {
+                    raise_memory_limit(MEMORY_EXTRA);
+                }
+            }
         }
         $table->setup();
 
@@ -92,6 +107,6 @@ class single_user_course_report {
             echo \report_embedquestion\utils::get_embed_location_summary($this->courseid, $attempt);
         }
         // Display the table.
-        $table->out($this->pagesize, $useinitialsbar, '');
+        $table->out($this->pagesize, false);
     }
 }

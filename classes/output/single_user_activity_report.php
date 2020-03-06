@@ -25,6 +25,7 @@
 namespace report_embedquestion\output;
 use report_embedquestion\latest_attempt_table;
 use report_embedquestion\attempt_summary_table;
+use report_embedquestion\utils;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -81,13 +82,25 @@ class single_user_activity_report {
      * Display the report.
      * @throws \coding_exception
      */
-    public function display_download_content() {
+    public function display_download_content($download = null) {
         $usageid = optional_param('usageid', 0, PARAM_INT);
-        $useinitialsbar = false;
         if ($usageid > 0) {
             $table = new attempt_summary_table($this->context, $this->course->id, 0, $this->cm, $this->userid, $usageid);
         } else {
-            $table = new latest_attempt_table($this->context, $this->course->id, 0, $this->cm, null, null, $this->userid);
+            list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['cmid' => $this->cm->id], 'activity'));
+            if (!$download) {
+                $table = new latest_attempt_table($this->context, $this->course->id, 0, $this->cm, $filter, null, $this->userid);
+                // Display the filter form.
+                echo $filterform;
+                utils::allow_downloadability_for_attempt_table($table, $this->get_title(), $this->context);
+            } else {
+                $table = new latest_attempt_table($this->context, $this->course->id, 0, $this->cm, $filter, $download, $this->userid);
+                $filename = $this->course->shortname . '_' . str_replace(' ', '_', $this->get_title());
+                $table->is_downloading($download, $filename);
+                if ($table->is_downloading()) {
+                    raise_memory_limit(MEMORY_EXTRA);
+                }
+            }
         }
         $table->setup();
 
@@ -98,6 +111,6 @@ class single_user_activity_report {
             echo \report_embedquestion\utils::get_embed_location_summary($this->course->id, $attempt);
         }
         // Display the table.
-        $table->out($this->pagesize, $useinitialsbar, null);
+        $table->out($this->pagesize, false);
     }
 }
