@@ -24,12 +24,12 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2019091601;
+$plugin->version   = 2020062800;
 $plugin->requires  = 2018120300;
 $plugin->component = 'report_embedquestion';
-$plugin->maturity  = MATURITY_BETA;
-$plugin->release   = '0.9.1 for Moodle 3.6+';
+$plugin->maturity  = MATURITY_STABLE;
+$plugin->release   = '1.1 for Moodle 3.6+';
 
-$plugin->dependencies = ['filter_embedquestion' => 2019091600];
+$plugin->dependencies = ['filter_embedquestion' => 2020061000];
 
 $plugin->outestssufficient = true;

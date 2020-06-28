@@ -42,7 +42,7 @@ class latest_attempt_table extends table_sql {
     /**
      * @var stdClass The sql query we build up before parsing it and filling the parent's $sql variables.
      */
-    protected $sqldata = null;
+    protected $sqldata;
 
     /**
      * @var int $pagesize the default number of rows on a page.
@@ -219,6 +219,7 @@ class latest_attempt_table extends table_sql {
 
     protected function set_sql_data_fields($userfields) {
         // Define the default fields.
+        $this->sqldata = new stdClass();
         $this->sqldata->fields[] = 'qas.id              AS questionattemptstepid';
         $this->sqldata->fields[] = 'qas.timecreated     AS questionattemptsteptime';
         if ($userfields) {
