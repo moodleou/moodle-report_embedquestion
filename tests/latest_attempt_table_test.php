@@ -52,7 +52,8 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
     public function test_latest_attempt_table_no_filter() {
         // Check sql query wuth no filter.
         $table = new latest_attempt_table($this->context, $this->course->id, 0, null, null);
-        $this->assertEquals(['contextid' => $this->context->id], $table->sql->params);
+        $this->assertArrayHasKey('contextid', $table->sql->params);
+        $this->assertEquals($this->context->id, $table->sql->params['contextid']);
     }
 
     public function test_latest_attempt_table_filter_lookback() {
@@ -62,7 +63,10 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $filter->datefrom = 0;
         $filter->dateto = 0;
         $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
-        $this->assertEquals(['contextid' => $this->context->id, 'lookback' => $now - $filter->lookback], $table->sql->params);
+        $this->assertArrayHasKey('contextid', $table->sql->params);
+        $this->assertEquals($this->context->id, $table->sql->params['contextid']);
+        $this->assertArrayHasKey('lookback', $table->sql->params);
+        $this->assertEquals($now - $filter->lookback, $table->sql->params['lookback']);
     }
 
     public function test_latest_attempt_table_filter_dates() {
@@ -77,10 +81,14 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $expectedwhere = " (r.contextid = :contextid
      OR cxt.path LIKE '%/$contextid/%')
      AND (qas.timecreated > :datefrom AND qas.timecreated < :dateto)";
-        $this->assertEquals($expectedwhere, $table->sql->where);
+        $this->assertContains($expectedwhere, $table->sql->where);
 
-        $this->assertEquals(['contextid' => $this->context->id, 'datefrom' => $filter->datefrom,
-            'dateto' => $filter->dateto + DAYSECS], $table->sql->params);
+        $this->assertArrayHasKey('contextid', $table->sql->params);
+        $this->assertArrayHasKey('datefrom', $table->sql->params);
+        $this->assertArrayHasKey('dateto', $table->sql->params);
+        $this->assertEquals($this->context->id, $table->sql->params['contextid']);
+        $this->assertEquals($filter->datefrom, $table->sql->params['datefrom']);
+        $this->assertEquals($filter->dateto + DAYSECS, $table->sql->params['dateto']);
     }
 
     public function test_latest_attempt_table_filter_datefrom() {
@@ -95,10 +103,13 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $expectedwhere = " (r.contextid = :contextid
      OR cxt.path LIKE '%/$contextid/%')
      AND qas.timecreated > :datefrom";
-        $this->assertEquals($expectedwhere, $table->sql->where);
+        $this->assertContains($expectedwhere, $table->sql->where);
 
         $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
-        $this->assertEquals(['contextid' => $this->context->id, 'datefrom' => $filter->datefrom], $table->sql->params);
+        $this->assertArrayHasKey('contextid', $table->sql->params);
+        $this->assertArrayHasKey('datefrom', $table->sql->params);
+        $this->assertEquals($this->context->id, $table->sql->params['contextid']);
+        $this->assertEquals($filter->datefrom, $table->sql->params['datefrom']);
     }
 
     public function test_latest_attempt_table_filter_dateto() {
@@ -113,9 +124,11 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $expectedwhere = " (r.contextid = :contextid
      OR cxt.path LIKE '%/$contextid/%')
      AND qas.timecreated < :dateto";
-        $this->assertEquals($expectedwhere, $table->sql->where);
+        $this->assertContains($expectedwhere, $table->sql->where);
         $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
-        $this->assertEquals(['contextid' => $this->context->id, 'dateto' => $filter->dateto + DAYSECS],
-                $table->sql->params);
+        $this->assertArrayHasKey('contextid', $table->sql->params);
+        $this->assertEquals($this->context->id, $table->sql->params['contextid']);
+        $this->assertArrayHasKey('dateto', $table->sql->params);
+        $this->assertEquals($filter->dateto + DAYSECS, $table->sql->params['dateto']);
     }
 }

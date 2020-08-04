@@ -1,0 +1,9 @@
+#page-report-embedquestion-activity .groupselector,
+#page-report-embedquestion-index .groupselector {
+    width: 100%;
+}
+
+#page-report-embedquestion-activity #selectgroup,
+#page-report-embedquestion-index #selectgroup {
+    display: block;
+}

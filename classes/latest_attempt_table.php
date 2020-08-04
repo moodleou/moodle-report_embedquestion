@@ -69,6 +69,7 @@ class latest_attempt_table extends table_sql {
     protected $groupid = 0;
     protected $userid = 0;
     protected $context = null;
+    protected $allowedjoins = null;
 
     /**
      * latest_attempt_table constructor.
@@ -97,6 +98,8 @@ class latest_attempt_table extends table_sql {
         } else {
             $url = utils::get_url(['courseid' => $this->courseid]);
         }
+
+        $this->allowedjoins = $this->get_students_joins($this->groupid);
 
         $this->generate_query($this->context->id, $this->userfields, $filter);
         $this->define_headers($this->get_headers());
@@ -308,10 +311,41 @@ class latest_attempt_table extends table_sql {
             $this->sqldata->params['dateto'] = $filter->dateto + DAYSECS;
         }
 
+        $this->setup_sql_queries();
+
         $this->sql = new stdClass();
         $this->sql->fields = implode(",\n    ", $this->sqldata->fields);
         $this->sql->from = implode("\n",  $this->sqldata->from);
         $this->sql->where = implode("\n    ", $this->sqldata->where);
         $this->sql->params = $this->sqldata->params;
     }
+
+    /**
+     * Setup query with groupid, groupmode.
+     */
+    public function setup_sql_queries() {
+        $this->sqldata->from[] = $this->allowedjoins->joins;
+        $this->sqldata->where[] = ' AND ' . $this->allowedjoins->wheres;
+        $this->sqldata->params = array_merge($this->sqldata->params, $this->allowedjoins->params);
+    }
+
+    /**
+     * Get sql fragments (joins) which can be used to build queries that
+     * will select an appropriate set of students to show in the reports.
+     *
+     * @param int $groupid The group id.
+     * @return object with elements:
+     *         \core\dml\sql_join Contains joins, wheres, params for all the students to show in the report.
+     *
+     */
+    protected function get_students_joins($groupid) {
+        // We have a currently selected group.
+        if ($groupid) {
+            return get_enrolled_with_capabilities_join($this->context, '',
+                    'report/embedquestion:viewmyprogress', $groupid);
+        } else {
+            return get_enrolled_with_capabilities_join($this->context, '', 'report/embedquestion:viewmyprogress');
+        }
+    }
+
 }

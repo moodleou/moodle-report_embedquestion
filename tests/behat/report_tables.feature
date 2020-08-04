@@ -46,6 +46,7 @@ Feature: Teachers can see their students progress on embedded questions.
     Then I navigate to "Reports > Embedded questions progress" in current page administration
     And I should see "Embedded question progress for Course 1"
     Then I should see "Date filter"
+    And ".groupselector" "css_element" should not exist
     And I should see "Download table data as"
     And I should see "student1"
     And I should see "student2"
