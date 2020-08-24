@@ -151,10 +151,12 @@ class attempt_summary_table extends table_sql {
     }
 
     public function col_fraction($attempt) {
+        global $PAGE;
         if ($attempt->questionstate === 'todo') {
             return null;
         }
-        return utils::get_grade($this->courseid, $attempt->fraction, $attempt->maxmark);
+        $renderer = $PAGE->get_renderer('report_embedquestion');
+        return $renderer->render_grade_link($attempt, $this->cm->id, $this->courseid);
     }
 
     protected function col_questionattemptsteptime($row) {

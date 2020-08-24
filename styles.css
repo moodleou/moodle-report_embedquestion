@@ -37,3 +37,7 @@
 #page-report-embedquestion-index .generaltable {
     min-height: auto;
 }
+
+#page-report-embedquestion-attemptdetail .closewindow {
+    margin-top: 10px;
+}

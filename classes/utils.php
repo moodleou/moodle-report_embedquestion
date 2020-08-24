@@ -23,9 +23,11 @@
  */
 
 namespace report_embedquestion;
+use action_link;
 use html_writer;
 use moodle_url;
 use stdClass;
+use user_picture;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -187,7 +189,8 @@ class utils
 
         $formatteddate = userdate($attempt->questionattemptsteptime);
 
-        $url = \html_writer::link($url . $paramstring,  $formatteddate);
+        $url = \html_writer::link($url . $paramstring, $formatteddate,
+                ['title' => get_string('attemptsummary', 'report_embedquestion')]);
         if ($usageid > 0) {
             return $formatteddate;
         }
@@ -259,4 +262,48 @@ class utils
         $data = $mform->is_submitted() ? $mform->get_data() : $defaultdata;
         return [$mform->render(), $data];
     }
+
+    /**
+     * Calculate summary information of a particular attempt.
+     *
+     * @param int $courseid
+     * @param \question_attempt $attemptobj
+     * @return array List of summary information.
+     */
+    public static function prepare_summary_attempt_information($courseid, $attemptobj): array {
+        $sumdata = [];
+
+        $question = $attemptobj->get_question();
+        $student = \core_user::get_user($attemptobj->get_last_step()->get_user_id(),
+                'id, picture, imagealt, firstname, lastname, firstnamephonetic, lastnamephonetic, middlename, alternatename, email');
+        $userpicture = new user_picture($student);
+        $userpicture->courseid = $courseid;
+        $sumdata['user'] = [
+                'title' => $userpicture,
+                'content' => new action_link(new moodle_url('/user/view.php',
+                        ['id' => $student->id]), fullname($student, true))
+        ];
+        $sumdata['question'] = [
+                'title' => get_string('question', 'moodle'),
+                'content' => $question->name,
+        ];
+        $sumdata['completedon'] = [
+                'title' => get_string('completedon', 'mod_quiz'),
+                'content' => userdate($attemptobj->timemodified),
+        ];
+
+        return $sumdata;
+    }
+
+    /**
+     * Get a suitable page title.
+     *
+     * @param $context
+     * @return string the string title.
+     */
+    public static function get_title($context): string {
+        return get_string($context->contextlevel == CONTEXT_COURSE ? 'coursereporttitle' : 'activityreporttitle',
+                'report_embedquestion', $context->get_context_name(false, false));
+    }
+
 }
