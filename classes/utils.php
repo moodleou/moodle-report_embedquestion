@@ -107,7 +107,7 @@ class utils
         $url = new moodle_url($CFG->wwwroot . '/question/preview.php', ['id' => $questionid, 'courseid' => $courseid]);
         $previewlink = '';
         if (question_has_capability_on($questionid, 'view')) {
-            $previewlink = ' (' . html_writer::link($url, get_string('preview') . ')');
+            $previewlink = ' (' . html_writer::link($url, get_string('preview') . ')', ['target' => '_blank']);
         }
         $icon = null;
         if ($qtype) {
