@@ -82,8 +82,6 @@ class report_embedquestion_lib_testcase extends advanced_testcase {
     }
 
     public function test_report_embedquestion_questions_in_use_detects_question_in_use() {
-        $this->markTestSkipped('This test cannot pass until MDL-67947 has been integrated. Skipping.');
-
         $this->resetAfterTest();
 
         $attemptgenerator = $this->getDataGenerator()->get_plugin_generator('filter_embedquestion');
