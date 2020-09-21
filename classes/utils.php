@@ -139,7 +139,15 @@ class utils
             require_once($CFG->dirroot . '/question/engine/states.php');
             return \question_state::get($state)->default_string(true);
         }
-        return html_writer::tag('span', get_string($correctness, 'question'), ['class' => "que correctness.$correctness"]);
+
+        $output = '';
+
+        $output .= html_writer::start_span('que correctness ' . $correctness);
+        $output .= get_string($correctness, 'question');
+        $output .= $OUTPUT->pix_icon($icon . $correctness, get_string($correctness, 'question'), 'moodle', ['class' => 'state-icon']);
+        $output .= html_writer::end_span();
+
+        return $output;
     }
 
     /**

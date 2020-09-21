@@ -7,3 +7,28 @@
 #page-report-embedquestion-index #selectgroup {
     display: block;
 }
+
+#page-report-embedquestion-activity .que.correctness .state-icon,
+#page-report-embedquestion-index .que.correctness .state-icon {
+    padding-left: 5px;
+}
+
+#page-report-embedquestion-activity .que.correctness,
+#page-report-embedquestion-index .que.correctness {
+    font-weight: bold;
+}
+
+#page-report-embedquestion-activity .que.correctness.correct,
+#page-report-embedquestion-index .que.correctness.correct {
+    color: #398439;
+}
+
+#page-report-embedquestion-activity .que.correctness.incorrect,
+#page-report-embedquestion-index .que.correctness.incorrect {
+    color: #d43f3a;
+}
+
+#page-report-embedquestion-activity .que.correctness.partiallycorrect,
+#page-report-embedquestion-index .que.correctness.partiallycorrect {
+    color: #f0ad4e;
+}

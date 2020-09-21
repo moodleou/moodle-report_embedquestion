@@ -49,8 +49,11 @@ Feature: Teachers can see their students progress on embedded questions.
     And ".groupselector" "css_element" should not exist
     And I should see "Download table data as"
     And I should see "student1"
+    And "Correct" "icon" should exist in the "student1" "table_row"
     And I should see "student2"
+    And "Incorrect" "icon" should exist in the "student2" "table_row"
     And I should see "student3"
+    And "Correct" "icon" should exist in the "student3" "table_row"
 
   Scenario: A teacher can see their students progress in an activity
     When I log in as "teacher"

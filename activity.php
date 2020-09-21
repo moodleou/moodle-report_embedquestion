@@ -68,7 +68,7 @@ if ($userid) {
 } else {
     $report = new multi_user_activity_report($course, $cm, $groupid, $context);
 }
-
+$renderer = $PAGE->get_renderer('report_embedquestion');
 // Display the report.
 $download = optional_param('download', null, PARAM_RAW);
 if (!$download) {
@@ -76,7 +76,7 @@ if (!$download) {
     $PAGE->set_title($title);
     $PAGE->set_heading($title);
     echo $OUTPUT->header();
-    echo $OUTPUT->heading($title);
+    echo $renderer->report_heading($title);
     $report->display_download_content();
     echo $OUTPUT->footer();
 } else {

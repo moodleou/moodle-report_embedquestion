@@ -67,13 +67,14 @@ if ($userid) {
 } else {
     $report = new multi_user_course_report($courseid, $groupid, $context);
 }
+$renderer = $PAGE->get_renderer('report_embedquestion');
 // Display the report.
 if (!$download) {
     $title = $report->get_title();
     $PAGE->set_title($title);
     $PAGE->set_heading($title);
     echo $OUTPUT->header();
-    echo $OUTPUT->heading($title);
+    echo $renderer->report_heading($title);
     $report->display_download_content();
     echo $OUTPUT->footer();
 } else {
