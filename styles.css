@@ -32,3 +32,8 @@
 #page-report-embedquestion-index .que.correctness.partiallycorrect {
     color: #f0ad4e;
 }
+
+#page-report-embedquestion-activity .generaltable,
+#page-report-embedquestion-index .generaltable {
+    min-height: auto;
+}
