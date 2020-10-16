@@ -15,21 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Embedded questions progress report version information
+ * Defined caches used internally by the plugin.
  *
  * @package   report_embedquestion
- * @copyright 2019 The Open University
+ * @copyright 2020 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2020102102;
-$plugin->requires  = 2018120300;
-$plugin->component = 'report_embedquestion';
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.1 for Moodle 3.6+';
-
-$plugin->dependencies = ['filter_embedquestion' => 2020061000];
-
-$plugin->outestssufficient = true;
+$definitions = [
+    'reportattempttracker' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true, // For better performance.
+        'simpledata' => true,
+        'staticacceleration' => true,
+        'staticaccelerationsize' => 50
+    ]
+];

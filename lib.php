@@ -33,10 +33,11 @@ defined('MOODLE_INTERNAL') || die;
  */
 function report_embedquestion_extend_navigation_course(navigation_node $navigation, stdClass $course, context $context) {
     if (has_any_capability(['report/embedquestion:viewmyprogress', 'report/embedquestion:viewallprogress'], $context)) {
-        // TODO, also check if there are any embedded questions here.
-        $navigation->add(get_string('pluginname', 'report_embedquestion'),
-                new moodle_url('/report/embedquestion/index.php', ['courseid' => $course->id]),
-                navigation_node::TYPE_SETTING, null, 'embedquestionreport', new pix_icon('i/report', ''));
+        if (report_embedquestion\utils::user_can_see_report($context->id)) {
+            $navigation->add(get_string('pluginname', 'report_embedquestion'),
+                    new moodle_url('/report/embedquestion/index.php', ['courseid' => $course->id]),
+                    navigation_node::TYPE_SETTING, null, 'embedquestionreport', new pix_icon('i/report', ''));
+        }
     }
 }
 
@@ -47,12 +48,13 @@ function report_embedquestion_extend_navigation_course(navigation_node $navigati
  * @param cm_info $cm
  */
 function report_embedquestion_extend_navigation_module(navigation_node $navigation, cm_info $cm) {
-    if (has_any_capability(['report/embedquestion:viewmyprogress', 'report/embedquestion:viewallprogress'],
-            context_module::instance($cm->id))) {
-        // TODO, also check if there are any embedded questions here.
-        $navigation->add(get_string('pluginname', 'report_embedquestion'),
-                new moodle_url('/report/embedquestion/activity.php', ['cmid' => $cm->id]),
-                navigation_node::TYPE_SETTING, null, 'embedquestionreport');
+    $context = context_module::instance($cm->id);
+    if (has_any_capability(['report/embedquestion:viewmyprogress', 'report/embedquestion:viewallprogress'], $context)) {
+        if (report_embedquestion\utils::user_can_see_report($context->id)) {
+            $navigation->add(get_string('pluginname', 'report_embedquestion'),
+                    new moodle_url('/report/embedquestion/activity.php', ['cmid' => $cm->id]),
+                    navigation_node::TYPE_SETTING, null, 'embedquestionreport');
+        }
     }
 }
 

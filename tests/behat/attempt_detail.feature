@@ -56,8 +56,9 @@ Feature: User can see their report attempt in embedded question.
   Scenario: Teacher can access to their own report attempt in a course
     Given I log in as "teacher1"
     And I am on "Course 1" course homepage
-    When I navigate to "Reports > Embedded questions progress" in current page administration
-    Then I should see "Embedded question progress for Course 1"
+    And I follow "Test page"
+    When I navigate to "Embedded questions progress" in current page administration
+    Then I should see "Embedded question progress for Test page"
     And I should see "student1"
     And I should see "student2"
     And I click on "Attempt summary" "link" in the "student2" "table_row"

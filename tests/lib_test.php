@@ -36,20 +36,44 @@ require_once(__DIR__ . '/../lib.php');
 class report_embedquestion_lib_testcase extends advanced_testcase {
 
     /**
+     * @var testing_data_generator
+     */
+    protected $generator;
+
+    /**
+     * @var filter_embedquestion_generator
+     */
+    protected $attemptgenerator;
+
+    /**
+     * Setup
+     */
+    protected function setUp() {
+        parent::setUp();
+        $this->resetAfterTest();
+        $this->generator = $this->getDataGenerator();
+        $this->attemptgenerator = $this->generator->get_plugin_generator('filter_embedquestion');
+    }
+
+    /**
      * Tests extending the course-level navigation..
      */
     public function test_report_embedquestion_extend_navigation_course() {
-        $this->resetAfterTest();
         $this->setAdminUser();
-        $generator = $this->getDataGenerator();
         $node = new navigation_node(['text' => 'Parent node']);
-        $course = $generator->create_course();
+        $course = $this->generator->create_course();
         $context = context_course::instance($course->id);
+        $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $context->id]);
+        $user = $this->generator->create_user();
+        $this->generator->enrol_user($user->id, $course->id, 'student');
 
+        // Verify that the Embedded questions progress link will not exist if there is no attempt yet.
         report_embedquestion_extend_navigation_course($node, $course, $context);
+        $this->assertNotContains('embedquestionreport', $node->get_children_key_list());
 
-        // TODO, in due course, we will need to verify the logic that the link only shows if there are embedded questions.
-
+        // Verify that the Embedded questions progress link will exist after the student has attempted.
+        $this->attemptgenerator->create_attempt_at_embedded_question($question, $user, 'False', $context);
+        report_embedquestion_extend_navigation_course($node, $course, $context);
         $this->assertContains('embedquestionreport', $node->get_children_key_list());
         $reportnode = $node->find('embedquestionreport', navigation_node::TYPE_SETTING);
         $this->assertEquals('Embedded questions progress', $reportnode->get_content());
@@ -61,19 +85,26 @@ class report_embedquestion_lib_testcase extends advanced_testcase {
      * Tests extending the course-level navigation..
      */
     public function test_report_embedquestion_extend_navigation_module() {
-        $this->resetAfterTest();
         $this->setAdminUser();
-        $generator = $this->getDataGenerator();
-        $course = $generator->create_course();
-        $pagegenerator = $generator->get_plugin_generator('mod_page');
-        $activity = $pagegenerator->create_instance(['course' => $course]);
+        $course = $this->generator->create_course();
+        $coursecontext = context_course::instance($course->id);
+        $pagegenerator = $this->generator->get_plugin_generator('mod_page');
+        $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $coursecontext->id]);
+        $activity = $pagegenerator->create_instance(['course' => $course,
+                'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>']);
+        $pagecontext = context_module::instance($activity->cmid);
+        $user = $this->generator->create_user();
+        $this->generator->enrol_user($user->id, $course->id, 'student');
         $node = new navigation_node(['text' => 'Parent node']);
         $cm = get_fast_modinfo($course)->get_cm($activity->cmid);
 
+        // Verify that the Embedded questions progress link will not exist if there is no attempt yet.
         report_embedquestion_extend_navigation_module($node, $cm);
+        $this->assertNotContains('embedquestionreport', $node->get_children_key_list());
 
-        // TODO, in due course, we will need to verify the logic that the link only shows if there are embedded questions.
-
+        // Verify that the Embedded questions progress link will exist after the student has attempted.
+        $this->attemptgenerator->create_attempt_at_embedded_question($question, $user, 'False', $pagecontext);
+        report_embedquestion_extend_navigation_module($node, $cm);
         $this->assertContains('embedquestionreport', $node->get_children_key_list());
         $reportnode = $node->find('embedquestionreport', navigation_node::TYPE_SETTING);
         $this->assertEquals('Embedded questions progress', $reportnode->get_content());
@@ -82,21 +113,15 @@ class report_embedquestion_lib_testcase extends advanced_testcase {
     }
 
     public function test_report_embedquestion_questions_in_use_detects_question_in_use() {
-        $this->resetAfterTest();
-
-        $attemptgenerator = $this->getDataGenerator()->get_plugin_generator('filter_embedquestion');
-        $user = $this->getDataGenerator()->create_user();
-        $question = $attemptgenerator->create_embeddable_question('truefalse');
-        $attemptgenerator->create_attempt_at_embedded_question($question, $user, 'True');
+        $user = $this->generator->create_user();
+        $question = $this->attemptgenerator->create_embeddable_question('truefalse');
+        $this->attemptgenerator->create_attempt_at_embedded_question($question, $user, 'True');
 
         $this->assertTrue(questions_in_use([$question->id]));
     }
 
     public function test_report_embedquestion_questions_in_use_does_not_report_unattempted_question() {
-        $this->resetAfterTest();
-
-        $attemptgenerator = $this->getDataGenerator()->get_plugin_generator('filter_embedquestion');
-        $question = $attemptgenerator->create_embeddable_question('truefalse');
+        $question = $this->attemptgenerator->create_embeddable_question('truefalse');
 
         $this->assertFalse(questions_in_use([$question->id]));
     }

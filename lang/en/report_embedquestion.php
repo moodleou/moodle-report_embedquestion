@@ -35,6 +35,7 @@ $string['attemptsummaryfor'] = 'Attempt summary for:';
 $string['attemptsummaryby'] = 'Attempted by: {$a}';
 $string['attemptsummaryembedid'] = 'Embed id: {$a}';
 $string['attemptsummarycontext'] = 'Location: {$a}';
+$string['cachedef_reportattempttracker'] = 'Report attempt tracker cache';
 $string['attemptsummaryquestion'] = 'Question: {$a}';
 $string['closeattemptview'] = 'Close question attempt review';
 $string['coursereporttitle'] = 'Embedded question progress for {$a}';

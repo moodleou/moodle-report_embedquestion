@@ -306,4 +306,14 @@ class utils
                 'report_embedquestion', $context->get_context_name(false, false));
     }
 
+    /**
+     * Check that user can see the report.
+     *
+     * @param int $contextid Context id
+     * @return bool
+     */
+    public static function user_can_see_report(int $contextid) {
+        return attempt_tracker::user_has_attempt($contextid);
+    }
+
 }
