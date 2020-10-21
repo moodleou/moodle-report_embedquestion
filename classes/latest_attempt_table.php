@@ -107,6 +107,7 @@ class latest_attempt_table extends table_sql {
         $this->collapsible(false);
 
         $this->define_baseurl($url);
+        $this->process_actions();
     }
 
     /**
@@ -115,7 +116,7 @@ class latest_attempt_table extends table_sql {
      */
     private function get_headers() {
         $headers = [];
-        $headers[] = '';// User's picture or place holder.
+        $headers[] = $this->checkbox_col_header('checkbox');
         $headers[] = get_string('fullname');
         $headers[] = get_string('username');
         $headers[] = get_string('type', 'report_embedquestion');
@@ -127,12 +128,42 @@ class latest_attempt_table extends table_sql {
     }
 
     /**
+     * Render checkbox column header
+     *
+     * @param string $columnname name of the column
+     * @return bool|string
+     */
+    public function checkbox_col_header(string $columnname) {
+        global $OUTPUT;
+
+        // Make sure to disable sorting on this column.
+        $this->no_sorting($columnname);
+
+        // Build the select/deselect all control.
+        $selectallid = 'embed-question-report-selectall-attempts';
+        $selectalltext = get_string('selectall', 'quiz');
+        $deselectalltext = get_string('selectnone', 'quiz');
+        $mastercheckbox = new \core\output\checkbox_toggleall('embed-attempts', true, [
+                'id' => $selectallid,
+                'name' => $selectallid,
+                'value' => 1,
+                'label' => $selectalltext,
+                'labelclasses' => 'accesshide',
+                'selectall' => $selectalltext,
+                'deselectall' => $deselectalltext,
+        ]);
+
+        return $OUTPUT->render($mastercheckbox);
+    }
+
+
+    /**
      * Return an array of columns.
      * @return array
      */
     private function get_columns() {
         $columns = [];
-        $columns[] = 'picture';
+        $columns[] = 'checkbox';
         $columns[] = 'fullname';
         $columns[] = 'username';
         $columns[] = 'questiontype';
@@ -144,20 +175,27 @@ class latest_attempt_table extends table_sql {
     }
 
     /**
-     * Generate the display of the user's picture column.
+     * Generate the display of the checkbox column.
+     *
      * @param object $attempt the table row being output.
      * @return string HTML content to go inside the td.
      */
-    public function col_picture($attempt) {
-        global $OUTPUT;
-        $user = new stdClass();
-        $additionalfields = explode(',', user_picture::fields());
-        $user = username_load_fields_from_object($user, $attempt, null, $additionalfields);
-        $user->id = $attempt->userid;
-        if ($this->is_downloading()) {
+    public function col_checkbox(object $attempt): string {
+        global $OUTPUT, $USER;
+
+        if ($USER->id != $attempt->userid && !has_capability('report/embedquestion:deleteattempt', $this->context)) {
             return '';
         }
-        return $OUTPUT->user_picture($user);
+
+        $checkbox = new \core\output\checkbox_toggleall('embed-attempts', false, [
+                'id' => "questionusageid_{$attempt->questionusageid}",
+                'name' => 'questionusageid[]',
+                'value' => $attempt->questionusageid . '-' . $attempt->slot,
+                'label' => get_string('selectattempt', 'quiz'),
+                'labelclasses' => 'accesshide',
+        ]);
+
+        return $OUTPUT->render($checkbox);
     }
 
     /**
@@ -345,6 +383,85 @@ class latest_attempt_table extends table_sql {
                     'report/embedquestion:viewmyprogress', $groupid);
         } else {
             return get_enrolled_with_capabilities_join($this->context, '', 'report/embedquestion:viewmyprogress');
+        }
+    }
+
+    /**
+     * Hook that can be overridden in child classes to wrap a table in a form
+     * for example. Called only when there is data to display and not
+     * downloading.
+     */
+    function wrap_html_start() {
+        $output = html_writer::start_tag('form',
+                ['id' => 'attemptsform', 'method' => 'post', 'action' => $this->baseurl]);
+        $url = $this->baseurl;
+        $url->param('sesskey', sesskey());
+        $output .= html_writer::input_hidden_params($url);
+
+        echo $output;
+    }
+
+    /**
+     * Hook that can be overridden in child classes to wrap a table in a form
+     * for example. Called only when there is data to display and not
+     * downloading.
+     */
+    function wrap_html_finish() {
+        $output = html_writer::start_div('commands');
+        $output .= $this->delete_attempts_buttons();
+        $output .= html_writer::end_div();
+
+        // Close the form.
+        $output .= html_writer::end_tag('form');
+
+        echo $output;
+    }
+
+    /**
+     * Render the delete attempt button.
+     * @return string HTML string
+     */
+    protected function delete_attempts_buttons() {
+        global $PAGE;
+
+        $deletebuttonparams = [
+                'type'  => 'submit',
+                'class' => 'btn btn-secondary mr-1',
+                'id'    => 'deleteattemptsbutton',
+                'name'  => 'delete',
+                'value' => get_string('deleteselected', 'quiz_overview'),
+                'data-action' => 'toggle',
+                'data-togglegroup' => 'embed-attempts',
+                'data-toggle' => 'action',
+                'disabled' => true
+        ];
+
+        $PAGE->requires->event_handler('#deleteattemptsbutton', 'click', 'M.util.show_confirm_dialog',
+                ['message' => get_string('deleteattemptcheck', 'quiz')]);
+
+        return html_writer::empty_tag('input', $deletebuttonparams);
+    }
+
+    /**
+     * Process any submitted actions.
+     */
+    protected function process_actions() {
+        global $USER;
+        if (optional_param('delete', 0, PARAM_BOOL) && confirm_sesskey()) {
+            if ($questionusagemetas = optional_param_array('questionusageid', [], PARAM_ALPHANUMEXT)) {
+                foreach ($questionusagemetas as $questionusagemeta) {
+                    $qubameta = explode('-', $questionusagemeta);
+                    $qubaid = $qubameta[0];
+                    $slot = $qubameta[1];
+
+                    $quba = \question_engine::load_questions_usage_by_activity($qubaid);
+                    $userid = $quba->get_question_attempt($slot)->get_last_step()->get_user_id();
+                    if ($USER->id != $userid) {
+                        require_capability('report/embedquestion:deleteattempt', $this->context);
+                    }
+                    attempt_storage::instance()->delete_attempt($quba);
+                }
+            }
         }
     }
 

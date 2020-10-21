@@ -38,6 +38,11 @@
     min-height: auto;
 }
 
+#page-report-embedquestion-activity div.commands,
+#page-report-embedquestion-index div.commands {
+    padding-top: 10px;
+}
+
 #page-report-embedquestion-attemptdetail .closewindow {
     margin-top: 10px;
 }

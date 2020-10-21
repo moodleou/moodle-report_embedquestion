@@ -50,4 +50,14 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
+
+    // Ability for a user to delete the attempts of other users.
+    'report/embedquestion:deleteattempt' => [
+            'captype' => 'write',
+            'contextlevel' => CONTEXT_MODULE,
+            'archetypes' => [
+                    'editingteacher' => CAP_ALLOW,
+                    'manager' => CAP_ALLOW
+            ],
+    ]
 ];
