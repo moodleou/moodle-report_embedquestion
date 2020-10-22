@@ -88,9 +88,9 @@ class multi_user_activity_report {
         list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['cmid' => $this->cm->id], 'activity'));
         $filename = $COURSE->shortname . '_' . str_replace(' ', '_', $this->get_title());
         if (!$download) {
-            $this->groupid = groups_get_course_group($this->course);
             // Output the group selector.
             groups_print_course_menu($this->course, utils::get_url(['cmid' => $this->cm->id], 'activity'));
+            $this->groupid = groups_get_course_group($this->course, true);
 
             $table = new latest_attempt_table($this->context, $this->course->id, $this->groupid, $this->cm, $filter);
             // Display the filter form.
