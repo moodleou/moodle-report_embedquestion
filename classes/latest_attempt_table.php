@@ -121,8 +121,8 @@ class latest_attempt_table extends table_sql {
         $headers[] = get_string('username');
         $headers[] = get_string('type', 'report_embedquestion');
         $headers[] = get_string('question');
-        $headers[] = get_string('status');
         $headers[] = get_string('location');
+        $headers[] = get_string('latestattemptstatus', 'report_embedquestion');
         $headers[] = get_string('attemptfinal', 'report_embedquestion');
         return $headers;
     }
@@ -168,8 +168,8 @@ class latest_attempt_table extends table_sql {
         $columns[] = 'username';
         $columns[] = 'questiontype';
         $columns[] = 'questionname';
-        $columns[] = 'questionstate';
         $columns[] = 'pagename';
+        $columns[] = 'questionstate';
         $columns[] = 'questionattemptstepid';
         return $columns;
     }

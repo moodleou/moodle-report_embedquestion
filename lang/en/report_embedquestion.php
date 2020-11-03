@@ -50,6 +50,7 @@ $string['eventcoursereportviewed'] = 'Embedded questions progress course report 
 $string['err_filterdate'] = 'You cannot filter by both \'Look back\' and \'From/To\' at the same time. Please only use one.';
 $string['err_filterdatetolesthan'] = 'The end date cannot be earlier than the start date.';
 $string['filter'] = 'Filter';
+$string['latestattemptstatus'] = 'Latest attempt status';
 $string['lookback'] = 'Look back';
 $string['nday'] = '{$a} day';
 $string['ndays'] = '{$a} days';
