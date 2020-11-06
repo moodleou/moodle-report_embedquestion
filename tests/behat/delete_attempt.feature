@@ -53,7 +53,7 @@ Feature: Teachers can delete their students progress on embedded questions.
     And I click on "Select attempt" "checkbox" in the "student2" "table_row"
     And the "Delete selected attempts" "button" should be enabled
     And I click on "Delete selected attempts" "button"
-    And I should see "Are you absolutely sure you want to completely delete these attempts?"
+    And I should see "Are you absolutely sure you want to completely delete these attempts?" in the "Confirmation" "dialogue"
     And I click on "Yes" "button"
     And I should not see "student2"
 
@@ -75,7 +75,7 @@ Feature: Teachers can delete their students progress on embedded questions.
     And I click on "Select attempt" "checkbox" in the "tutor" "table_row"
     And the "Delete selected attempts" "button" should be enabled
     And I click on "Delete selected attempts" "button"
-    And I should see "Are you absolutely sure you want to completely delete these attempts?"
+    And I should see "Are you absolutely sure you want to completely delete these attempts?" in the "Confirmation" "dialogue"
     And I click on "Yes" "button"
     And I should not see "tutor"
     And I should see "student1"
@@ -101,7 +101,7 @@ Feature: Teachers can delete their students progress on embedded questions.
     And I click on "Select attempt" "checkbox" in the "tutor" "table_row"
     And the "Delete selected attempts" "button" should be enabled
     And I click on "Delete selected attempts" "button"
-    And I should see "Are you absolutely sure you want to completely delete these attempts?"
+    And I should see "Are you absolutely sure you want to completely delete these attempts?" in the "Confirmation" "dialogue"
     And I click on "Yes" "button"
     And I should not see "tutor"
     And I should not see "student1"
