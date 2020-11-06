@@ -66,7 +66,58 @@ class utils
     }
 
     /**
-     * Return array of userfields
+     * Check that the user can see the report, and throw an exception if not.
+     *
+     * @param \context $context the report context.
+     * @param int $userid if not zero, the report being shown only has data for this user.
+     * @throws \required_capability_exception if access is not allowed.
+     */
+    public static function require_report_permissions(\context $context, int $userid) {
+        global $USER;
+        if (!has_capability('report/embedquestion:viewallprogress', $context)) {
+            require_capability('report/embedquestion:viewmyprogress', $context);
+            if ($userid === 0) {
+                $userid = $USER->id;
+            }
+            if ($userid != $USER->id) {
+                // At this point, we know this next check will fail, but it generates the error message we want.
+                require_capability('report/viewallprogress:viewmyprogress', $context);
+            }
+        }
+    }
+
+    /**
+     * Check that the given usage id exists, and belongs to the given user.
+     *
+     * @param int $usageid
+     * @param int $userid
+     * @throws \coding_exception if the usage does not exist.
+     */
+    public static function validate_usageid(int $usageid, int $userid): void {
+        global $DB;
+
+        if (!$usageid) {
+            return; // Usage id not specified is always fine.
+        }
+
+        if (!$userid) {
+            throw new \coding_exception('If usage id is set, user id must also be set.');
+        }
+
+        if (!$DB->record_exists_sql("
+                SELECT 1
+                  FROM {question_usages} qu
+                  JOIN {report_embedquestion_attempt} r ON r.questionusageid = qu.id
+                 WHERE qu.id = ?
+                   AND r.userid = ?
+                ", [$usageid, $userid])) {
+            throw new \coding_exception('Unknown usage id.');
+        }
+    }
+
+    /**
+     * Return array of user fields.
+     *
      * @param $context
      * @return array
      */

@@ -75,11 +75,13 @@ class single_user_course_report {
 
     /**
      * Display the report.
+     *
+     * @param string|null $download if set, download in this format, else display in the HTML page.
+     * @param int $usageid if set, show only data relating to this usage.
      */
-    public function display_download_content($download = null) {
+    public function display_download_content(?string $download = null, int $usageid = 0): void {
         global $COURSE;
-        $usageid = optional_param('usageid', 0, PARAM_INT);
-        if ($usageid > 0) {
+        if ($usageid) {
             $table = new attempt_summary_table($this->context, $this->courseid,  0, null, $this->userid, $usageid);
         } else {
             list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['courseid' => $this->courseid]));

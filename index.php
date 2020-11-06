@@ -26,11 +26,13 @@ require(__DIR__ . '/../../config.php');
 
 use \report_embedquestion\event\course_report_viewed,
     \report_embedquestion\output\multi_user_course_report,
-    \report_embedquestion\output\single_user_course_report;
+    \report_embedquestion\output\single_user_course_report,
+    \report_embedquestion\utils;
 
 $courseid = required_param('courseid', PARAM_INT);
 $groupid = optional_param('groupid', 0, PARAM_INT);
 $userid = optional_param('userid', 0, PARAM_INT);
+$usageid = optional_param('usageid', 0, PARAM_INT);
 $download = optional_param('download', null, PARAM_RAW);
 
 require_login($courseid);
@@ -46,16 +48,8 @@ if ($userid !== 0) {
 $PAGE->set_url('/report/embedquestion/index.php', $params);
 $PAGE->set_pagelayout('report');
 
-if (!has_capability('report/embedquestion:viewallprogress', $context)) {
-    require_capability('report/embedquestion:viewmyprogress', $context);
-    if ($userid === 0) {
-        $userid = $USER->id;
-    }
-    if ($userid != $USER->id) {
-        // At this point, we know this next check will fail, but it generates the error message we want.
-        require_capability('report/viewallprogress:viewmyprogress', $context);
-    }
-}
+utils::require_report_permissions($context, $userid);
+utils::validate_usageid($usageid, $userid);
 
 // Log the view.
 course_report_viewed::create(['context' => $context,
@@ -75,8 +69,8 @@ if (!$download) {
     $PAGE->set_heading($title);
     echo $OUTPUT->header();
     echo $renderer->report_heading($title);
-    $report->display_download_content();
+    $report->display_download_content(null, $usageid);
     echo $OUTPUT->footer();
 } else {
-    $report->display_download_content($download);
+    $report->display_download_content($download, $usageid);
 }

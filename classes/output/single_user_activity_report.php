@@ -80,11 +80,12 @@ class single_user_activity_report {
 
     /**
      * Display the report.
-     * @throws \coding_exception
+     *
+     * @param string|null $download if set, download in this format, else display in the HTML page.
+     * @param int $usageid if set, show only data relating to this usage.
      */
-    public function display_download_content($download = null) {
-        $usageid = optional_param('usageid', 0, PARAM_INT);
-        if ($usageid > 0) {
+    public function display_download_content(?string $download = null, ?int $usageid = 0): void {
+        if ($usageid) {
             $table = new attempt_summary_table($this->context, $this->course->id, 0, $this->cm, $this->userid, $usageid);
         } else {
             list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['cmid' => $this->cm->id], 'activity'));
