@@ -66,11 +66,6 @@ class attempt_summary_table extends table_sql {
      */
     public $userfields = 'userid';
 
-    /**
-     * @var int $tablemaxrows maximum number of rows.
-     */
-    protected $tablemaxrows = 10000;
-
     public $courseid = 0;
     public $cm = null;
     public $groupid = 0;
@@ -107,14 +102,14 @@ class attempt_summary_table extends table_sql {
 
         if ($cm) {
             $url = new moodle_url('/report/embedquestion/activity.php',
-                    ['cmid' => $cm->id, 'usageid' => $usageid]);
+                    ['cmid' => $cm->id, 'userid' => $userid, 'usageid' => $usageid]);
         } else {
             $url = new moodle_url('/report/embedquestion/index.php',
-                    ['courseid' => $courseid, 'usageid' => $usageid]);
+                    ['courseid' => $courseid, 'userid' => $userid, 'usageid' => $usageid]);
         }
         $this->define_baseurl($url);
         $this->setup();
-        $this->query_db($this->tablemaxrows, false);
+        $this->query_db($this->perpage, false);
     }
 
     /**
