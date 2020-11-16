@@ -69,10 +69,15 @@ if (!$download) {
     $title = $report->get_title();
     $PAGE->set_title($title);
     $PAGE->set_heading($title);
-    echo $OUTPUT->header();
-    echo $renderer->report_heading($title);
+    $output = $OUTPUT->header();
+    $output .= $renderer->report_heading($title);
+    ob_start();
     $report->display_download_content(null, $usageid);
-    echo $OUTPUT->footer();
+    $output .= ob_get_contents();
+    ob_end_clean();
+    $output .= $OUTPUT->footer();
+
+    echo $output;
 } else {
     $report->display_download_content($download, $usageid);
 }

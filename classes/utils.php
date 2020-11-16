@@ -298,6 +298,7 @@ class utils
      * @return array
      */
     public static function get_filter_data($url) {
+        global $PAGE;
         // We need the pass the URL as a string, because we want parameters like
         // courseid or cmid to be get parameters in the URL. We don't wnat
         // the magic that formslib does if you pass a Moodle URL.
@@ -310,7 +311,14 @@ class utils
         $defaultdata->dateto = 0;
 
         // Check if we have a form submission.
-        $data = $mform->is_submitted() ? $mform->get_data() : $defaultdata;
+        $data = $defaultdata;
+        if ($mform->is_submitted()) {
+            $data = $mform->get_data();
+            // Very nasty hack to work around 'Form Resubmit' issue when refreshing the page.
+            // TODO: Refactor this function to use redirect() function.
+            $js = 'if ( window.history.replaceState ) { window.history.replaceState( null, null, window.location.href ); }';
+            $PAGE->requires->js_amd_inline($js);
+        }
         return [$mform->render(), $data];
     }
 

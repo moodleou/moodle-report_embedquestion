@@ -107,7 +107,7 @@ class latest_attempt_table extends table_sql {
         $this->collapsible(false);
 
         $this->define_baseurl($url);
-        $this->process_actions();
+        $this->process_actions($url);
     }
 
     /**
@@ -444,8 +444,10 @@ class latest_attempt_table extends table_sql {
 
     /**
      * Process any submitted actions.
+     *
+     * @param moodle_url $redirect Redirect url
      */
-    protected function process_actions() {
+    protected function process_actions(moodle_url $redirect) {
         global $USER;
         if (optional_param('delete', 0, PARAM_BOOL) && confirm_sesskey()) {
             if ($questionusagemetas = optional_param_array('questionusageid', [], PARAM_ALPHANUMEXT)) {
@@ -461,6 +463,7 @@ class latest_attempt_table extends table_sql {
                     }
                     attempt_storage::instance()->delete_attempt($quba);
                 }
+                redirect($redirect);
             }
         }
     }
