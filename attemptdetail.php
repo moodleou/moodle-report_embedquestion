@@ -33,7 +33,8 @@ $attemptid = required_param('attempt', PARAM_INT);
 
 list ($course, $cm) = get_course_and_cm_from_cmid($cmid);
 $attemptobj = (new question_engine_data_mapper)->load_question_attempt($attemptid);
-$userattemptid = $attemptobj->get_last_step()->get_user_id();
+$attemptinfo = $DB->get_record('report_embedquestion_attempt', ['questionusageid' => $attemptobj->get_usage_id()], '*', MUST_EXIST);
+$userattemptid = $attemptinfo->userid;
 
 require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
@@ -43,9 +44,13 @@ $pagetitle = get_string('attempt-detail-page', 'report_embedquestion');
 $url = new moodle_url('/report/embedquestion/attemptdetail.php',
         ['cmid' => $cm->id,
                 'attempt' => $attemptid]);
-
+$title = utils::get_title($context);
 $PAGE->set_url($url);
 $PAGE->set_pagelayout('popup');
+$PAGE->navbar->add($title, new moodle_url('/report/embedquestion/activity.php', ['cmid' => $cmid]));
+$PAGE->navbar->add(get_string('page-report-embedquestion-progress-detail', 'report_embedquestion'),
+        new moodle_url('/report/embedquestion/activity.php',
+                ['cmid' => $cmid, 'userid' => $userattemptid, 'usageid' => $attemptobj->get_usage_id()]));
 $PAGE->navbar->add(get_string('attempt-detail-page', 'report_embedquestion'), $url);
 
 if (!has_capability('report/embedquestion:viewallprogress', $context)) {
@@ -61,7 +66,6 @@ $PAGE->set_title($pagetitle);
 $PAGE->set_heading($pagetitle);
 
 $sumdata = utils::prepare_summary_attempt_information($course->id, $attemptobj);
-$title = utils::get_title($context);
 
 echo $OUTPUT->header();
 echo $renderer->render_attempt_navigation();

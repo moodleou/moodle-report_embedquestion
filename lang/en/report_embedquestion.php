@@ -59,6 +59,7 @@ $string['nweeks'] = '{$a} weeks';
 $string['page-report-embedquestion-*'] = 'Any embedded questions progress report';
 $string['page-report-embedquestion-activity'] = 'Activity embedded questions progress report';
 $string['page-report-embedquestion-index'] = 'Course embedded questions progress report';
+$string['page-report-embedquestion-progress-detail'] = 'Embedded question progress detail';
 $string['pluginname'] = 'Embedded questions progress';
 $string['privacy:metadata:core_question'] = 'The embedded questions progress report stores question usage information in the core_question subsystem.';
 $string['privacy:metadata:report_embedquestion_attempt'] = 'Information about which embedded questions each user has attempted.';
