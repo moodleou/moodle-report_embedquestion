@@ -85,7 +85,7 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
         ];
         $DB->insert_record('report_embedquestion_attempt', (object) $attemptinfo);
         // Cache invalidation.
-        attempt_tracker::user_attempts_changed($embedlocation->context->id);
+        attempt_tracker::user_attempts_changed($embedlocation->context);
     }
 
     public function verify_usage(\question_usage_by_activity $quba, \context $context): void {
@@ -113,10 +113,10 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
         \question_engine::delete_questions_usage_by_activity($quba->get_id());
         $contextid = $DB->get_field('report_embedquestion_attempt', 'contextid',
                 ['questionusageid' => $quba->get_id()]);
-        if ($contextid) {
-            attempt_tracker::user_attempts_changed($contextid);
-        }
         $DB->delete_records('report_embedquestion_attempt', ['questionusageid' => $quba->get_id()]);
+        if ($contextid) {
+            attempt_tracker::user_attempts_changed(\context::instance_by_id($contextid));
+        }
         $transaction->allow_commit();
     }
 }

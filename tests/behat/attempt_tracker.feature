@@ -34,9 +34,9 @@ Feature: Teachers/students can see their students/their own progress on embedded
     And I am on "Course 1" course homepage
     When I navigate to "Reports" in current page administration
     Then "Embedded questions progress" "link" should not exist
-    And "student1" has attempted embedded questions in "course" context "Course 1":
-      | pagename        | question    | response |
-      | Course:Course 1 | embed/test1 | True     |
+    And "student1" has attempted embedded questions in "activity" context "page1":
+      | pagename     | question    | response |
+      | Course:page1 | embed/test1 | True     |
     And I reload the page
     And "Embedded questions progress" "link" should exist
     And I follow "Embedded questions progress"

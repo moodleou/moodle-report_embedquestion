@@ -46,23 +46,110 @@ class attempt_tracker {
      */
     public static function user_has_attempt(int $contextid): bool {
         $cache = \cache::make(self::CACHE_COMPONENT, self::CACHE_AREA);
+        $context = \context::instance_by_id($contextid);
 
-        if (!$cache->has($contextid)) {
-            self::user_attempts_changed($contextid);
+        if ($context->contextlevel == CONTEXT_COURSE) {
+            if (!$cache->has($contextid)) {
+                // Build the parent context cache hierarchy.
+                self::user_attempts_changed($context);
+            }
+            $cachedata = $cache->get($context->id)['subcontext'];
+            // First, check if the current context have value or not.
+            if ($cache->get($context->id)['value']) {
+                return $cache->get($context->id)['value'];
+            }
+            // If current context do not have value, check the sub context.
+            return array_search(true, $cachedata) != false;
+        } else if ($context->contextlevel == CONTEXT_MODULE) {
+            $parentcontext = $context->get_parent_context();
+            if (!$cache->has($parentcontext->id)) {
+                // Build the parent context cache hierarchy.
+                self::user_attempts_changed($parentcontext);
+            }
+            $cachedata = $cache->get($parentcontext->id)['subcontext'];
+            if (!isset($cachedata[$context->id])) {
+                self::user_attempts_changed($context);
+            }
+            return $cachedata[$context->id];
+        } else {
+            throw new \coding_exception('Invalid context');
         }
-
-        return $cache->get($contextid)['value'];
     }
 
     /**
      * Invalidate the cache for given user and given context.
      *
-     * @param int $contextid Context id
+     * @param \context $context Context
      */
-    public static function user_attempts_changed(int $contextid): void {
+    public static function user_attempts_changed(\context $context): void {
         global $DB;
 
         $cache = \cache::make(self::CACHE_COMPONENT, self::CACHE_AREA);
-        $cache->set($contextid, ['value' => $DB->record_exists('report_embedquestion_attempt', ['contextid' => $contextid])]);
+
+        if ($context->contextlevel == CONTEXT_COURSE) {
+            // Build the parent context cache hierarchy.
+            self::build_course_cache($context);
+        } else if ($context->contextlevel == CONTEXT_MODULE) {
+            // Get the parent context.
+            $parentcontext = $context->get_parent_context();
+            if (!$cache->has($parentcontext->id)) {
+                // Build the parent context cache hierarchy.
+                self::build_course_cache($parentcontext);
+            } else {
+                // Get the parent context cache.
+                $cachedata = $cache->get($parentcontext->id)['subcontext'];
+                // Set the sub context value.
+                $cachedata[$context->id] = $DB->record_exists('report_embedquestion_attempt', ['contextid' => $context->id]);
+                // Update the parent context cache again.
+                $cache->set($parentcontext->id, [
+                        'value' => $DB->record_exists('report_embedquestion_attempt', ['contextid' => $parentcontext->id]),
+                        'subcontext' => $cachedata
+                ]);
+            }
+        } else {
+            throw new \coding_exception('Invalid context');
+        }
+    }
+
+    /**
+     * Build the cache hierarchy for given Course context.
+     *
+     * @param \context $context
+     */
+    public static function build_course_cache(\context $context): void {
+        global $DB;
+
+        if ($context->contextlevel != CONTEXT_COURSE) {
+            throw new \coding_exception('Invalid context');
+        }
+
+        $course = get_course($context->instanceid);
+        $modinfo = get_fast_modinfo($course);
+        $cms = $modinfo->get_cms();
+        $cachehir = [];
+        foreach ($cms as $cm) {
+            $cachehir[$cm->context->id] = false;
+        }
+
+        if (!empty($cachehir)) {
+            [$insql, $inparams] = $DB->get_in_or_equal(array_keys($cachehir));
+
+            $sql = "SELECT contextid, COUNT(id) as attemptno
+                      FROM {report_embedquestion_attempt}
+                     WHERE contextid $insql
+                  GROUP BY contextid";
+
+            $attemptinfos = $DB->get_records_sql_menu($sql, $inparams);
+
+            foreach ($attemptinfos as $subcontextid => $total) {
+                $cachehir[$subcontextid] = intval($total) > 0;
+            }
+        }
+
+        $cache = \cache::make(self::CACHE_COMPONENT, self::CACHE_AREA);
+        $cache->set($context->id, [
+                'value' => $DB->record_exists('report_embedquestion_attempt', ['contextid' => $context->id]),
+                'subcontext' => $cachehir
+        ]);
     }
 }

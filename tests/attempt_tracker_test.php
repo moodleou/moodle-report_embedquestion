@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use report_embedquestion\attempt_storage;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -75,15 +77,19 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
                 report_embedquestion\attempt_tracker::CACHE_AREA);
 
         // Verify that there is no cache at this time.
-        $this->assertFalse($cache->has($pagecontext->id));
+        $this->assertFalse($cache->has($coursecontext->id));
 
         // Verify that there is no attempt for the given context and user.
+        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
         $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
 
         // Verify that now we have the cache at this time.
-        $this->assertTrue($cache->has($pagecontext->id));
+        $this->assertTrue($cache->has($coursecontext->id));
         // Verify that the value from the cache is False.
-        $this->assertFalse($cache->get($pagecontext->id)['value']);
+        $this->assertEquals([
+                'value' => false,
+                'subcontext' => [$pagecontext->id => false]
+        ], $cache->get($coursecontext->id));
 
         // Insert the dummy data to report_embedquestion_attempt table.
         // We do not want to use create_attempt_at_embedded_question here because it will trigger the cache invalidation event.
@@ -101,16 +107,48 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
         $DB->insert_record('report_embedquestion_attempt', (object) $attemptinfo);
 
         // Verify that the value from the cache is still False.
-        $this->assertFalse($cache->get($pagecontext->id)['value']);
+        $this->assertEquals([
+                'value' => false,
+                'subcontext' => [$pagecontext->id => false],
+        ], $cache->get($coursecontext->id));
         // Verify that the function will get the value from the cache, not from the database.
+        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
         $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
 
         // Invalidate the cache.
-        report_embedquestion\attempt_tracker::user_attempts_changed($pagecontext->id);
+        report_embedquestion\attempt_tracker::user_attempts_changed($pagecontext);
 
         // Verify that the value from the cache is updated to True.
-        $this->assertTrue($cache->get($pagecontext->id)['value']);
+        $this->assertEquals([
+                'value' => false,
+                'subcontext' => [$pagecontext->id => true]
+        ], $cache->get($coursecontext->id));
         // Verify that the function will return the correct value.
+        $this->assertTrue(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
         $this->assertTrue(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
+
+        // Remove the dummy data.
+        $DB->delete_records('report_embedquestion_attempt', ['questionusageid' => $attemptinfo['questionusageid']]);
+
+        // Verify that the value from the cache is still True.
+        $this->assertEquals([
+                'value' => false,
+                'subcontext' => [$pagecontext->id => true]
+        ], $cache->get($coursecontext->id));
+        // Verify that the function will get the value from the cache, not from the database.
+        $this->assertTrue(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
+        $this->assertTrue(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
+
+        // Invalidate the cache.
+        report_embedquestion\attempt_tracker::user_attempts_changed($pagecontext);
+
+        // Verify that the value from the cache is updated to True.
+        $this->assertEquals([
+                'value' => false,
+                'subcontext' => [$pagecontext->id => false]
+        ], $cache->get($coursecontext->id));
+        // Verify that the function will return the correct value.
+        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
+        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
     }
 }
