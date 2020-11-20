@@ -69,6 +69,7 @@ class attempt_tracker {
             $cachedata = $cache->get($parentcontext->id)['subcontext'];
             if (!isset($cachedata[$context->id])) {
                 self::user_attempts_changed($context);
+                return false; // TODO needs to be fixed properly in #430657. This return just added to prevent notices.
             }
             return $cachedata[$context->id];
         } else {
