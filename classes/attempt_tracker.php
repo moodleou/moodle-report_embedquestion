@@ -49,27 +49,31 @@ class attempt_tracker {
         $context = \context::instance_by_id($contextid);
 
         if ($context->contextlevel == CONTEXT_COURSE) {
-            if (!$cache->has($contextid)) {
+            // Build the cache hierarchy if there is no cache for this context
+            // or there is an old cache hierarchy that was created previously.
+            if (self::is_cache_hierarchy_valid($context)) {
                 // Build the parent context cache hierarchy.
                 self::user_attempts_changed($context);
             }
-            $cachedata = $cache->get($context->id)['subcontext'];
             // First, check if the current context have value or not.
             if ($cache->get($context->id)['value']) {
                 return $cache->get($context->id)['value'];
             }
+            $cachedata = $cache->get($context->id)['subcontext'];
             // If current context do not have value, check the sub context.
             return array_search(true, $cachedata) != false;
         } else if ($context->contextlevel == CONTEXT_MODULE) {
             $parentcontext = $context->get_parent_context();
-            if (!$cache->has($parentcontext->id)) {
+            // Build the cache hierarchy if there is no cache for this context
+            // or there is an old cache hierarchy that was created previously.
+            if (self::is_cache_hierarchy_valid($parentcontext)) {
                 // Build the parent context cache hierarchy.
                 self::user_attempts_changed($parentcontext);
             }
             $cachedata = $cache->get($parentcontext->id)['subcontext'];
             if (!isset($cachedata[$context->id])) {
                 self::user_attempts_changed($context);
-                return false; // TODO needs to be fixed properly in #430657. This return just added to prevent notices.
+                $cachedata = $cache->get($parentcontext->id)['subcontext'];
             }
             return $cachedata[$context->id];
         } else {
@@ -93,7 +97,9 @@ class attempt_tracker {
         } else if ($context->contextlevel == CONTEXT_MODULE) {
             // Get the parent context.
             $parentcontext = $context->get_parent_context();
-            if (!$cache->has($parentcontext->id)) {
+            // Build the cache hierarchy if there is no cache for this context
+            // or there is an old cache hierarchy that was created previously.
+            if (self::is_cache_hierarchy_valid($parentcontext)) {
                 // Build the parent context cache hierarchy.
                 self::build_course_cache($parentcontext);
             } else {
@@ -152,5 +158,18 @@ class attempt_tracker {
                 'value' => $DB->record_exists('report_embedquestion_attempt', ['contextid' => $context->id]),
                 'subcontext' => $cachehir
         ]);
+    }
+
+    /**
+     * Check if there is no cache for this context or there is an old cache hierarchy that was created previously.
+     *
+     * @param \context $context Context
+     * @return bool
+     */
+    private static function is_cache_hierarchy_valid(\context $context): bool {
+        $cache = \cache::make(self::CACHE_COMPONENT, self::CACHE_AREA);
+
+        return (!$cache->has($context->id) || ($cache->has($context->id) &&
+                        (!isset($cache->get($context->id)['value']) || !isset($cache->get($context->id)['subcontext']))));
     }
 }

@@ -151,4 +151,47 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
         $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
         $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
     }
+
+    /**
+     * Test the user_has_attempt function with old cache hierarchy.
+     */
+    public function test_user_has_attempt_with_old_cache_hierarchy() {
+        $course = $this->generator->create_course();
+        $coursecontext = context_course::instance($course->id);
+        $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $coursecontext->id]);
+        $page = $this->generator->create_module('page', ['course' => $course->id,
+                'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>']);
+        $pagecontext = context_module::instance($page->cmid);
+
+        // Create a student with an attempt at that question.
+        $user = $this->generator->create_user();
+        $this->generator->enrol_user($user->id, $course->id, 'student');
+
+        // Make the cache.
+        $cache = cache::make(report_embedquestion\attempt_tracker::CACHE_COMPONENT,
+                report_embedquestion\attempt_tracker::CACHE_AREA);
+
+        // Verify that there is no cache at this time.
+        $this->assertFalse($cache->has($coursecontext->id));
+
+        // Create old cache hierarchy.
+        $cache->set($coursecontext->id, ['value' => false]);
+        // Verify that there is no attempt for the given context and user.
+        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
+        // Verify the cache hierarchy will be converted to the new one.
+        $this->assertEquals([
+                'value' => false,
+                'subcontext' => [$pagecontext->id => false]
+        ], $cache->get($coursecontext->id));
+
+        // Create old cache hierarchy.
+        $cache->set($coursecontext->id, ['value' => false]);
+        // Verify that there is no attempt for the given context and user.
+        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
+        // Verify the cache hierarchy will be converted to the new one.
+        $this->assertEquals([
+                'value' => false,
+                'subcontext' => [$pagecontext->id => false]
+        ], $cache->get($coursecontext->id));
+    }
 }
