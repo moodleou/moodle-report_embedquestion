@@ -109,6 +109,18 @@ Feature: Testing attempt detail view and delete feature
     And I should not see "student2"
 
   @javascript
+  Scenario: A student cannot delete his/her own progress in an activity if he/she does not have the permission
+    And the following "permission overrides" exist:
+      | capability                           | permission | role    | contextlevel | reference |
+      | report/embedquestion:deletemyattempt | Prevent    | student | Course       | C1        |
+    When I log in as "student2"
+    And I am on "Course 1" course homepage
+    And I follow "Test page"
+    And I navigate to "Embedded questions progress" in current page administration
+    Then "Select attempt" "checkbox" should not exist in the "student2" "table_row"
+    And "Delete selected attempts" "button" should exist
+
+  @javascript
   Scenario: A tutor can see their students progress but only can delete his/her own progress in an activity
     Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
     Then "Select attempt" "checkbox" should exist in the "tutor" "table_row"

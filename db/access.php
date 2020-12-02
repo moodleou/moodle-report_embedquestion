@@ -52,12 +52,24 @@ $capabilities = [
     ],
 
     // Ability for a user to delete the attempts of other users.
-    'report/embedquestion:deleteattempt' => [
+    'report/embedquestion:deleteanyattempt' => [
             'captype' => 'write',
             'contextlevel' => CONTEXT_MODULE,
             'archetypes' => [
                     'editingteacher' => CAP_ALLOW,
                     'manager' => CAP_ALLOW
             ],
+            'clonepermissionsfrom' => 'report/embedquestion:deleteattempt'
+    ],
+    // Ability for a user to delete the own attempts.
+    'report/embedquestion:deletemyattempt' => [
+            'captype' => 'write',
+            'contextlevel' => CONTEXT_MODULE,
+            'archetypes' => [
+                    'student' => CAP_ALLOW,
+                    'teacher' => CAP_ALLOW,
+                    'editingteacher' => CAP_ALLOW,
+                    'manager' => CAP_ALLOW
+            ]
     ]
 ];

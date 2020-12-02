@@ -193,19 +193,20 @@ class latest_attempt_table extends table_sql {
     public function col_checkbox(object $attempt): string {
         global $OUTPUT, $USER;
 
-        if ($USER->id != $attempt->userid && !has_capability('report/embedquestion:deleteattempt', $this->context)) {
+        if (has_capability('report/embedquestion:deleteanyattempt', $this->context) ||
+                ($USER->id == $attempt->userid && has_capability('report/embedquestion:deletemyattempt', $this->context))) {
+            $checkbox = new \core\output\checkbox_toggleall('embed-attempts', false, [
+                    'id' => "questionusageid_{$attempt->questionusageid}",
+                    'name' => 'questionusageid[]',
+                    'value' => $attempt->questionusageid . '-' . $attempt->slot,
+                    'label' => get_string('selectattempt', 'quiz'),
+                    'labelclasses' => 'accesshide',
+            ]);
+
+            return $OUTPUT->render($checkbox);
+        } else {
             return '';
         }
-
-        $checkbox = new \core\output\checkbox_toggleall('embed-attempts', false, [
-                'id' => "questionusageid_{$attempt->questionusageid}",
-                'name' => 'questionusageid[]',
-                'value' => $attempt->questionusageid . '-' . $attempt->slot,
-                'label' => get_string('selectattempt', 'quiz'),
-                'labelclasses' => 'accesshide',
-        ]);
-
-        return $OUTPUT->render($checkbox);
     }
 
     /**
@@ -470,10 +471,15 @@ class latest_attempt_table extends table_sql {
 
                     $quba = \question_engine::load_questions_usage_by_activity($qubaid);
                     $userid = $quba->get_question_attempt($slot)->get_last_step()->get_user_id();
-                    if ($USER->id != $userid) {
-                        require_capability('report/embedquestion:deleteattempt', $this->context);
+
+                    if (has_capability('report/embedquestion:deleteanyattempt', $this->context)) {
+                        attempt_storage::instance()->delete_attempt($quba);
+                    } else if (has_capability('report/embedquestion:deletemyattempt', $this->context) && $USER->id == $userid) {
+                        attempt_storage::instance()->delete_attempt($quba);
+                    } else {
+                        throw new \required_capability_exception($this->context, 'report/embedquestion:deletemyattempt',
+                                'nopermissions', '');
                     }
-                    attempt_storage::instance()->delete_attempt($quba);
                 }
                 redirect($redirect);
             }
