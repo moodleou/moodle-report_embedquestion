@@ -71,6 +71,9 @@ class latest_attempt_table extends table_sql {
     protected $context = null;
     protected $allowedjoins = null;
 
+    /** @var string|null the string used for file extension. */
+    protected $isdownloading = null;
+
     /**
      * latest_attempt_table constructor.
      * @param \context $context, the context object
@@ -91,6 +94,7 @@ class latest_attempt_table extends table_sql {
         $this->cm = $cm;
         $this->userid = $userid;
         $this->userfields = utils::get_user_fields($context);
+        $this->isdownloading = $download;
 
         // Set base url.
         if ($cm !== null) {
@@ -116,7 +120,10 @@ class latest_attempt_table extends table_sql {
      */
     private function get_headers() {
         $headers = [];
-        $headers[] = $this->checkbox_col_header('checkbox');
+        if (!$this->isdownloading) {
+            // We cannot use is_downloading() function here because the table constructor was called before the is_download().
+            $headers[] = $this->checkbox_col_header('checkbox');
+        }
         $headers[] = get_string('fullname');
         $headers[] = get_string('username');
         $headers[] = get_string('type', 'report_embedquestion');
@@ -163,7 +170,10 @@ class latest_attempt_table extends table_sql {
      */
     private function get_columns() {
         $columns = [];
-        $columns[] = 'checkbox';
+        if (!$this->isdownloading) {
+            // We cannot use is_downloading() function here because the table constructor was called before the is_download().
+            $columns[] = 'checkbox';
+        }
         $columns[] = 'fullname';
         $columns[] = 'username';
         $columns[] = 'questiontype';
