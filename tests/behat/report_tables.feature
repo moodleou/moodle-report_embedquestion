@@ -62,7 +62,7 @@ Feature: Teachers can see their students progress on embedded questions.
     And I navigate to "Embedded questions progress" in current page administration
     Then I should see "Embedded question progress for Test page"
 
-  Scenario: A student can see his/her own progress in an activity
+  Scenario: A student can see his/her own progress only in an activity
     When I log in as "student2"
     When I am on "Course 1" course homepage
     And I follow "Test page"
@@ -70,3 +70,12 @@ Feature: Teachers can see their students progress on embedded questions.
     Then I should see "Embedded question progress for Test page"
     And I should see "Date filter"
     And I should see "Download table data as"
+    And I should see "student2"
+    And I should not see "student1"
+    And I log out
+    And I log in as "student1"
+    And I am on "Course 1" course homepage
+    And I follow "Test page"
+    And I navigate to "Embedded questions progress" in current page administration
+    And I should see "student1"
+    And I should not see "student2"

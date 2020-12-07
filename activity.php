@@ -49,7 +49,7 @@ if ($userid !== 0) {
 $PAGE->set_url('/report/embedquestion/activity.php', $params);
 $PAGE->set_pagelayout('report');
 
-utils::require_report_permissions($context, $userid);
+$userid = utils::require_report_permissions($context, $userid);
 utils::validate_usageid($usageid, $userid);
 
 // Log the view.

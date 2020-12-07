@@ -70,9 +70,10 @@ class utils
      *
      * @param \context $context the report context.
      * @param int $userid if not zero, the report being shown only has data for this user.
+     * @return int if this report should only show data for one user, that userid, otherwise 0
      * @throws \required_capability_exception if access is not allowed.
      */
-    public static function require_report_permissions(\context $context, int $userid) {
+    public static function require_report_permissions(\context $context, int $userid): int {
         global $USER;
         if (!has_capability('report/embedquestion:viewallprogress', $context)) {
             require_capability('report/embedquestion:viewmyprogress', $context);
@@ -84,6 +85,8 @@ class utils
                 require_capability('report/viewallprogress:viewmyprogress', $context);
             }
         }
+
+        return $userid;
     }
 
     /**
