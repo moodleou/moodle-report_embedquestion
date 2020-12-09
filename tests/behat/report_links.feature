@@ -1,6 +1,5 @@
 @report @report_embedquestion
-Feature: Teachers/students can see their students/their own progress on embedded questions.
-  In order to make the report more useful
+Feature: Testing the Embedded questions progress link
   As a teacher/student
   I should be able to see the Embedded questions progress link only if there are some attempts
 

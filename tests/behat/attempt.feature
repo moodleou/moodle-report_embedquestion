@@ -1,0 +1,145 @@
+@report @report_embedquestion
+Feature: Testing attempt detail view and delete feature
+  As a teacher/student
+  I should be able to view the attempt detail or delete it in Embed Question report
+
+  Background:
+    Given the following "users" exist:
+      | username | firstname | lastname | email                |
+      | teacher1 | Teacher   | 1        | teacher1@example.com |
+      | tutor1   | Tutor     | 1        | tutor1@example.com   |
+      | student1 | Student   | 1        | student1@example.com |
+      | student2 | Student   | 2        | student2@example.com |
+      | student3 | Student   | 3        | student3@example.com |
+    And the following "courses" exist:
+      | fullname | shortname |
+      | Course 1 | C1        |
+    And the following "course enrolments" exist:
+      | user     | course | role           |
+      | student1 | C1     | student        |
+      | student2 | C1     | student        |
+      | student3 | C1     | student        |
+      | teacher1 | C1     | editingteacher |
+      | tutor1   | C1     | teacher        |
+    And the following "activities" exist:
+      | activity | name      | idnumber | course |
+      | page     | Test page | page1    | C1     |
+    And the following "question categories" exist:
+      | contextlevel | reference | name          | idnumber |
+      | Course       | C1        | Test questions| embed    |
+    And the following "questions" exist:
+      | questioncategory | qtype     | name           | idnumber |
+      | Test questions   | truefalse | First question | test1    |
+    And the "embedquestion" filter is "on"
+    And "student1" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response | slot |
+      | C1:page1 | embed/test1 | True     | 1    |
+      | C1:page1 | embed/test1 | False    | 2    |
+      | C1:page1 | embed/test1 | True     | 3    |
+      | C1:page1 | embed/test1 | False    | 4    |
+      | C1:page1 | embed/test1 | True     | 5    |
+      | C1:page1 | embed/test1 | False    | 6    |
+    And "student2" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response |
+      | C1:page1 | embed/test1 | True    |
+    And "student3" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response |
+      | C1:page1 | embed/test1 | False    |
+    And "tutor1" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response |
+      | C1:page1 | embed/test1 | True     |
+
+  @javascript
+  Scenario: A teacher can see their students attempt summary in an activity
+    When I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher1"
+    Then I should see "student1"
+    And I click on "Attempt summary" "link" in the "student1" "table_row"
+    And I should see "Attempt summary for:"
+    And I should see "Next" in the ".pagination" "css_element"
+    And I start watching to see if a new page loads
+    And I click on "Next" "link" in the ".pagination" "css_element"
+    And a new page should have loaded since I started watching
+    And I should see "Attempt summary for:"
+
+  @javascript
+  Scenario: Students can see their attempt detail in a activity
+    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
+    And I click on "Attempt summary" "link" in the "student2" "table_row"
+    And I click on "Attempt detail view" "link" in the "Correct" "table_row"
+    When I switch to the browser tab opened by the app
+    And I should see "First question"
+    And "quizreviewsummary" "table" should exist
+    And the field "True" matches value "1"
+    And I should see "The correct answer is 'True'"
+    And I should see "Response history"
+
+  @javascript
+  Scenario: Teachers can see their student's attempts detail in a course
+    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher1"
+    And I click on "Attempt summary" "link" in the "student3" "table_row"
+    And I click on "Attempt detail view" "link" in the "Incorrect" "table_row"
+    When I switch to the browser tab opened by the app
+    And I should see "First question"
+    And "quizreviewsummary" "table" should exist
+    And the field "False" matches value "1"
+    And I should see "The correct answer is 'True'"
+    And I should see "Response history"
+    And I close the browser tab opened by the app
+    And I press the "back" button in the browser
+    And I click on "Attempt summary" "link" in the "student2" "table_row"
+    And I click on "Attempt detail view" "link" in the "Correct" "table_row"
+    And I switch to the browser tab opened by the app
+    And I should see "First question"
+    And "quizreviewsummary" "table" should exist
+    And the field "True" matches value "1"
+    And I should see "The correct answer is 'True'"
+    And I should see "Response history"
+
+  @javascript
+  Scenario: A student can delete his/her own progress in an activity
+    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
+    Then "Select attempt" "checkbox" should exist in the "student2" "table_row"
+    And "Delete selected attempts" "button" should exist
+    And the "Delete selected attempts" "button" should be disabled
+    And I click on "Select attempt" "checkbox" in the "student2" "table_row"
+    And the "Delete selected attempts" "button" should be enabled
+    And I click on "Delete selected attempts" "button"
+    And I should see "Are you absolutely sure you want to completely delete these attempts?" in the "Confirmation" "dialogue"
+    And I click on "Yes" "button"
+    And I should not see "student2"
+
+  @javascript
+  Scenario: A tutor can see their students progress but only can delete his/her own progress in an activity
+    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
+    Then "Select attempt" "checkbox" should exist in the "tutor" "table_row"
+    And "Select attempt" "checkbox" should not exist in the "student1" "table_row"
+    And "Select attempt" "checkbox" should not exist in the "student2" "table_row"
+    And "Delete selected attempts" "button" should exist
+    And the "Delete selected attempts" "button" should be disabled
+    And I click on "Select attempt" "checkbox" in the "tutor" "table_row"
+    And the "Delete selected attempts" "button" should be enabled
+    And I click on "Delete selected attempts" "button"
+    And I should see "Are you absolutely sure you want to completely delete these attempts?" in the "Confirmation" "dialogue"
+    And I click on "Yes" "button"
+    And I should not see "tutor"
+    And I should see "student1"
+    And I should see "student2"
+
+  @javascript
+  Scenario: A teacher can see their students progress and can delete their students progress in an activity
+    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
+    Then "Select attempt" "checkbox" should exist in the "tutor" "table_row"
+    And "Select attempt" "checkbox" should exist in the "student1" "table_row"
+    And "Select attempt" "checkbox" should exist in the "student2" "table_row"
+    And "Delete selected attempts" "button" should exist
+    And the "Delete selected attempts" "button" should be disabled
+    And I click on "Select attempt" "checkbox" in the "student1" "table_row"
+    And I click on "Select attempt" "checkbox" in the "student2" "table_row"
+    And I click on "Select attempt" "checkbox" in the "tutor" "table_row"
+    And the "Delete selected attempts" "button" should be enabled
+    And I click on "Delete selected attempts" "button"
+    And I should see "Are you absolutely sure you want to completely delete these attempts?" in the "Confirmation" "dialogue"
+    And I click on "Yes" "button"
+    And I should not see "tutor"
+    And I should not see "student1"
+    And I should not see "student2"

@@ -26,11 +26,11 @@ Feature: Teachers can see their students progress on embedded questions.
     And the following "question categories" exist:
       | contextlevel | reference | name          | idnumber |
       | Course       | C1        | Test questions| embed    |
-    Given the following "questions" exist:
+    And the following "questions" exist:
       | questioncategory | qtype     | name           | idnumber |
       | Test questions   | truefalse | First question | test1    |
     And the "embedquestion" filter is "on"
-    Given "student1" has attempted embedded questions in "activity" context "page1":
+    And "student1" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
       | C1:page1 | embed/test1 | True     |
     And "student2" has attempted embedded questions in "activity" context "page1":
@@ -41,32 +41,37 @@ Feature: Teachers can see their students progress on embedded questions.
       | Course:Course 1 | embed/test1 | True     |
 
   Scenario: A teacher can see their students progress in a course
-    When I log in as "teacher"
-    And I am on "Course 1" course homepage
-    Then I navigate to "Reports > Embedded questions progress" in current page administration
-    And I should see "Embedded question progress for Course 1"
-    Then I should see "Date filter"
+    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
+    Then I should see "Embedded question progress for Course 1"
+    And I should see "Date filter"
     And ".groupselector" "css_element" should not exist
     And I should see "Download table data as"
     And I should see "student1"
+    And I should see "Correct" in the "student1" "table_row"
     And "Correct" "icon" should exist in the "student1" "table_row"
     And I should see "student2"
+    And I should see "Incorrect" in the "student2" "table_row"
     And "Incorrect" "icon" should exist in the "student2" "table_row"
     And I should see "student3"
+    And I should see "Correct" in the "student3" "table_row"
     And "Correct" "icon" should exist in the "student3" "table_row"
 
   Scenario: A teacher can see their students progress in an activity
-    When I log in as "teacher"
-    When I am on "Course 1" course homepage
-    And I follow "Test page"
-    And I navigate to "Embedded questions progress" in current page administration
+    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher"
     Then I should see "Embedded question progress for Test page"
+    And I should see "Date filter"
+    And ".groupselector" "css_element" should not exist
+    And I should see "Download table data as"
+    And I should see "student1"
+    And I should see "Correct" in the "student1" "table_row"
+    And "Correct" "icon" should exist in the "student1" "table_row"
+    And I should see "student2"
+    And I should see "Incorrect" in the "student2" "table_row"
+    And "Incorrect" "icon" should exist in the "student2" "table_row"
+    And I should not see "student3"
 
-  Scenario: A student can see his/her own progress only in an activity
-    When I log in as "student2"
-    When I am on "Course 1" course homepage
-    And I follow "Test page"
-    And I navigate to "Embedded questions progress" in current page administration
+  Scenario: A student can only see his/her own progress in an activity
+    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
     Then I should see "Embedded question progress for Test page"
     And I should see "Date filter"
     And I should see "Download table data as"

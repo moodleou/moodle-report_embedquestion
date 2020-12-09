@@ -1,5 +1,5 @@
 @report @report_embedquestion
-Feature: Teachers or tutor can see their students progress in their group on embedded questions.
+Feature: Testing Embedded Question report with group mode
   So that I can mentor them
   As a teacher
   I should be able to my students' progress with embedded questions
@@ -50,11 +50,8 @@ Feature: Teachers or tutor can see their students progress in their group on emb
 
   @javascript
   Scenario: A teacher can see all students progress in a course
-    Given I log in as "teacher"
-    And I am on "Course 1" course homepage
-    And I follow "Test page"
-    When I navigate to "Embedded questions progress" in current page administration
-    Then I should see "Embedded question progress for Test page"
+    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
+    Then I should see "Embedded question progress for Course 1"
     And I set the field "Separate groups" to "All participants"
     And I should see "student1"
     And I should see "student2"
@@ -67,10 +64,7 @@ Feature: Teachers or tutor can see their students progress in their group on emb
 
   @javascript
   Scenario: A tutor can see their students progress in an activity
-    Given I log in as "tutor"
-    And I am on "Course 1" course homepage
-    And I follow "Test page"
-    When I navigate to "Embedded questions progress" in current page administration
+    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "tutor"
     Then I should see "Embedded question progress for Test page"
     And I should see "Group 1"
     And I should see "student1"
