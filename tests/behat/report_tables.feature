@@ -6,12 +6,12 @@ Feature: Teachers can see their students progress on embedded questions.
 
   Background:
     Given the following "users" exist:
-      | username |
-      | student1 |
-      | student2 |
-      | student3 |
-      | student4 |
-      | teacher  |
+      | username | firstname | lastname| idnumber | phone1      |
+      | student1 | Student   |    1    |    s1    | 12345678911 |
+      | student2 | Student   |    2    |    s2    | 12345678811 |
+      | student3 | Student   |    3    |    s3    | 12345678711 |
+      | student4 | Student   |    4    |    s4    | 12345678611 |
+      | teacher  | Teacher   |    1    |    t1    | 12345678511 |
     And the following "courses" exist:
       | fullname | shortname |
       | Course 1 | C1        |
@@ -45,6 +45,11 @@ Feature: Teachers can see their students progress on embedded questions.
       | pagename        | question    | response |
       | Course:Course 1 | embed/test1 | True     |
     And "student4" has started embedded question "embed/test1" in "activity" context "page2"
+    And the following "permission overrides" exist:
+      | capability                                   | permission | role    | contextlevel | reference |
+      | moodle/site:viewuseridentity                 | Allow      | student | System       |           |
+    And the following config values are set as admin:
+      | showuseridentity | username |
 
   Scenario: A teacher can see their students progress in a course
     Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
@@ -93,3 +98,21 @@ Feature: Teachers can see their students progress on embedded questions.
     And I navigate to "Embedded questions progress" in current page administration
     And I should see "student1"
     And I should not see "student2"
+
+  Scenario: The report will show the IDs columns depend on the administration setting.
+    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "admin"
+    And I should see "Embedded question progress for Test page"
+    And the following config values are set as admin:
+      | showuseridentity | |
+    And I reload the page
+    And I should not see "student1" in the "Student 1" "table_row"
+    And I should not see "s1" in the "Student 1" "table_row"
+    And I should not see "student1@gmail.com" in the "Student 1" "table_row"
+    And I should not see "12345678911" in the "Student 1" "table_row"
+    And the following config values are set as admin:
+    | showuseridentity | username,idnumber,email,phone1 |
+    And I reload the page
+    And I should see "student1" in the "Student 1" "table_row"
+    And I should see "s1" in the "Student 1" "table_row"
+    And I should see "student1@example.com" in the "Student 1" "table_row"
+    And I should see "12345678911" in the "Student 1" "table_row"

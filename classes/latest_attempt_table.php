@@ -64,6 +64,9 @@ class latest_attempt_table extends table_sql {
      */
     public $userfields = null;
 
+    /** @var array $extrauserfields extra user fields from user identity config. */
+    public $extrauserfields = [];
+
     protected $courseid = 0;
     protected $cm = null;
     protected $groupid = 0;
@@ -94,6 +97,7 @@ class latest_attempt_table extends table_sql {
         $this->cm = $cm;
         $this->userid = $userid;
         $this->userfields = utils::get_user_fields($context);
+        $this->extrauserfields = get_extra_user_fields($this->context);
         $this->isdownloading = $download;
 
         // Set base url.
@@ -124,8 +128,10 @@ class latest_attempt_table extends table_sql {
             // We cannot use is_downloading() function here because the table constructor was called before the is_download().
             $headers[] = $this->checkbox_col_header('checkbox');
         }
-        $headers[] = get_string('fullname');
-        $headers[] = get_string('username');
+        $headers[] = get_string('fullnameuser');
+        foreach ($this->extrauserfields as $field) {
+            $headers[] = get_user_field_name($field);;
+        }
         $headers[] = get_string('type', 'report_embedquestion');
         $headers[] = get_string('question');
         $headers[] = get_string('location');
@@ -175,7 +181,9 @@ class latest_attempt_table extends table_sql {
             $columns[] = 'checkbox';
         }
         $columns[] = 'fullname';
-        $columns[] = 'username';
+        foreach ($this->extrauserfields as $field) {
+            $columns[] = $field;
+        }
         $columns[] = 'questiontype';
         $columns[] = 'questionname';
         $columns[] = 'pagename';

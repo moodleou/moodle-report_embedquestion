@@ -48,6 +48,11 @@ Feature: Testing attempt detail view and delete feature
     And "tutor1" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
       | C1:page1 | embed/test1 | True     |
+    And the following "permission overrides" exist:
+      | capability                                   | permission | role    | contextlevel | reference |
+      | moodle/site:viewuseridentity                 | Allow      | student | System       |           |
+    And the following config values are set as admin:
+      | showuseridentity | username |
 
   @javascript
   Scenario: A teacher can see their students attempt summary in an activity
