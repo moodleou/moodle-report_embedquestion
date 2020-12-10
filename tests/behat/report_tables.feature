@@ -10,6 +10,7 @@ Feature: Teachers can see their students progress on embedded questions.
       | student1 |
       | student2 |
       | student3 |
+      | student4 |
       | teacher  |
     And the following "courses" exist:
       | fullname | shortname |
@@ -19,6 +20,7 @@ Feature: Teachers can see their students progress on embedded questions.
       | student1 | C1     | student        |
       | student2 | C1     | student        |
       | student3 | C1     | student        |
+      | student4 | C1     | student        |
       | teacher  | C1     | editingteacher |
     And the following "activities" exist:
       | activity | name      | idnumber | course |
@@ -29,6 +31,9 @@ Feature: Teachers can see their students progress on embedded questions.
     And the following "questions" exist:
       | questioncategory | qtype     | name           | idnumber |
       | Test questions   | truefalse | First question | test1    |
+    And the following "filter_embedquestion > Pages with embedded question" exist:
+      | name        | idnumber | course | question    |
+      | Test page 2 | page2    | C1     | embed/test1 |
     And the "embedquestion" filter is "on"
     And "student1" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
@@ -39,6 +44,7 @@ Feature: Teachers can see their students progress on embedded questions.
     And "student3" has attempted embedded questions in "course" context "Course 1":
       | pagename        | question    | response |
       | Course:Course 1 | embed/test1 | True     |
+    And "student4" has started embedded question "embed/test1" in "activity" context "page2"
 
   Scenario: A teacher can see their students progress in a course
     Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
@@ -53,6 +59,8 @@ Feature: Teachers can see their students progress on embedded questions.
     And I should see "Incorrect" in the "student2" "table_row"
     And "Incorrect" "icon" should exist in the "student2" "table_row"
     And I should see "student3"
+    And I should see "student4"
+    And I should see "Not yet answered" in the "student4" "table_row"
     And I should see "Correct" in the "student3" "table_row"
     And "Correct" "icon" should exist in the "student3" "table_row"
 
@@ -69,6 +77,7 @@ Feature: Teachers can see their students progress on embedded questions.
     And I should see "Incorrect" in the "student2" "table_row"
     And "Incorrect" "icon" should exist in the "student2" "table_row"
     And I should not see "student3"
+    And I should not see "student4"
 
   Scenario: A student can only see his/her own progress in an activity
     Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"

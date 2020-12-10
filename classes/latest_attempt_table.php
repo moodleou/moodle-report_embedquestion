@@ -308,7 +308,9 @@ class latest_attempt_table extends table_sql {
         $this->sqldata->from[] = 'JOIN {question_attempts} qa ON (qa.questionusageid = r.questionusageid ' .
                 'AND qa.slot = (SELECT MAX(slot) FROM {question_attempts} WHERE questionusageid = qu.id))';
         $this->sqldata->from[] = 'JOIN {question} q ON (q.id = qa.questionid)';
-        $this->sqldata->from[] = 'JOIN {question_attempt_steps} qas ON (qa.id = qas.questionattemptid AND qas.sequencenumber <> 0)';
+        $this->sqldata->from[] = 'JOIN {question_attempt_steps} qas ON (qa.id = qas.questionattemptid ' .
+                'AND qas.sequencenumber = (SELECT MAX(sequencenumber) FROM {question_attempt_steps} ' .
+                'WHERE questionattemptid = qas.questionattemptid))';
     }
 
     /**
