@@ -67,7 +67,7 @@ class renderer extends plugin_renderer_base {
         // Adjust the display options before a question is rendered.
         $attemptobj->get_behaviour()->adjust_display_options($displayoptions);
 
-        // 'Question' is always 'Question 1' for embedded questions. So that, we have param '1'.
+        // The question number is always 'Question 1' for embedded questions. So that, we have param '1'.
         return $attemptobj->render($displayoptions, 1);
     }
 

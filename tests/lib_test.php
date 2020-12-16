@@ -48,7 +48,7 @@ class report_embedquestion_lib_testcase extends advanced_testcase {
     /**
      * Setup
      */
-    protected function setUp() {
+    protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
         $this->generator = $this->getDataGenerator();

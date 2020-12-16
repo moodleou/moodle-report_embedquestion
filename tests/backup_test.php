@@ -55,7 +55,7 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
      */
     protected $attemptgenerator;
 
-    protected function setUp() {
+    protected function setUp(): void {
         parent::setUp();
         if (!trait_exists('backup_questions_attempt_data_trait')) {
             $this->markTestSkipped('Backup for this plugin only work in Moodle 3.8 or later.');

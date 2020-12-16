@@ -163,6 +163,7 @@ class attempt_summary_table extends table_sql {
 
     protected function set_sql_data_fields($userfields) {
         // Define the default fields.
+        $this->sqldata->fields = [];
         $this->sqldata->fields[] = 'qas.id              AS questionattemptstepid';
         $this->sqldata->fields[] = 'qas.timecreated     AS questionattemptsteptime';
         foreach ($userfields as $field) {
@@ -185,6 +186,7 @@ class attempt_summary_table extends table_sql {
     }
 
     public function set_sql_data_from() {
+        $this->sqldata->from = [];
         $this->sqldata->from[] = '{report_embedquestion_attempt} r';
         $this->sqldata->from[] = 'JOIN {user} u ON u.id = r.userid';
         $this->sqldata->from[] = 'JOIN {question_usages} qu ON (qu.id = r.questionusageid ' .
@@ -202,6 +204,9 @@ class attempt_summary_table extends table_sql {
     protected function generate_query($contextid, $userfields, $usageid = 0) {
 
         // Set sql data.
+        $this->sqldata = new stdClass();
+        $this->sqldata->where = [];
+        $this->sqldata->params = [];
         $this->set_sql_data_fields($userfields);
         $this->set_sql_data_from();
 

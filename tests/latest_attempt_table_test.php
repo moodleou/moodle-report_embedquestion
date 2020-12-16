@@ -38,7 +38,7 @@ use report_embedquestion\utils;
  */
 class report_embedquestion_latest_attempt_table_testcase extends advanced_testcase {
 
-    protected function setUp() {
+    protected function setUp(): void {
         parent::setUp();
         $this->setAdminUser();
         $this->resetAfterTest();

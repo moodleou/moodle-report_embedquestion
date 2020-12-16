@@ -49,7 +49,7 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
      */
     protected $attemptgenerator;
 
-    protected function setUp() {
+    protected function setUp(): void {
         parent::setUp();
         $this->attemptgenerator = $this->getDataGenerator()->get_plugin_generator('filter_embedquestion');
     }
@@ -124,11 +124,7 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
 
         $userlist = new userlist($context, 'report_embedquestion');
         provider::get_users_in_context($userlist);
-        // Once we no longer need to support Moodle 3.6, this can be:
-        // $this->assertEqualsCanonicalizing([$user->id, $anotheruser->id], $userlist->get_userids());
-        // until then, the true here means canonicalise. The preceding option arguments are the defaults.
-        $this->assertEquals([$user->id, $anotheruser->id],
-                $userlist->get_userids(), '', 0.0, 10, true);
+        $this->assertEqualsCanonicalizing([$user->id, $anotheruser->id], $userlist->get_userids());
     }
 
     /**

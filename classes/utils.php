@@ -200,7 +200,8 @@ class utils
 
         $output .= html_writer::start_span('que correctness ' . $correctness);
         $output .= get_string($correctness, 'question');
-        $output .= $OUTPUT->pix_icon($icon . $correctness, get_string($correctness, 'question'), 'moodle', ['class' => 'state-icon']);
+        $output .= $OUTPUT->pix_icon($icon . $correctness,
+                get_string($correctness, 'question'), 'moodle', ['class' => 'state-icon']);
         $output .= html_writer::end_span();
 
         return $output;
@@ -337,7 +338,8 @@ class utils
 
         $question = $attemptobj->get_question();
         $student = \core_user::get_user($attemptobj->get_last_step()->get_user_id(),
-                'id, picture, imagealt, firstname, lastname, firstnamephonetic, lastnamephonetic, middlename, alternatename, email');
+                'id, picture, imagealt, firstname, lastname, firstnamephonetic, ' .
+                'lastnamephonetic, middlename, alternatename, email');
         $userpicture = new user_picture($student);
         $userpicture->courseid = $courseid;
         $sumdata['user'] = [

@@ -271,7 +271,7 @@ class latest_attempt_table extends table_sql {
 
     protected function set_sql_data_fields($userfields) {
         // Define the default fields.
-        $this->sqldata = new stdClass();
+        $this->sqldata->fields = [];
         $this->sqldata->fields[] = 'qas.id              AS questionattemptstepid';
         $this->sqldata->fields[] = 'qas.timecreated     AS questionattemptsteptime';
         if ($userfields) {
@@ -300,6 +300,7 @@ class latest_attempt_table extends table_sql {
     }
 
     protected function set_sql_data_from() {
+        $this->sqldata->from = [];
         $this->sqldata->from[] = '{report_embedquestion_attempt} r';
         $this->sqldata->from[] = 'JOIN {user} u ON u.id = r.userid';
         $this->sqldata->from[] = "JOIN {question_usages} qu ON " .
@@ -323,6 +324,9 @@ class latest_attempt_table extends table_sql {
      */
     protected function generate_query($contextid, $userfields, $filter = null) {
         // Set the sql data.
+        $this->sqldata = new stdClass();
+        $this->sqldata->where = [];
+        $this->sqldata->params = [];
         $this->set_sql_data_fields($userfields);
         $this->set_sql_data_from();
 
@@ -404,7 +408,7 @@ class latest_attempt_table extends table_sql {
      * for example. Called only when there is data to display and not
      * downloading.
      */
-    function wrap_html_start() {
+    public function wrap_html_start() {
         $output = html_writer::start_tag('form',
                 ['id' => 'attemptsform', 'method' => 'post', 'action' => $this->baseurl]);
         $url = $this->baseurl;
@@ -419,7 +423,7 @@ class latest_attempt_table extends table_sql {
      * for example. Called only when there is data to display and not
      * downloading.
      */
-    function wrap_html_finish() {
+    public function wrap_html_finish() {
         $output = html_writer::start_div('commands');
         $output .= $this->delete_attempts_buttons();
         $output .= html_writer::end_div();

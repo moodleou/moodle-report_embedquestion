@@ -95,7 +95,8 @@ class single_user_activity_report {
                 echo $filterform;
                 utils::allow_downloadability_for_attempt_table($table, $this->get_title(), $this->context);
             } else {
-                $table = new latest_attempt_table($this->context, $this->course->id, 0, $this->cm, $filter, $download, $this->userid);
+                $table = new latest_attempt_table($this->context, $this->course->id, 0,
+                        $this->cm, $filter, $download, $this->userid);
                 $filename = $this->course->shortname . '_' . str_replace(' ', '_', $this->get_title());
                 $table->is_downloading($download, $filename);
                 if ($table->is_downloading()) {
