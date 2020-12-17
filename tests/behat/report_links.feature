@@ -29,9 +29,7 @@ Feature: Testing the Embedded questions progress link
     And the "embedquestion" filter is "on"
 
   Scenario: The Embedded questions progress link in the Course Administration only show if there are some attempts
-    Given I log in as "teacher"
-    And I am on "Course 1" course homepage
-    When I navigate to "Reports" in current page administration
+    When I am on the "C1" "report_embedquestion > Course admin" page logged in as "teacher"
     Then "Embedded questions progress" "link" should not exist
     And "student1" has attempted embedded questions in "activity" context "page1":
       | pagename     | question    | response |
@@ -43,8 +41,7 @@ Feature: Testing the Embedded questions progress link
     And I should not see "student2"
 
   Scenario: The Embedded questions progress link in the Module Administration only show if there are some attempts
-    Given I log in as "teacher"
-    And I am on "Course 1" course homepage
+    When I am on the "C1" "Course" page logged in as "teacher"
     When I follow "Test page"
     Then "Embedded questions progress" "link" should not exist in current page administration
     And "student2" has attempted embedded questions in "activity" context "page1":

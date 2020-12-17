@@ -41,6 +41,7 @@ class behat_report_embedquestion extends behat_base {
      * | pagetype                     | name meaning      | description                                        |
      * | Progress report for Course   | Course shortname  | The Embedded Question progress report for Course   |
      * | Progress report for Activity | Activity idnumber | The Embedded Question progress report for Activity |
+     * | Course admin                 | Course shortname  | Core page, not ours, but we need to get there      |
      *
      * @param string $type identifies which type of page this is, e.g. 'Progress report for Course'.
      * @param string $identifier identifies the particular course/page, e.g. 'C1'.
@@ -54,6 +55,9 @@ class behat_report_embedquestion extends behat_base {
             case 'Progress report for Activity':
                 return new moodle_url('/report/embedquestion/activity.php',
                         ['cmid' => $this->get_cmid_by_idnumber($identifier)]);
+            case 'Course admin':
+                return new moodle_url('/course/admin.php',
+                        ['courseid' => $this->get_course_by_course_shortname($identifier)]);
             default:
                 throw new Exception('Unrecognised filter_embedquestion page type "' . $type . '."');
         }
