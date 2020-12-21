@@ -309,4 +309,26 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
         $this->assertEquals([$otheruser->id => 1], $DB->get_records_menu(
                 'report_embedquestion_attempt', ['contextid' => $context->id], 'id', 'userid, 1'));
     }
+
+    /**
+     * Test for provider::export_user_preferences().
+     */
+    public function test_export_user_preferences() {
+        $this->resetAfterTest();
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        set_user_preference('report_embedquestion_pagesize', 15);
+
+        provider::export_user_preferences($user->id);
+
+        $writer = writer::with_context(\context_system::instance());
+        $this->assertTrue($writer->has_any_data());
+
+        $preferences = $writer->get_user_preferences('report_embedquestion');
+
+        $this->assertNotEmpty($preferences->pagesize);
+        $this->assertEquals(15, $preferences->pagesize->value);
+
+    }
 }

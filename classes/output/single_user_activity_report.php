@@ -49,9 +49,6 @@ class single_user_activity_report {
     /** @var \context the activity context. */
     protected $context;
 
-    /** @var int number of rows in the progress report table per page. */
-    protected $pagesize = 10;
-
     /**
      * Constructor.
      *
@@ -85,10 +82,10 @@ class single_user_activity_report {
      * @param int $usageid if set, show only data relating to this usage.
      */
     public function display_download_content(?string $download = null, ?int $usageid = 0): void {
+        list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['cmid' => $this->cm->id], 'activity'));
         if ($usageid) {
             $table = new attempt_summary_table($this->context, $this->course->id, 0, $this->cm, $this->userid, $usageid);
         } else {
-            list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['cmid' => $this->cm->id], 'activity'));
             if (!$download) {
                 $table = new latest_attempt_table($this->context, $this->course->id, 0, $this->cm, $filter, null, $this->userid);
                 // Display the filter form.
@@ -111,8 +108,11 @@ class single_user_activity_report {
             $attempt = end($table->rawdata);
             // Diaplay heading content.
             echo \report_embedquestion\utils::get_embed_location_summary($this->course->id, $attempt);
+            // Display the table.
+            $table->out(utils::DEFAULT_REPORT_PAGE_SIZE, false);
+        } else {
+            // Display the table.
+            $table->out($filter->pagesize, false);
         }
-        // Display the table.
-        $table->out($this->pagesize, false);
     }
 }

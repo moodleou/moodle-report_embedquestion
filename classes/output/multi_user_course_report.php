@@ -49,9 +49,6 @@ class multi_user_course_report {
     /** @var \context the course context. */
     protected $context;
 
-    /** @var int number of rows in the progress report table per page. */
-    protected $pagesize = 10;
-
     /**
      * Constructor.
      *
@@ -99,6 +96,6 @@ class multi_user_course_report {
             }
         }
         $table->setup();
-        $table->out($this->pagesize, true);
+        $table->out($filter->pagesize, true);
     }
 }

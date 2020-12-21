@@ -44,7 +44,8 @@ defined('MOODLE_INTERNAL') || die();
 class provider implements
         \core_privacy\local\metadata\provider,
         \core_privacy\local\request\plugin\provider,
-        \core_privacy\local\request\core_userlist_provider {
+        \core_privacy\local\request\core_userlist_provider,
+        \core_privacy\local\request\user_preference_provider {
 
     public static function get_metadata(collection $items): collection {
 
@@ -63,6 +64,8 @@ class provider implements
         // This report links to the 'core_question' subsystem for storing the details of
         // what happened during the attempts.
         $items->add_subsystem_link('core_question', [], 'privacy:metadata:core_question');
+
+        $items->add_user_preference('report_embedquestion_pagesize', 'privacy:preference:report_embedquestion_attempt:pagesize');
 
         return $items;
     }
@@ -183,5 +186,19 @@ class provider implements
         \question_engine::delete_questions_usage_by_activities(new \qubaid_list($attempts));
         $DB->delete_records_list('report_embedquestion_attempt', 'id', array_keys($attempts));
         $transaction->allow_commit();
+    }
+
+    /**
+     * Export all user preferences for the plugin.
+     *
+     * @param int $userid The userid of the user whose data is to be exported.
+     */
+    public static function export_user_preferences(int $userid) {
+        // Page size.
+        $pagesize = get_user_preferences('report_embedquestion_pagesize', null, $userid);
+        if ($pagesize !== null) {
+            writer::export_user_preference('report_embedquestion', 'pagesize', $pagesize,
+                    get_string('privacy:preference:report_embedquestion_attempt:pagesize', 'report_embedquestion'));
+        }
     }
 }

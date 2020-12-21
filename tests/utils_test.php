@@ -108,6 +108,7 @@ class report_embedquestion_utils_testcase extends advanced_testcase {
         $axpected->lookback = 0;
         $axpected->datefrom = 0;
         $axpected->dateto = 0;
+        $axpected->pagesize = utils::DEFAULT_REPORT_PAGE_SIZE;
 
         list($notused, $actual) = utils::get_filter_data(new moodle_url($CFG->wwwroot . "/report/embedquestion/index.php",
                 ['courseid' => $this->course->id]));

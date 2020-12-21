@@ -24,6 +24,8 @@
 
 namespace report_embedquestion\form;
 
+use report_embedquestion\utils;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
@@ -70,7 +72,15 @@ class filter extends \moodleform {
 
         $mform->addElement('date_selector', 'dateto', get_string('dateto', 'report_embedquestion'), ['optional' => true]);
 
-        $mform->addElement('submit', 'submitbutton', get_string('filter', 'report_embedquestion'));
+        $mform->addElement('header', 'headingdisplayoption', get_string('reportdisplayoptions', 'mod_quiz'));
+        $mform->setExpanded('headingdisplayoption', false);
+        $mform->addElement('text', 'pagesize', get_string('pagesize', 'mod_quiz'));
+        $mform->setType('pagesize', PARAM_INT);
+        $mform->setDefault('pagesize', get_user_preferences('report_embedquestion_pagesize', utils::DEFAULT_REPORT_PAGE_SIZE));
+        $mform->addRule('pagesize', get_string('err_numeric', 'form'), 'numeric', '', 'client');
+        $mform->addRule('pagesize', get_string('err_maxlength', 'form', ['format' => 3]), 'maxlength', 3, 'client');
+
+        $mform->addElement('submit', 'submitbutton', get_string('showreport', 'mod_quiz'));
     }
 
     public function validation($data, $files) {
@@ -80,6 +90,9 @@ class filter extends \moodleform {
         }
         if ($data['datefrom'] > 0 && $data['dateto'] > 0 && $data['datefrom'] > $data['dateto']) {
             $errors['dateto'] = get_string('err_filterdatetolesthan', 'report_embedquestion');
+        }
+        if ($data['pagesize'] <= 0) {
+            $errors['pagesize'] = get_string('err_pagesize', 'report_embedquestion');
         }
         return $errors;
     }

@@ -47,9 +47,6 @@ class single_user_course_report {
     /** @var \context the course context. */
     protected $context;
 
-    /** @var int number of rows in the progress report table per page. */
-    protected $pagesize = 10;
-
     /**
      * Constructor.
      *
@@ -81,10 +78,10 @@ class single_user_course_report {
      */
     public function display_download_content(?string $download = null, int $usageid = 0): void {
         global $COURSE;
+        list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['courseid' => $this->courseid]));
         if ($usageid) {
             $table = new attempt_summary_table($this->context, $this->courseid,  0, null, $this->userid, $usageid);
         } else {
-            list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['courseid' => $this->courseid]));
             if (!$download) {
                 $table = new latest_attempt_table($this->context, $this->courseid, 0, null, $filter, null, $this->userid);
                 // Display the filter form.
@@ -107,8 +104,11 @@ class single_user_course_report {
             $attempt = end($table->rawdata);
             // Diaplay heading content.
             echo \report_embedquestion\utils::get_embed_location_summary($this->courseid, $attempt);
+            // Display the table.
+            $table->out(utils::DEFAULT_REPORT_PAGE_SIZE, false);
+        } else {
+            // Display the table.
+            $table->out($filter->pagesize, false);
         }
-        // Display the table.
-        $table->out($this->pagesize, false);
     }
 }
