@@ -117,4 +117,20 @@ class renderer extends plugin_renderer_base {
         return $attempturl;
     }
 
+
+    /**
+     *
+     * Render show only link for given user and course.
+     *
+     * @param moodle_url $url
+     * @return string
+     * @throws \coding_exception
+     */
+    public function render_show_only_link(\moodle_url $url): string {
+
+        $showonlystring = get_string('viewallattemptsforthisuser', 'report_embedquestion');
+        return html_writer::span(\html_writer::link($url, get_string('showonly', 'report_embedquestion'),
+                ['title' => $showonlystring, 'aria-label' => $showonlystring]), 'view-all');
+    }
+
 }

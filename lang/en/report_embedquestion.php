@@ -39,6 +39,7 @@ $string['cachedef_reportattempttracker'] = 'Report attempt tracker cache';
 $string['attemptsummaryquestion'] = 'Question: {$a}';
 $string['closeattemptview'] = 'Close question attempt review';
 $string['coursereporttitle'] = 'Embedded question progress for {$a}';
+$string['crumbtrailembedquestiondetail'] = '{$a->fullname} ({$a->info})';
 $string['datefilter'] = 'Date filter';
 $string['datefrom'] = 'From';
 $string['dateto'] = 'To';
@@ -74,3 +75,6 @@ $string['privacy:metadata:report_embedquestion_attempt:timemodified'] = 'The tim
 $string['privacy:metadata:report_embedquestion_attempt:userid'] = 'The user who attempted the question';
 $string['privacy:preference:report_embedquestion_attempt:pagesize'] = 'The number of attempts to show on each page of the report';
 $string['type'] = 'Type';
+$string['showonly'] = 'Show only';
+$string['viewallattemptsforthisuser'] = 'View all embedded question latest attempts for this user';
+

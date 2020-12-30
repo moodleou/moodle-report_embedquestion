@@ -46,3 +46,9 @@
 #page-report-embedquestion-attemptdetail .closewindow {
     margin-top: 10px;
 }
+
+#page-report-embedquestion-activity #region-main form table span.view-all,
+#page-report-embedquestion-index #region-main form table span.view-all {
+    display: block;
+    font-size: 0.85714em;
+}

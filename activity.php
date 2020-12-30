@@ -59,8 +59,7 @@ activity_report_viewed::create(['context' => $context,
 // Create the right sort of report.
 if ($userid) {
     $report = new single_user_activity_report($course, $cm, $userid, $context);
-    $PAGE->navbar->add($report->get_title(), new moodle_url('/report/embedquestion/activity.php', ['cmid' => $cmid]));
-    $PAGE->navbar->add(get_string('page-report-embedquestion-progress-detail', 'report_embedquestion'));
+    utils::set_report_navbar($report->get_title(), $userid, $context);
 } else {
     $report = new multi_user_activity_report($course, $cm, $groupid, $context);
 }

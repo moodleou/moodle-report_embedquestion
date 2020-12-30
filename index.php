@@ -61,7 +61,9 @@ if ($userid) {
 } else {
     $report = new multi_user_course_report($courseid, $groupid, $context);
 }
-$PAGE->navbar->add($report->get_title());
+// Set navbar in the report.
+utils::set_report_navbar($report->get_title(), $userid, $context);
+
 $renderer = $PAGE->get_renderer('report_embedquestion');
 // Display the report.
 if (!$download) {

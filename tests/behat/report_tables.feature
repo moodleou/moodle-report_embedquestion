@@ -144,3 +144,14 @@ Feature: Teachers can see their students progress on embedded questions.
     And I should not see "student1"
     And I should not see "student2"
     And I should see "student4"
+
+  Scenario: The teacher can view all the attempts of a specific student using 'Show all' link
+    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher"
+    And I should see "Show only" in the "student1" "table_row"
+    And I should see "Show only" in the "student2" "table_row"
+    When I click on "Show only" "link" in the "student1" "table_row"
+    Then I should see "Student 1 [student1]" in the ".breadcrumb" "css_element"
+    And I should not see "student2"
+    And I log out
+    And I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student1"
+    And I should not see "Show only" in the "student1" "table_row"

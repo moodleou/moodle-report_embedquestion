@@ -387,4 +387,40 @@ class utils
         return attempt_tracker::user_has_attempt($contextid);
     }
 
+    /**
+     *
+     * Set navbar in the embedded report.
+     *
+     * @param string $title
+     * @param int $userid
+     * @param \context $context
+     */
+    public static function set_report_navbar(string $title, int $userid = 0, \context $context): void {
+        global $PAGE;
+
+        if ($context->contextlevel == CONTEXT_MODULE) {
+            $PAGE->navbar->add($title, new moodle_url('/report/embedquestion/activity.php', ['cmid' => $context->instanceid]));
+        } else if ($context->contextlevel == CONTEXT_COURSE && $userid) {
+            $PAGE->navbar->add($title, new moodle_url('/report/embedquestion/index.php', ['courseid' => $context->instanceid]));
+        } else {
+            $PAGE->navbar->add($title);
+        }
+        if ($userid) {
+            $extrauserfieldsql = get_extra_user_fields_sql($context);
+            $extrauserfields = array_map('trim', explode(',', $extrauserfieldsql));
+
+            $user = \core_user::get_user($userid, get_all_user_name_fields(true) . $extrauserfieldsql);
+
+            // Process display of user identity fields.
+            $info = [];
+            foreach ($extrauserfields as $extrauserfield) {
+                if (!empty($user->$extrauserfield)) {
+                    $info[] = $user->$extrauserfield;
+                }
+            }
+            $navlink = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
+                    ['fullname' => fullname($user), 'info' => implode(',', $info)]);
+            $PAGE->navbar->add($navlink);
+        }
+    }
 }
