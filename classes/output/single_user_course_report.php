@@ -78,10 +78,11 @@ class single_user_course_report {
      */
     public function display_download_content(?string $download = null, int $usageid = 0): void {
         global $COURSE;
-        list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['courseid' => $this->courseid]));
         if ($usageid) {
-            $table = new attempt_summary_table($this->context, $this->courseid,  0, null, $this->userid, $usageid);
+            $table = new attempt_summary_table($this->context, $this->courseid, 0, null, $this->userid, $usageid);
         } else {
+            list ($filterform, $filter) =
+                    utils::get_filter_data(utils::get_url(['courseid' => $this->courseid]), ['context' => $this->context]);
             if (!$download) {
                 $table = new latest_attempt_table($this->context, $this->courseid, 0, null, $filter, null, $this->userid);
                 // Display the filter form.

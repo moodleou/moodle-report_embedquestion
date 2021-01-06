@@ -303,14 +303,15 @@ class utils
      * Return the rendered form and data for filtering.
      *
      * @param moodle_url $url
+     * @param array $customformdata
      * @return array
      */
-    public static function get_filter_data($url) {
+    public static function get_filter_data($url, array $customformdata = []): array {
         global $PAGE;
         // We need the pass the URL as a string, because we want parameters like
         // courseid or cmid to be get parameters in the URL. We don't wnat
         // the magic that formslib does if you pass a Moodle URL.
-        $mform = new \report_embedquestion\form\filter($url->out(false));
+        $mform = new \report_embedquestion\form\filter($url->out(false), $customformdata);
 
         // Default data.
         $defaultdata = new stdClass();

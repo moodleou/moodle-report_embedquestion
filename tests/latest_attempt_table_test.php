@@ -131,4 +131,35 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $this->assertArrayHasKey('dateto', $table->sql->params);
         $this->assertEquals($filter->dateto + DAYSECS, $table->sql->params['dateto']);
     }
+
+    /**
+     * Test the latest_attempt_table with location filter.
+     */
+    public function test_latest_attempt_table_filter_locations() {
+        $page1 = $this->generator->create_module('page', ['course' => $this->course->id, 'content' => '<p>Page 1: </p>']);
+        $page2 = $this->generator->create_module('page', ['course' => $this->course->id, 'content' => '<p>Page 2: </p>']);
+        $pagecontext1 = context_module::instance($page1->cmid);
+        $pagecontext2 = context_module::instance($page2->cmid);
+
+        $filter = new stdclass();
+        $filter->lookback = 0;
+        $filter->datefrom = 0;
+        $filter->dateto = 0;
+        $filter->locationids = [$pagecontext1->id, $pagecontext2->id];
+
+        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
+
+        $keyparam1 = array_search($pagecontext1->id, $table->sql->params);
+        $keyparam2 = array_search($pagecontext2->id, $table->sql->params);
+
+        $this->assertContains('location', $keyparam1);
+        $this->assertContains('location', $keyparam2);
+        $this->assertArrayHasKey($keyparam1, $table->sql->params);
+        $this->assertEquals($pagecontext1->id, $table->sql->params[$keyparam1]);
+        $this->assertArrayHasKey($keyparam2, $table->sql->params);
+        $this->assertEquals($pagecontext2->id, $table->sql->params[$keyparam2]);
+
+        $expectedwhere = " AND r.contextid IN (:$keyparam1,:$keyparam2)";
+        $this->assertContains($expectedwhere, $table->sql->where);
+    }
 }

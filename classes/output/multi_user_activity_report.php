@@ -82,7 +82,8 @@ class multi_user_activity_report {
      */
     public function display_download_content($download = null) {
         global $COURSE;
-        list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['cmid' => $this->cm->id], 'activity'));
+        list ($filterform, $filter) =
+                utils::get_filter_data(utils::get_url(['cmid' => $this->cm->id], 'activity'), ['context' => $this->context]);
         $filename = $COURSE->shortname . '_' . str_replace(' ', '_', $this->get_title());
         if (!$download) {
             // Output the group selector.

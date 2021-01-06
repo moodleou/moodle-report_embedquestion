@@ -116,3 +116,31 @@ Feature: Teachers can see their students progress on embedded questions.
     And I should see "s1" in the "Student 1" "table_row"
     And I should see "student1@example.com" in the "Student 1" "table_row"
     And I should see "12345678911" in the "Student 1" "table_row"
+
+  @javascript
+  Scenario: The teacher can filter the report by activity.
+    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
+    Then I should see "Embedded question progress for Course 1"
+    And I expand all fieldsets
+    And I should see "Location filter"
+    And I should see "All activities" in the ".form-autocomplete-selection" "css_element"
+    And I open the autocomplete suggestions list
+    And I click on "Test page" item in the autocomplete list
+    And "Test page" "autocomplete_selection" should exist
+    And I click on "Show report" "button"
+    And I should see "student1"
+    And I should see "student2"
+    And I should not see "student4"
+    And I open the autocomplete suggestions list
+    And I click on "Test page 2" item in the autocomplete list
+    And "Test page 2" "autocomplete_selection" should exist
+    And I click on "Show report" "button"
+    And I should see "student1"
+    And I should see "student2"
+    And I should see "student4"
+    And I click on "Test page" "autocomplete_selection"
+    And "Test page" "autocomplete_selection" should not exist
+    And I click on "Show report" "button"
+    And I should not see "student1"
+    And I should not see "student2"
+    And I should see "student4"

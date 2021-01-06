@@ -24,6 +24,8 @@
 
 namespace report_embedquestion\form;
 
+use context;
+use report_embedquestion\attempt_tracker;
 use report_embedquestion\utils;
 
 defined('MOODLE_INTERNAL') || die();
@@ -46,6 +48,28 @@ class filter extends \moodleform {
      */
     public function definition() {
         $mform = $this->_form;
+
+        if (isset($this->_customdata['context'])) {
+            /** @var context $context */
+            $context = $this->_customdata['context'];
+            if ($context->contextlevel == CONTEXT_COURSE) {
+                $mform->addElement('header', 'headinglocationfilter', get_string('locationfilter', 'report_embedquestion'));
+                $mform->setExpanded('headinglocationfilter', false);
+
+                $cache = \cache::make(attempt_tracker::CACHE_COMPONENT, attempt_tracker::CACHE_AREA);
+                $cachedata = $cache->get($context->id)['subcontext'];
+
+                $locations = [];
+                foreach ($cachedata as $id => $hasembedquestion) {
+                    if ($hasembedquestion) {
+                        $locations[$id] = context::instance_by_id($id)->get_context_name(false, false);
+                    }
+                }
+
+                $mform->addElement('autocomplete', 'locationids', get_string('reportattemptsfrom', 'quiz'), $locations,
+                        ['multiple' => true, 'noselectionstring' => get_string('allactivities')]);
+            }
+        }
 
         // By default just show the 'setting' field.
         $mform->addElement('header', 'heading', get_string('datefilter', 'report_embedquestion'));
@@ -80,6 +104,7 @@ class filter extends \moodleform {
         $mform->addRule('pagesize', get_string('err_numeric', 'form'), 'numeric', '', 'client');
         $mform->addRule('pagesize', get_string('err_maxlength', 'form', ['format' => 3]), 'maxlength', 3, 'client');
 
+        $mform->closeHeaderBefore('submitbutton');
         $mform->addElement('submit', 'submitbutton', get_string('showreport', 'mod_quiz'));
     }
 

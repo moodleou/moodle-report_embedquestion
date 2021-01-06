@@ -331,6 +331,8 @@ class latest_attempt_table extends table_sql {
      * @param object|null $filter the filter object('look-back, datefrom, dateto).
      */
     protected function generate_query($contextid, $userfields, $filter = null) {
+        global $DB;
+
         // Set the sql data.
         $this->sqldata = new stdClass();
         $this->sqldata->where = [];
@@ -372,6 +374,13 @@ class latest_attempt_table extends table_sql {
         } else if ($filter && $filter->dateto > 0) { // To.
             $this->sqldata->where[]  = ' AND qas.timecreated < :dateto';
             $this->sqldata->params['dateto'] = $filter->dateto + DAYSECS;
+        }
+
+        // Location.
+        if ($filter && !empty($filter->locationids)) {
+            list($locationidssql, $params) = $DB->get_in_or_equal($filter->locationids, SQL_PARAMS_NAMED, 'location');
+            $this->sqldata->where[]  = ' AND r.contextid ' . $locationidssql;
+            $this->sqldata->params = array_merge($this->sqldata->params, $params);
         }
 
         $this->setup_sql_queries();

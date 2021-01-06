@@ -82,10 +82,11 @@ class single_user_activity_report {
      * @param int $usageid if set, show only data relating to this usage.
      */
     public function display_download_content(?string $download = null, ?int $usageid = 0): void {
-        list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['cmid' => $this->cm->id], 'activity'));
         if ($usageid) {
             $table = new attempt_summary_table($this->context, $this->course->id, 0, $this->cm, $this->userid, $usageid);
         } else {
+            list ($filterform, $filter) =
+                    utils::get_filter_data(utils::get_url(['cmid' => $this->cm->id], 'activity'), ['context' => $this->context]);
             if (!$download) {
                 $table = new latest_attempt_table($this->context, $this->course->id, 0, $this->cm, $filter, null, $this->userid);
                 // Display the filter form.

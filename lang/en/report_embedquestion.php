@@ -52,6 +52,7 @@ $string['err_filterdate'] = 'You cannot filter by both \'Look back\' and \'From/
 $string['err_filterdatetolesthan'] = 'The end date cannot be earlier than the start date.';
 $string['err_pagesize'] = 'The page size can not be a negative number';
 $string['latestattemptstatus'] = 'Latest attempt status';
+$string['locationfilter'] = 'Location filter';
 $string['lookback'] = 'Look back';
 $string['nday'] = '{$a} day';
 $string['ndays'] = '{$a} days';

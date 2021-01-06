@@ -77,7 +77,8 @@ class multi_user_course_report {
      */
     public function display_download_content($download = null) {
         global $COURSE;
-        list ($filterform, $filter) = utils::get_filter_data(utils::get_url(['courseid' => $this->courseid]));
+        list ($filterform, $filter) =
+                utils::get_filter_data(utils::get_url(['courseid' => $this->courseid]), ['context' => $this->context]);
         $filename = $COURSE->shortname . '_' . str_replace(' ', '_', $this->get_title());
         if (!$download) {
             // Output the group selector.
