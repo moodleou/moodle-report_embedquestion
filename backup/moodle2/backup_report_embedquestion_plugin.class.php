@@ -23,6 +23,8 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
 require_once($CFG->dirroot . '/backup/moodle2/backup_stepslib.php');
 
 
