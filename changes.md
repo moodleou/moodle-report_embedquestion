@@ -1,5 +1,10 @@
 # Change log for the Embedded questions progress report
 
+## Features in version 1.4
+
+* Re-release to fix a mistake with the version number.
+
+
 ## Features in version 1.3
 
 * Add missing require_once that was causing intermittent errors in backup/restore.
