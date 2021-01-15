@@ -26,7 +26,7 @@ namespace report_embedquestion\form;
 
 use context;
 use report_embedquestion\attempt_tracker;
-use report_embedquestion\utils;
+use report_embedquestion\report_display_options;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -49,13 +49,13 @@ class filter extends \moodleform {
     public function definition() {
         $mform = $this->_form;
 
+        $mform->addElement('header', 'heading', get_string('filtering', 'report_embedquestion'));
+
         if (isset($this->_customdata['context'])) {
             /** @var context $context */
             $context = $this->_customdata['context'];
             if ($context->contextlevel == CONTEXT_COURSE) {
-                $mform->addElement('header', 'headinglocationfilter', get_string('locationfilter', 'report_embedquestion'));
-                $mform->setExpanded('headinglocationfilter', false);
-
+                // Only show the Location filtering for Course level report.
                 $cache = \cache::make(attempt_tracker::CACHE_COMPONENT, attempt_tracker::CACHE_AREA);
                 $cachedata = $cache->get($context->id)['subcontext'];
 
@@ -71,9 +71,7 @@ class filter extends \moodleform {
             }
         }
 
-        // By default just show the 'setting' field.
-        $mform->addElement('header', 'heading', get_string('datefilter', 'report_embedquestion'));
-        $mform->setExpanded('heading', false);
+        // Look back.
         $options = [
             0 => get_string('choose'),
             DAYSECS => get_string('nday', 'report_embedquestion', 1),
@@ -92,15 +90,19 @@ class filter extends \moodleform {
         ];
         $mform->addElement('select', 'lookback', get_string('lookback', 'report_embedquestion'), $options);
 
+        // Date from.
         $mform->addElement('date_selector', 'datefrom', get_string('datefrom', 'report_embedquestion'), ['optional' => true]);
+        $mform->disabledIf('datefrom', 'lookback', 'neq', 0);
 
+        // Date to.
         $mform->addElement('date_selector', 'dateto', get_string('dateto', 'report_embedquestion'), ['optional' => true]);
+        $mform->disabledIf('dateto', 'lookback', 'neq', 0);
 
-        $mform->addElement('header', 'headingdisplayoption', get_string('reportdisplayoptions', 'mod_quiz'));
-        $mform->setExpanded('headingdisplayoption', false);
+        // Page size.
         $mform->addElement('text', 'pagesize', get_string('pagesize', 'mod_quiz'));
         $mform->setType('pagesize', PARAM_INT);
-        $mform->setDefault('pagesize', get_user_preferences('report_embedquestion_pagesize', utils::DEFAULT_REPORT_PAGE_SIZE));
+        $mform->setDefault('pagesize',
+                get_user_preferences('report_embedquestion_pagesize', report_display_options::DEFAULT_REPORT_PAGE_SIZE));
         $mform->addRule('pagesize', get_string('err_numeric', 'form'), 'numeric', '', 'client');
         $mform->addRule('pagesize', get_string('err_maxlength', 'form', ['format' => 3]), 'maxlength', 3, 'client');
 

@@ -23,9 +23,11 @@
  */
 
 namespace report_embedquestion\output;
+use report_embedquestion\form\filter;
 use report_embedquestion\latest_attempt_table;
 use report_embedquestion\attempt_summary_table;
 use html_writer;
+use report_embedquestion\report_display_options;
 use report_embedquestion\utils;
 
 defined('MOODLE_INTERNAL') || die();
@@ -81,15 +83,22 @@ class single_user_course_report {
         if ($usageid) {
             $table = new attempt_summary_table($this->context, $this->courseid, 0, null, $this->userid, $usageid);
         } else {
-            list ($filterform, $filter) =
-                    utils::get_filter_data(utils::get_url(['courseid' => $this->courseid]), ['context' => $this->context]);
+            // TODO: This part of code will be moved to only one place in #385941.
+            $filterform = new filter(utils::get_url(['courseid' => $this->courseid])->out(false), ['context' => $this->context]);
+            $displayoptions = new report_display_options($this->courseid, null);
+            if ($fromform = $filterform->get_data()) {
+                $displayoptions->process_settings_from_form($fromform);
+            } else {
+                $displayoptions->process_settings_from_params();
+            }
+            $filterform->set_data($displayoptions->get_initial_form_data());
             if (!$download) {
-                $table = new latest_attempt_table($this->context, $this->courseid, 0, null, $filter, null, $this->userid);
+                $table = new latest_attempt_table($this->context, $this->courseid, null, $displayoptions, null, $this->userid);
                 // Display the filter form.
-                echo $filterform;
+                echo $filterform->render();
                 utils::allow_downloadability_for_attempt_table($table, $this->get_title(), $this->context);
             } else {
-                $table = new latest_attempt_table($this->context, $this->courseid, 0, null, $filter, $download, $this->userid);
+                $table = new latest_attempt_table($this->context, $this->courseid, null, $displayoptions, $download, $this->userid);
 
                 $filename = $COURSE->shortname . '_' . str_replace(' ', '_', $this->get_title());
                 $table->is_downloading($download, $filename);
@@ -106,10 +115,10 @@ class single_user_course_report {
             // Diaplay heading content.
             echo \report_embedquestion\utils::get_embed_location_summary($this->courseid, $attempt);
             // Display the table.
-            $table->out(utils::DEFAULT_REPORT_PAGE_SIZE, false);
+            $table->out(report_display_options::DEFAULT_REPORT_PAGE_SIZE, false);
         } else {
             // Display the table.
-            $table->out($filter->pagesize, false);
+            $table->out($displayoptions->pagesize, false);
         }
     }
 }

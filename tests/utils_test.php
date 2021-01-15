@@ -26,6 +26,8 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once(__DIR__ . '/../classes/utils.php');
+
+use report_embedquestion\report_display_options;
 use report_embedquestion\utils;
 
 
@@ -103,15 +105,15 @@ class report_embedquestion_utils_testcase extends advanced_testcase {
     }
 
     public function test_get_filter_data() {
-        global $CFG;
-        $axpected = new stdClass();
-        $axpected->lookback = 0;
-        $axpected->datefrom = 0;
-        $axpected->dateto = 0;
-        $axpected->pagesize = utils::DEFAULT_REPORT_PAGE_SIZE;
+        $expected = new stdClass();
+        $expected->locationids = [];
+        $expected->lookback = 0;
+        $expected->datefrom = 0;
+        $expected->dateto = 0;
+        $expected->pagesize = report_display_options::DEFAULT_REPORT_PAGE_SIZE;
 
-        list($notused, $actual) = utils::get_filter_data(new moodle_url($CFG->wwwroot . "/report/embedquestion/index.php",
-                ['courseid' => $this->course->id]));
-        $this->assertEquals($axpected, $actual);
+        $displayoptions = new report_display_options($this->course->id, null);
+        $actual = $displayoptions->get_initial_form_data();
+        $this->assertEquals($expected, $actual);
     }
 }

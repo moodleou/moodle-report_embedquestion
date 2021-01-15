@@ -24,7 +24,9 @@
  */
 
 namespace report_embedquestion\output;
+use report_embedquestion\form\filter;
 use report_embedquestion\latest_attempt_table;
+use report_embedquestion\report_display_options;
 use report_embedquestion\utils;
 
 defined('MOODLE_INTERNAL') || die();
@@ -82,26 +84,34 @@ class multi_user_activity_report {
      */
     public function display_download_content($download = null) {
         global $COURSE;
-        list ($filterform, $filter) =
-                utils::get_filter_data(utils::get_url(['cmid' => $this->cm->id], 'activity'), ['context' => $this->context]);
+
+        // TODO: This part of code will be moved to only one place in #385941.
+        $filterform = new filter(utils::get_url(['cmid' => $this->cm->id], 'activity')->out(false), ['context' => $this->context]);
+        $displayoptions = new report_display_options($this->course->id, $this->cm);
+        if ($fromform = $filterform->get_data()) {
+            $displayoptions->process_settings_from_form($fromform);
+        } else {
+            $displayoptions->process_settings_from_params();
+        }
+        $filterform->set_data($displayoptions->get_initial_form_data());
+
         $filename = $COURSE->shortname . '_' . str_replace(' ', '_', $this->get_title());
         if (!$download) {
             // Output the group selector.
             groups_print_course_menu($this->course, utils::get_url(['cmid' => $this->cm->id], 'activity'));
-            $this->groupid = groups_get_course_group($this->course, true);
-
-            $table = new latest_attempt_table($this->context, $this->course->id, $this->groupid, $this->cm, $filter);
+            $table = new latest_attempt_table($this->context, $this->course->id, $this->cm, $displayoptions);
             // Display the filter form.
-            echo $filterform;
+            echo $filterform->render();
             utils::allow_downloadability_for_attempt_table($table, $this->get_title(), $this->context);
         } else {
-            $table = new latest_attempt_table($this->context, $this->course->id, $this->groupid, $this->cm, $filter, $download);
+            $table = new latest_attempt_table($this->context, $this->course->id, $this->cm, $displayoptions,
+                    $download);
             $table->is_downloading($download, $filename);
             if ($table->is_downloading()) {
                 raise_memory_limit(MEMORY_EXTRA);
             }
         }
         $table->setup();
-        $table->out($filter->pagesize, true);
+        $table->out($displayoptions->pagesize, true);
     }
 }

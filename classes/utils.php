@@ -40,9 +40,6 @@ defined('MOODLE_INTERNAL') || die();
 class utils
 {
 
-    /** @var int Number of attempts to show per page. */
-    const DEFAULT_REPORT_PAGE_SIZE = 10;
-
     /**
      * Used at the top of the drill-down for a single question. Give more info about the location.
      *
@@ -297,40 +294,6 @@ class utils
     public static function get_url($params, $type = 'index') {
         global $CFG;
         return new moodle_url($CFG->wwwroot . "/report/embedquestion/$type.php", $params);
-    }
-
-    /**
-     * Return the rendered form and data for filtering.
-     *
-     * @param moodle_url $url
-     * @param array $customformdata
-     * @return array
-     */
-    public static function get_filter_data($url, array $customformdata = []): array {
-        global $PAGE;
-        // We need the pass the URL as a string, because we want parameters like
-        // courseid or cmid to be get parameters in the URL. We don't wnat
-        // the magic that formslib does if you pass a Moodle URL.
-        $mform = new \report_embedquestion\form\filter($url->out(false), $customformdata);
-
-        // Default data.
-        $defaultdata = new stdClass();
-        $defaultdata->lookback = 0;
-        $defaultdata->datefrom = 0;
-        $defaultdata->dateto = 0;
-        $defaultdata->pagesize = get_user_preferences('report_embedquestion_pagesize', self::DEFAULT_REPORT_PAGE_SIZE);;
-
-        // Check if we have a form submission.
-        $data = $defaultdata;
-        if ($mform->is_submitted() && $mform->is_validated()) {
-            $data = $mform->get_data();
-            set_user_preference('report_embedquestion_pagesize', $data->pagesize);
-            // Very nasty hack to work around 'Form Resubmit' issue when refreshing the page.
-            // TODO: Refactor this function to use redirect() function.
-            $js = 'if ( window.history.replaceState ) { window.history.replaceState( null, null, window.location.href ); }';
-            $PAGE->requires->js_amd_inline($js);
-        }
-        return [$mform->render(), $data];
     }
 
     /**

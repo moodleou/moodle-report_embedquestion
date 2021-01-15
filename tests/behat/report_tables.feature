@@ -54,7 +54,6 @@ Feature: Teachers can see their students progress on embedded questions.
   Scenario: A teacher can see their students progress in a course
     Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
     Then I should see "Embedded question progress for Course 1"
-    And I should see "Date filter"
     And ".groupselector" "css_element" should not exist
     And I should see "Download table data as"
     And I should see "student1"
@@ -72,7 +71,6 @@ Feature: Teachers can see their students progress on embedded questions.
   Scenario: A teacher can see their students progress in an activity
     Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher"
     Then I should see "Embedded question progress for Test page"
-    And I should see "Date filter"
     And ".groupselector" "css_element" should not exist
     And I should see "Download table data as"
     And I should see "student1"
@@ -87,7 +85,6 @@ Feature: Teachers can see their students progress on embedded questions.
   Scenario: A student can only see his/her own progress in an activity
     Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
     Then I should see "Embedded question progress for Test page"
-    And I should see "Date filter"
     And I should see "Download table data as"
     And I should see "student2"
     And I should not see "student1"
@@ -122,7 +119,7 @@ Feature: Teachers can see their students progress on embedded questions.
     Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
     Then I should see "Embedded question progress for Course 1"
     And I expand all fieldsets
-    And I should see "Location filter"
+    And I should see "Attempts from"
     And I should see "All activities" in the ".form-autocomplete-selection" "css_element"
     And I open the autocomplete suggestions list
     And I click on "Test page" item in the autocomplete list

@@ -25,6 +25,9 @@ namespace report_embedquestion;
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/tablelib.php');
+
+use cm_info;
+use context;
 use moodle_url;
 use report_embedquestion\local\export\response_export;
 use stdClass;
@@ -83,21 +86,21 @@ class latest_attempt_table extends table_sql {
 
     /**
      * latest_attempt_table constructor.
-     * @param \context $context, the context object
+     *
+     * @param context $context , the context object
      * @param int $courseid the id of the current course
-     * @param int $groupid, the id of the group in a course
-     * @param \cm_info|null $cm, the course-module object
-     * @param object|null $filter the filter object('look-back, datefrom, dateto).
+     * @param cm_info|null $cm , the course-module object
+     * @param report_display_options $displayoption The report display option ('look-back, datefrom, dateto).
      * @param string|null $download the string used for file extension
-     * @param int $userid, the userid as an optional param
+     * @param int $userid the userid as an optional param
      */
-    public function __construct(\context $context, $courseid, $groupid = 0, \cm_info $cm = null,
-                                $filter = null, $download = null, $userid = 0) {
+    public function __construct(context $context, $courseid, cm_info $cm = null,
+            report_display_options $displayoption, $download = null, $userid = 0) {
         global $CFG;
         parent::__construct('report_embedquestion_latest_attempt');
         $this->context = $context;
         $this->courseid = $courseid;
-        $this->groupid = $groupid;
+        $this->groupid = $displayoption->group;
         $this->cm = $cm;
         $this->userid = $userid;
         $this->userfields = utils::get_user_fields($context);
@@ -122,7 +125,7 @@ class latest_attempt_table extends table_sql {
 
         $this->allowedjoins = $this->get_students_joins($this->groupid);
 
-        $this->generate_query($this->context->id, $this->userfields, $filter);
+        $this->generate_query($this->context->id, $this->userfields, $displayoption);
         $this->define_headers($this->get_headers());
         $this->define_columns($this->get_columns());
         $this->collapsible(false);
@@ -360,9 +363,9 @@ class latest_attempt_table extends table_sql {
      *
      * @param int $contextid
      * @param array $userfields required user fields.
-     * @param object|null $filter the filter object('look-back, datefrom, dateto).
+     * @param report_display_options $displayoption The report display option ('look-back, datefrom, dateto).
      */
-    protected function generate_query($contextid, $userfields, $filter = null) {
+    protected function generate_query($contextid, $userfields, $displayoption) {
         global $DB;
 
         // Set the sql data.
@@ -390,27 +393,27 @@ class latest_attempt_table extends table_sql {
         }
 
         // Filter data.
-        if ($filter && $filter->lookback > 0) { // Look back.
+        if ($displayoption->lookback > 0) { // Look back.
             $this->sqldata->where[]  = ' AND qas.timecreated > :lookback';
-            $this->sqldata->params['lookback'] = time() - $filter->lookback;
+            $this->sqldata->params['lookback'] = time() - $displayoption->lookback;
 
-        } else if ($filter && $filter->datefrom > 0 && $filter->dateto > 0) { // From - To.
+        } else if ($displayoption->datefrom > 0 && $displayoption->dateto > 0) { // From - To.
             $this->sqldata->where[]  = ' AND (qas.timecreated > :datefrom AND qas.timecreated < :dateto)';
-            $this->sqldata->params['datefrom'] = $filter->datefrom;
-            $this->sqldata->params['dateto'] = $filter->dateto + DAYSECS;
+            $this->sqldata->params['datefrom'] = $displayoption->datefrom;
+            $this->sqldata->params['dateto'] = $displayoption->dateto + DAYSECS;
 
-        } else if ($filter && $filter->datefrom > 0) { // From.
+        } else if ($displayoption->datefrom > 0) { // From.
             $this->sqldata->where[]  = ' AND qas.timecreated > :datefrom';
-            $this->sqldata->params['datefrom'] = $filter->datefrom;
+            $this->sqldata->params['datefrom'] = $displayoption->datefrom;
 
-        } else if ($filter && $filter->dateto > 0) { // To.
+        } else if ($displayoption->dateto > 0) { // To.
             $this->sqldata->where[]  = ' AND qas.timecreated < :dateto';
-            $this->sqldata->params['dateto'] = $filter->dateto + DAYSECS;
+            $this->sqldata->params['dateto'] = $displayoption->dateto + DAYSECS;
         }
 
         // Location.
-        if ($filter && !empty($filter->locationids)) {
-            list($locationidssql, $params) = $DB->get_in_or_equal($filter->locationids, SQL_PARAMS_NAMED, 'location');
+        if (!empty($displayoption->locationids)) {
+            list($locationidssql, $params) = $DB->get_in_or_equal($displayoption->locationids, SQL_PARAMS_NAMED, 'location');
             $this->sqldata->where[]  = ' AND r.contextid ' . $locationidssql;
             $this->sqldata->params = array_merge($this->sqldata->params, $params);
         }

@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once(__DIR__ . '/../classes/latest_attempt_table.php');
 use report_embedquestion\latest_attempt_table;
+use report_embedquestion\report_display_options;
 use report_embedquestion\utils;
 
 
@@ -47,36 +48,32 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $this->forumgenerator = $this->generator->get_plugin_generator('mod_forum');
         $this->attemptgenerator = $this->generator->get_plugin_generator('filter_embedquestion');
         $this->context = \context_course::instance($this->course->id);
+        $this->displayoptions = new report_display_options($this->course->id, null);
     }
 
     public function test_latest_attempt_table_no_filter() {
         // Check sql query wuth no filter.
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, null);
+        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
         $this->assertArrayHasKey('contextid', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
     }
 
     public function test_latest_attempt_table_filter_lookback() {
         $now = time();
-        $filter = new stdclass();
-        $filter->lookback = WEEKSECS * 3; // 3 weeks.
-        $filter->datefrom = 0;
-        $filter->dateto = 0;
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
+        $this->displayoptions->lookback = WEEKSECS * 3; // 3 weeks.
+        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
         $this->assertArrayHasKey('contextid', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
         $this->assertArrayHasKey('lookback', $table->sql->params);
-        $this->assertEquals($now - $filter->lookback, $table->sql->params['lookback']);
+        $this->assertEquals($now - $this->displayoptions->lookback, $table->sql->params['lookback']);
     }
 
     public function test_latest_attempt_table_filter_dates() {
         $now = time();
-        $filter = new stdclass();
-        $filter->lookback = 0;
-        $filter->datefrom = $now - (WEEKSECS * 4); // From 28 days ago.
-        $filter->dateto = $now - (DAYSECS * 6); // To 6 days ago.
+        $this->displayoptions->datefrom = $now - (WEEKSECS * 4); // From 28 days ago.
+        $this->displayoptions->dateto = $now - (DAYSECS * 6); // To 6 days ago.
 
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
+        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
         $contextid = $this->context->id;
         $expectedwhere = " (r.contextid = :contextid
      OR cxt.path LIKE '%/$contextid/%')
@@ -87,49 +84,43 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $this->assertArrayHasKey('datefrom', $table->sql->params);
         $this->assertArrayHasKey('dateto', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
-        $this->assertEquals($filter->datefrom, $table->sql->params['datefrom']);
-        $this->assertEquals($filter->dateto + DAYSECS, $table->sql->params['dateto']);
+        $this->assertEquals($this->displayoptions->datefrom, $table->sql->params['datefrom']);
+        $this->assertEquals($this->displayoptions->dateto + DAYSECS, $table->sql->params['dateto']);
     }
 
     public function test_latest_attempt_table_filter_datefrom() {
         $now = time();
-        $filter = new stdclass();
-        $filter->lookback = 0;
-        $filter->datefrom = $now - (WEEKSECS * 4); // From 28 days ago.
-        $filter->dateto = 0;
+        $this->displayoptions->datefrom = $now - (WEEKSECS * 4); // From 28 days ago.
 
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
+        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
         $contextid = $this->context->id;
         $expectedwhere = " (r.contextid = :contextid
      OR cxt.path LIKE '%/$contextid/%')
      AND qas.timecreated > :datefrom";
         $this->assertContains($expectedwhere, $table->sql->where);
 
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
+        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
         $this->assertArrayHasKey('contextid', $table->sql->params);
         $this->assertArrayHasKey('datefrom', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
-        $this->assertEquals($filter->datefrom, $table->sql->params['datefrom']);
+        $this->assertEquals($this->displayoptions->datefrom, $table->sql->params['datefrom']);
     }
 
     public function test_latest_attempt_table_filter_dateto() {
         $now = time();
-        $filter = new stdclass();
-        $filter->lookback = 0;
-        $filter->datefrom = 0;
-        $filter->dateto = $now - (WEEKSECS * 2); // From 14 days ago.
+        $this->displayoptions->dateto = $now - (WEEKSECS * 2); // From 14 days ago.
 
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
+        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
         $contextid = $this->context->id;
         $expectedwhere = " (r.contextid = :contextid
      OR cxt.path LIKE '%/$contextid/%')
      AND qas.timecreated < :dateto";
         $this->assertContains($expectedwhere, $table->sql->where);
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
+        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
         $this->assertArrayHasKey('contextid', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
         $this->assertArrayHasKey('dateto', $table->sql->params);
-        $this->assertEquals($filter->dateto + DAYSECS, $table->sql->params['dateto']);
+        $this->assertEquals($this->displayoptions->dateto + DAYSECS, $table->sql->params['dateto']);
     }
 
     /**
@@ -141,13 +132,9 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $pagecontext1 = context_module::instance($page1->cmid);
         $pagecontext2 = context_module::instance($page2->cmid);
 
-        $filter = new stdclass();
-        $filter->lookback = 0;
-        $filter->datefrom = 0;
-        $filter->dateto = 0;
-        $filter->locationids = [$pagecontext1->id, $pagecontext2->id];
+        $this->displayoptions->locationids = [$pagecontext1->id, $pagecontext2->id];
 
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $filter);
+        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
 
         $keyparam1 = array_search($pagecontext1->id, $table->sql->params);
         $keyparam2 = array_search($pagecontext2->id, $table->sql->params);
