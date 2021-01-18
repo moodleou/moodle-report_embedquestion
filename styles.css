@@ -39,7 +39,11 @@
 }
 
 #page-report-embedquestion-activity div.commands,
-#page-report-embedquestion-index div.commands {
+#page-report-embedquestion-index div.commands,
+#page-report-embedquestion-activity .download-response .download-response-infomation,
+#page-report-embedquestion-index .download-response .download-response-infomation,
+#page-report-embedquestion-activity .download-response .download-response-buttons,
+#page-report-embedquestion-index .download-response .download-response-buttons {
     padding-top: 10px;
 }
 
@@ -51,4 +55,23 @@
 #page-report-embedquestion-index #region-main form table span.view-all {
     display: block;
     font-size: 0.85714em;
+}
+
+#page-report-embedquestion-responsedownload .cloudexport-info-text {
+    margin-bottom: 15px;
+}
+
+#page-report-embedquestion-responsedownload .downloadexport {
+    padding: 8px 0;
+}
+
+#page-report-embedquestion-responsedownload .downloadexport img {
+    height: 20px;
+    padding-right: 5px;
+    vertical-align: baseline;
+}
+
+#page-report-embedquestion-responsedownload .downloadexport.sizer {
+    padding-left: 5px;
+    color: #676463;
 }

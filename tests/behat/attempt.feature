@@ -22,11 +22,13 @@ Feature: Testing attempt detail view and delete feature
       | teacher1 | C1     | editingteacher |
       | tutor1   | C1     | teacher        |
     And the following "activities" exist:
-      | activity | name      | idnumber | course |
-      | page     | Test page | page1    | C1     |
+      | activity | name        | idnumber | course |
+      | page     | Test page   | page1    | C1     |
+      | page     | Test page 2 | page2    | C1     |
+      | page     | Test page 3 | page3    | C1     |
     And the following "question categories" exist:
-      | contextlevel | reference | name          | idnumber |
-      | Course       | C1        | Test questions| embed    |
+      | contextlevel | reference | name           | idnumber |
+      | Course       | C1        | Test questions | embed    |
     And the following "questions" exist:
       | questioncategory | qtype     | name           | idnumber |
       | Test questions   | truefalse | First question | test1    |
@@ -41,7 +43,7 @@ Feature: Testing attempt detail view and delete feature
       | C1:page1 | embed/test1 | False    | 6    |
     And "student2" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
-      | C1:page1 | embed/test1 | True    |
+      | C1:page1 | embed/test1 | True     |
     And "student3" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
       | C1:page1 | embed/test1 | False    |
@@ -49,8 +51,8 @@ Feature: Testing attempt detail view and delete feature
       | pagename | question    | response |
       | C1:page1 | embed/test1 | True     |
     And the following "permission overrides" exist:
-      | capability                                   | permission | role    | contextlevel | reference |
-      | moodle/site:viewuseridentity                 | Allow      | student | System       |           |
+      | capability                   | permission | role    | contextlevel | reference |
+      | moodle/site:viewuseridentity | Allow      | student | System       |           |
     And the following config values are set as admin:
       | showuseridentity | username |
 
@@ -111,7 +113,7 @@ Feature: Testing attempt detail view and delete feature
     And I click on "Delete selected attempts" "button"
     And I should see "Are you absolutely sure you want to completely delete these attempts?" in the "Confirmation" "dialogue"
     And I click on "Yes" "button"
-    And I should not see "student2"
+    And I should see "Nothing to display"
 
   @javascript
   Scenario: A student cannot delete his/her own progress in an activity if he/she does not have the permission
@@ -160,3 +162,49 @@ Feature: Testing attempt detail view and delete feature
     And I should not see "tutor"
     And I should not see "student1"
     And I should not see "student2"
+
+  @javascript
+  Scenario: A teacher can download their students progress in an activity for question type essay
+    # We need to create the question here instead of the Background task because the PAGE->set_url of the essay generator will break the test.
+    Given the following "questions" exist:
+      | questioncategory | qtype | name            | idnumber | template         |
+      | Test questions   | essay | Second question | test2    | editorfilepicker |
+    And "student1" has attempted embedded questions in "activity" context "page2":
+      | pagename | question    | response                                                         |
+      | C1:page2 | embed/test2 | <p>The <b>cat</b> sat on the mat. Then it ate a <b>frog</b>.</p> |
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
+    Then "Download all response files" "button" should not exist
+    And "Download selected response files" "button" should not exist
+    And I log out
+    And I am on the "page2" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
+    And "Download all response files" "button" should exist
+    And "Download selected response files" "button" should exist
+    And the "Download selected response files" "button" should be disabled
+    And I click on "Select attempt" "checkbox" in the "student1" "table_row"
+    And the "Download selected response files" "button" should be enabled
+    And I click on "Download selected response files" "button"
+    And I should see "Download zip or export the response files"
+    And I should see "Download to device"
+    And "Download to device" "link" should exist
+    And following "Download to device" should download between "1" and "250" bytes
+
+  @javascript
+  Scenario: A teacher can download their students progress in an activity for question type recordrtc
+    Given I check the "recordrtc" question type already installed for embed question
+    And the following "questions" exist:
+      | questioncategory | qtype     | name           | idnumber | template |
+      | Test questions   | recordrtc | Third question | test3    | audio    |
+    And "student1" has attempted embedded questions in "activity" context "page3":
+      | pagename | question    | response |
+      | C1:page3 | embed/test3 |          |
+    When I am on the "page3" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
+    Then "Download all response files" "button" should exist
+    And "Download selected response files" "button" should exist
+    And the "Download selected response files" "button" should be disabled
+    And I click on "Select attempt" "checkbox" in the "student1" "table_row"
+    And the "Download selected response files" "button" should be enabled
+    And I click on "Download selected response files" "button"
+    And I should see "Download zip or export the response files"
+    And I should see "Download to device"
+    And "Download to device" "link" should exist
+    And following "Download to device" should download between "1" and "40000" bytes

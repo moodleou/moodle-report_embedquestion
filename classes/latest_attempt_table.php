@@ -26,6 +26,7 @@ namespace report_embedquestion;
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/tablelib.php');
 use moodle_url;
+use report_embedquestion\local\export\response_export;
 use stdClass;
 use table_sql;
 use user_picture;
@@ -76,6 +77,9 @@ class latest_attempt_table extends table_sql {
 
     /** @var string|null the string used for file extension. */
     protected $isdownloading = null;
+
+    /** @var bool Report table has the qtype that have response files or not. */
+    protected $hasresponsesqtype = false;
 
     /**
      * latest_attempt_table constructor.
@@ -209,13 +213,17 @@ class latest_attempt_table extends table_sql {
      */
     public function col_checkbox(object $attempt): string {
         global $OUTPUT, $USER;
+        $allowdownload = 0;
+        if (response_export::is_qtype_has_response_contain_file($attempt->questiontype) && $attempt->questionstate != 'todo') {
+            $allowdownload = 1;
+        }
 
         if (has_capability('report/embedquestion:deleteanyattempt', $this->context) ||
                 ($USER->id == $attempt->userid && has_capability('report/embedquestion:deletemyattempt', $this->context))) {
             $checkbox = new \core\output\checkbox_toggleall('embed-attempts', false, [
                     'id' => "questionusageid_{$attempt->questionusageid}",
                     'name' => 'questionusageid[]',
-                    'value' => $attempt->questionusageid . '-' . $attempt->slot,
+                    'value' => $attempt->questionusageid . '-' . $attempt->slot . '-' . $allowdownload,
                     'label' => get_string('selectattempt', 'quiz'),
                     'labelclasses' => 'accesshide',
             ]);
@@ -254,6 +262,9 @@ class latest_attempt_table extends table_sql {
     protected function col_questiontype($attempt) {
         if ($this->is_downloading()) {
             return $attempt->questiontype;
+        }
+        if (response_export::is_qtype_has_response_contain_file($attempt->questiontype)) {
+            $this->hasresponsesqtype = true;
         }
         return utils::get_question_icon($attempt->questiontype);
     }
@@ -462,8 +473,14 @@ class latest_attempt_table extends table_sql {
      * downloading.
      */
     public function wrap_html_finish() {
+        global $PAGE;
+        $renderer = $PAGE->get_renderer('report_embedquestion');
+
         $output = html_writer::start_div('commands');
-        $output .= $this->delete_attempts_buttons();
+        $output .= $renderer->render_delete_attempts_buttons();
+        if ($this->hasresponsesqtype && $this->context->contextlevel == CONTEXT_MODULE) {
+            $output .= $renderer->render_download_response_files();
+        }
         $output .= html_writer::end_div();
 
         // Close the form.
@@ -473,37 +490,12 @@ class latest_attempt_table extends table_sql {
     }
 
     /**
-     * Render the delete attempt button.
-     * @return string HTML string
-     */
-    protected function delete_attempts_buttons() {
-        global $PAGE;
-
-        $deletebuttonparams = [
-                'type'  => 'submit',
-                'class' => 'btn btn-secondary mr-1',
-                'id'    => 'deleteattemptsbutton',
-                'name'  => 'delete',
-                'value' => get_string('deleteselected', 'quiz_overview'),
-                'data-action' => 'toggle',
-                'data-togglegroup' => 'embed-attempts',
-                'data-toggle' => 'action',
-                'disabled' => true
-        ];
-
-        $PAGE->requires->event_handler('#deleteattemptsbutton', 'click', 'M.util.show_confirm_dialog',
-                ['message' => get_string('deleteattemptcheck', 'quiz')]);
-
-        return html_writer::empty_tag('input', $deletebuttonparams);
-    }
-
-    /**
      * Process any submitted actions.
      *
      * @param moodle_url $redirect Redirect url
      */
     protected function process_actions(moodle_url $redirect) {
-        global $USER;
+        global $USER, $DB;
         if (optional_param('delete', 0, PARAM_BOOL) && confirm_sesskey()) {
             if ($questionusagemetas = optional_param_array('questionusageid', [], PARAM_ALPHANUMEXT)) {
                 foreach ($questionusagemetas as $questionusagemeta) {
@@ -525,6 +517,36 @@ class latest_attempt_table extends table_sql {
                 }
                 redirect($redirect);
             }
+        }
+
+        if (optional_param('downloadselect', 0, PARAM_BOOL) && confirm_sesskey()) {
+            if ($questionusagemetas = optional_param_array('questionusageid', [], PARAM_ALPHANUMEXT)) {
+                $qubaids = [];
+                foreach ($questionusagemetas as $questionusagemeta) {
+                    $qubameta = explode('-', $questionusagemeta);
+                    $qubaids[] = $qubameta[0];
+                }
+                $params = response_export::get_response_zip_file_info($qubaids, $this->context, $this->userid);
+                $params['cmid'] = $this->cm->id;
+                $downloadurl = new moodle_url('/report/embedquestion/responsedownload.php', $params);
+                redirect($downloadurl);
+            }
+        }
+
+        if (optional_param('downloadall', 0, PARAM_BOOL) && confirm_sesskey()) {
+            $sql = "SELECT DISTINCT r.questionusageid
+                      FROM {$this->sql->from}
+                     WHERE {$this->sql->where}";
+
+            $datas = $DB->get_records_sql_menu($sql, $this->sql->params);
+            $qubaids = [];
+            foreach ($datas as $qubaid => $unused) {
+                $qubaids[] = $qubaid;
+            }
+            $params = response_export::get_response_zip_file_info($qubaids, $this->context, $this->userid);
+            $params['cmid'] = $this->cm->id;
+            $downloadurl = new moodle_url('/report/embedquestion/responsedownload.php', $params);
+            redirect($downloadurl);
         }
     }
 

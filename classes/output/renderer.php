@@ -26,6 +26,7 @@ namespace report_embedquestion\output;
 
 defined('MOODLE_INTERNAL') || die();
 
+use coding_exception;
 use html_writer;
 use moodle_url;
 use plugin_renderer_base;
@@ -47,6 +48,16 @@ class renderer extends plugin_renderer_base {
      * @return string HTML string
      */
     public function report_heading(string $title): string {
+        return $this->heading($title);
+    }
+
+    /**
+     * Render the download heading.
+     *
+     * @param string $title Download title
+     * @return string HTML string
+     */
+    public function download_heading(string $title): string {
         return $this->heading($title);
     }
 
@@ -131,6 +142,145 @@ class renderer extends plugin_renderer_base {
         $showonlystring = get_string('viewallattemptsforthisuser', 'report_embedquestion');
         return html_writer::span(\html_writer::link($url, get_string('showonly', 'report_embedquestion'),
                 ['title' => $showonlystring, 'aria-label' => $showonlystring]), 'view-all');
+    }
+
+    /**
+     * Render the delete attempt button.
+     * @return string HTML string
+     */
+    public function render_delete_attempts_buttons() {
+        $deletebuttonparams = [
+                'type' => 'submit',
+                'class' => 'btn btn-secondary mr-1',
+                'id' => 'deleteattemptsbutton',
+                'name' => 'delete',
+                'value' => get_string('deleteselected', 'quiz_overview'),
+                'data-action' => 'toggle',
+                'data-togglegroup' => 'embed-attempts',
+                'data-toggle' => 'action',
+                'disabled' => true
+        ];
+
+        $this->page->requires->event_handler('#deleteattemptsbutton', 'click', 'M.util.show_confirm_dialog',
+                ['message' => get_string('deleteattemptcheck', 'quiz')]);
+
+        return html_writer::empty_tag('input', $deletebuttonparams);
+    }
+
+    /**
+     * Render download response buttons.
+     *
+     * @return string HTML string
+     */
+    public function render_download_response_files(): string {
+        $output = '';
+
+        $output .= html_writer::start_div('download-response');
+
+        $output .= html_writer::start_div('download-response-infomation');
+        $output .= get_string('downloadresponseinfo', 'report_embedquestion');
+        $output .= $this->output->help_icon('downloadresponseinfo', 'report_embedquestion', true);
+        $output .= html_writer::end_div();
+
+        $output .= html_writer::start_div('download-response-buttons');
+
+        $downloadselectbuttonparams = [
+                'type' => 'submit',
+                'class' => 'btn btn-secondary mr-1',
+                'id' => 'downloadselectedattemptsbutton',
+                'name' => 'downloadselect',
+                'value' => get_string('downloadresponse_buttonselected', 'report_embedquestion'),
+                'disabled' => true
+        ];
+
+        $downloadallbuttonparams = [
+                'type' => 'submit',
+                'class' => 'btn btn-secondary mr-1',
+                'id' => 'downloadallattemptsbutton',
+                'name' => 'downloadall',
+                'value' => get_string('downloadresponse_buttonall', 'report_embedquestion'),
+                'disabled' => true
+        ];
+
+        $output .= html_writer::empty_tag('input', $downloadallbuttonparams);
+        $output .= html_writer::empty_tag('input', $downloadselectbuttonparams);
+        $output .= html_writer::end_div();
+        $output .= html_writer::end_div();
+
+        $this->page->requires->js_call_amd('report_embedquestion/download_responses', 'init');
+
+        return $output;
+    }
+
+    /**
+     * Render responses download link.
+     *
+     * @param array $params URL params
+     * @return string HTML string
+     */
+    public function render_responses_download_links(array $params): string {
+        $output = '';
+
+        $output .= html_writer::start_div('cloudexport');
+        $output .= html_writer::start_div('cloudexport-info-text');
+        $output .= html_writer::span(get_string('downloadresponse_exportserviceinfo', 'report_embedquestion'));
+        $output .= html_writer::end_div();
+
+        $output .= $this->render_cloud_export_links($params);
+        $output .= html_writer::end_div();
+
+        return $output;
+    }
+
+    /**
+     * Render cloud export links.
+     *
+     * @param array $params URL params
+     * @return string HTML string
+     */
+    public function render_cloud_export_links(array $params) {
+        // Placeholder to add more cloud service link in the future like: Dropbox, Google Drive, One Drive.
+        return $this->render_cloud_export_element($params, 'local');
+    }
+
+    /**
+     * Render cloud export.
+     *
+     * @param array $params URL params
+     * @param string $cloudtype Cloud type
+     * @return string HTML string
+     */
+    public function render_cloud_export_element(array $params, string $cloudtype = 'local'): string {
+        $output = '';
+
+        if ($cloudtype != 'local') {
+            // TODO: Remove this if we turn on the cloud service in the future.
+            throw new coding_exception("Download type {$cloudtype} does not support");
+        }
+
+        $filesizes = number_format($params['size'] / 1048576, 1) . ' MB';
+        $iconsrc = $this->output->image_url('t/download');
+        $title = get_string('downloadresponse_downloadto_device', 'report_embedquestion');
+        $link = new moodle_url('/report/embedquestion/responsedownload.php', array_merge($params, ['download' => 1]));
+
+        $output .= html_writer::start_div('downloadexport');
+        $output .= html_writer::empty_tag('img', ['src' => $iconsrc, 'alt' => $title]);
+        $output .= html_writer::link($link, $title);
+        $output .= html_writer::span($filesizes, 'downloadexport sizer');
+        $output .= html_writer::end_div();
+
+        return $output;
+    }
+
+    /**
+     * Render back to report link.
+     *
+     * @param moodle_url $reporturl Report url
+     * @return string HTML string
+     */
+    public function render_back_to_report_link(moodle_url $reporturl): string {
+        return html_writer::div(link_arrow_left(get_string('downloadresponse_backtoreport', 'report_embedquestion'), $reporturl),
+                'back-link');
     }
 
 }
