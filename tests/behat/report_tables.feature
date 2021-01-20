@@ -152,6 +152,7 @@ Feature: Teachers can see their students progress on embedded questions.
     When I click on "Show only" "link" in the "student1" "table_row"
     Then I should see "Student 1 (student1)" in the ".breadcrumb" "css_element"
     And I should not see "student2"
+    And I should not see "Show only" in the "student1" "table_row"
     And I log out
     And I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student1"
     And I should not see "Show only" in the "student1" "table_row"

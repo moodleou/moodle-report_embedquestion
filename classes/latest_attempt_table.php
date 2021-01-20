@@ -245,7 +245,7 @@ class latest_attempt_table extends table_sql {
         if ($this->is_downloading() || empty($attempt)) {
             return strip_tags($html);
         }
-        if (has_capability('report/embedquestion:viewallprogress', $this->context)) {
+        if (has_capability('report/embedquestion:viewallprogress', $this->context) && !$this->userid) {
             if ($this->cm) {
                 $url = new moodle_url('/report/embedquestion/activity.php',
                         ['cmid' => $this->cm->id, 'userid' => $attempt->userid]);
