@@ -52,6 +52,7 @@ $string['downloadresponse_downloadto_device'] = 'Download to device';
 $string['downloadresponse_error'] = 'The file you requested to download is no longer available.';
 $string['downloadresponse_exportsuccessheader'] = 'Your file has been exported';
 $string['downloadresponse_exportserviceinfo'] = 'You can download, or export, these files for use offline or on a mobile device, using the links below.';
+$string['downloadresponse_filename'] = ' question files';
 $string['downloadresponse_title'] = 'Download zip or export the response files';
 $string['embedquestion:viewallprogress'] = 'See embedded questions progress for others';
 $string['embedquestion:viewmyprogress'] = 'See your own embedded questions progress';

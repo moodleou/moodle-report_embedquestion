@@ -135,8 +135,14 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
 
         $zipinfo = response_export::get_response_zip_file_info($questionusageids, $pagecontext, 0);
 
-        $expectedfilename = str_replace(' ', '-',
-                $this->course->shortname . '_' . date('Ymd') . '_' . $pagecontext->get_context_name(false, false));
+        $expectedfilename = response_export::get_export_file_name($this->course, $pagecontext->get_context_name(false, false));
+        [$notused, $student1info] = response_export::get_user_details($this->student1->id, $pagecontext);
+        [$notused, $student2info] = response_export::get_user_details($this->student2->id, $pagecontext);
+        $student1folder = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
+                ['fullname' => fullname($this->student1), 'info' => implode(',', $student1info)]);
+        $student2folder = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
+                ['fullname' => fullname($this->student2), 'info' => implode(',', $student2info)]);
+        $questionname = str_replace('/', '-', get_string('pluginname', 'qtype_' . $question->qtype));
 
         $this->assertIsArray($zipinfo);
         $this->assertArrayHasKey('file', $zipinfo);
@@ -155,9 +161,9 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
         $this->assertIsArray($archivefiles);
         $this->assertCount(3, $archivefiles);
         foreach ($archivefiles as $index => $file) {
-            $expectedpathname1 = $this->student1->username . '/' . $question->qtype . '/attempt0001/' . $filename;
-            $expectedpathname2 = $this->student1->username . '/' . $question->qtype . '/attempt0002/' . $filename;
-            $expectedpathname3 = $this->student2->username . '/' . $question->qtype . '/attempt0001/' . $filename;
+            $expectedpathname1 = $student1folder . '/' . $questionname . '/attempt0001/' . $filename;
+            $expectedpathname2 = $student1folder . '/' . $questionname . '/attempt0002/' . $filename;
+            $expectedpathname3 = $student2folder . '/' . $questionname . '/attempt0001/' . $filename;
             $this->assertTrue($file->pathname === $expectedpathname1 or $file->pathname === $expectedpathname2 or
                     $file->pathname === $expectedpathname3);
             $this->assertGreaterThan(0, $file->size);

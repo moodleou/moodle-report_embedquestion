@@ -26,6 +26,7 @@ namespace report_embedquestion\local\export;
 use context;
 use file_archive;
 use question_bank;
+use stdClass;
 use stored_file;
 use zip_archive;
 
@@ -82,15 +83,7 @@ class response_export {
         $hasfile = false;
         $coursecontext = $context->get_course_context();
         $course = get_course($coursecontext->instanceid);
-
-        $zipfilename = $course->shortname;
-        if ($userid) {
-            // Append the student's username to the zip's filename.
-            $user = \core_user::get_user($userid, get_all_user_name_fields(true) . ',username');
-            $zipfilename .= '_' . $user->username;
-        }
-        $zipfilename .= '_' . date('Ymd') . '_' . $context->get_context_name(false, false);
-        $zipfilename = str_replace(' ', '-', $zipfilename);
+        $zipfilename = self::get_export_file_name($course, $context->get_context_name(false, false));
 
         // Cache folder.
         $cachefolder = $CFG->dataroot . '/cache/report_embedquestion/download';
@@ -108,7 +101,7 @@ class response_export {
         foreach ($questionusageids as $qubaid) {
             if (!$userid) {
                 $attemptinfo = $DB->get_record('report_embedquestion_attempt', ['questionusageid' => $qubaid], '*', MUST_EXIST);
-                $userinfo = \core_user::get_user($attemptinfo->userid, get_all_user_name_fields(true) . ',username');
+                [$user, $info] = self::get_user_details($attemptinfo->userid, $context);
             }
             $quba = \question_engine::load_questions_usage_by_activity($qubaid);
             foreach ($quba->get_slots() as $slotno) {
@@ -129,9 +122,11 @@ class response_export {
                             /** @var stored_file $file */
                             $localname = '';
                             if (!$userid) {
-                                $localname = $userinfo->username . '/';
+                                $localname = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
+                                                ['fullname' => fullname($user), 'info' => implode(',', $info)]) . '/';
                             }
-                            $localname .= $question->get_type_name() . '/' . $slotnoformat . '/' . $file->get_filename();
+                            $questionname = str_replace('/', '-', get_string('pluginname', 'qtype_' . $question->get_type_name()));
+                            $localname .= $questionname . '/' . $slotnoformat . '/' . $file->get_filename();
                             $zip_archive->add_file_from_string($localname, $file->get_content());
                         }
                     }
@@ -150,5 +145,47 @@ class response_export {
                 'file' => $zipfilename,
                 'size' => filesize($filepath)
         ];
+    }
+
+    /**
+     * Get the export filename.
+     *
+     * @param stdClass $course
+     * @param string $activityname
+     * @return string
+     */
+    public static function get_export_file_name(stdClass $course, string $activityname): string {
+        $base = clean_filename(get_string('downloadresponse_filename', 'report_embedquestion'));
+        $shortname = clean_filename($course->shortname);
+        if ($shortname == '' || $shortname == '_') {
+            $shortname = $course->id;
+        }
+
+        return "{$shortname} {$activityname} {$base}";
+    }
+
+    /**
+     * Get user detail with identity fields.
+     * TODO: Remove this function and use get_user_details() in report/embedquestion/classes/utils.php once #441821 has been merged.
+     *
+     * @param int $userid
+     * @param context $context
+     * @return array User object and extra fields value.
+     */
+    public static function get_user_details(int $userid, context $context): array {
+        $extrauserfieldsql = get_extra_user_fields_sql($context);
+        $extrauserfields = array_map('trim', explode(',', $extrauserfieldsql));
+
+        $user = \core_user::get_user($userid, get_all_user_name_fields(true) . $extrauserfieldsql);
+
+        // Process display of user identity fields.
+        $info = [];
+        foreach ($extrauserfields as $extrauserfield) {
+            if (!empty($user->$extrauserfield)) {
+                $info[] = $user->$extrauserfield;
+            }
+        }
+
+        return [$user, $info];
     }
 }

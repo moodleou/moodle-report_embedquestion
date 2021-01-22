@@ -26,7 +26,7 @@ require(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/lib/filelib.php');
 
 $cmid = required_param('cmid', PARAM_INT);
-$file = required_param('file', PARAM_ALPHANUMEXT);
+$file = required_param('file', PARAM_FILE);
 $size = required_param('size', PARAM_INT);
 $download = optional_param('download', 0, PARAM_BOOL);
 

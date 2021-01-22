@@ -186,7 +186,7 @@ Feature: Testing attempt detail view and delete feature
     And I should see "Download zip or export the response files"
     And I should see "Download to device"
     And "Download to device" "link" should exist
-    And following "Download to device" should download between "1" and "250" bytes
+    And following "Download to device" should download between "1" and "300" bytes
 
   @javascript
   Scenario: A teacher can download their students progress in an activity for question type recordrtc
