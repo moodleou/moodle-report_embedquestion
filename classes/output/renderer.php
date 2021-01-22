@@ -283,4 +283,24 @@ class renderer extends plugin_renderer_base {
                 'back-link');
     }
 
+    /**
+     * Render show only heading and show everybody link.
+     *
+     * @param string $userinfo User info.
+     * @return string HTML string.
+     */
+    public function render_show_only_heading(string $userinfo): string {
+        $showeverybodyurl = $this->page->url;
+        $showeverybodyurl->remove_params('userid');
+        $showeverybodystring = get_string('showeverybody', 'report_embedquestion');
+
+        $output = html_writer::start_div('show-only-heading');
+        $output .= html_writer::span(get_string('showonly_heading', 'report_embedquestion', $userinfo), 'student-info');
+        $output .= html_writer::span(html_writer::link($showeverybodyurl, $showeverybodystring,
+                ['title' => $showeverybodystring, 'aria-label' => $showeverybodystring]), 'show-all-link');
+        $output .= html_writer::end_div();
+
+        return $output;
+    }
+
 }

@@ -59,7 +59,10 @@ activity_report_viewed::create(['context' => $context,
 // Create the right sort of report.
 if ($userid) {
     $report = new single_user_activity_report($course, $cm, $userid, $context);
-    utils::set_report_navbar($report->get_title(), $userid, $context);
+    [$user, $info] = utils::get_user_details($userid, $context);
+    $showonly = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
+            ['fullname' => fullname($user), 'info' => implode(',', $info)]);
+    utils::set_report_navbar($report->get_title(), $context, $showonly);
 } else {
     $report = new multi_user_activity_report($course, $cm, $groupid, $context);
 }
@@ -72,6 +75,9 @@ if (!$download) {
     $PAGE->set_heading($title);
     $output = $OUTPUT->header();
     $output .= $renderer->report_heading($title);
+    if ($userid) {
+        $output .= $renderer->render_show_only_heading($showonly);
+    }
     ob_start();
     $report->display_download_content(null, $usageid);
     $output .= ob_get_contents();

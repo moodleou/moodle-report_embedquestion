@@ -51,6 +51,16 @@
     margin-top: 10px;
 }
 
+#page-report-embedquestion-activity .show-only-heading,
+#page-report-embedquestion-index .show-only-heading {
+    padding: 10px 0;
+}
+
+#page-report-embedquestion-activity .show-only-heading .student-info,
+#page-report-embedquestion-index .show-only-heading .student-info {
+    padding-right: 5px;
+}
+
 #page-report-embedquestion-activity #region-main form table span.view-all,
 #page-report-embedquestion-index #region-main form table span.view-all {
     display: block;

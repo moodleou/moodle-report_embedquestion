@@ -24,9 +24,9 @@
 
 namespace report_embedquestion;
 use action_link;
+use context;
 use html_writer;
 use moodle_url;
-use stdClass;
 use user_picture;
 
 defined('MOODLE_INTERNAL') || die();
@@ -69,12 +69,12 @@ class utils
     /**
      * Check that the user can see the report, and throw an exception if not.
      *
-     * @param \context $context the report context.
+     * @param context $context the report context.
      * @param int $userid if not zero, the report being shown only has data for this user.
      * @return int if this report should only show data for one user, that userid, otherwise 0
      * @throws \required_capability_exception if access is not allowed.
      */
-    public static function require_report_permissions(\context $context, int $userid): int {
+    public static function require_report_permissions(context $context, int $userid): int {
         global $USER;
         if (!has_capability('report/embedquestion:viewallprogress', $context)) {
             require_capability('report/embedquestion:viewmyprogress', $context);
@@ -351,39 +351,49 @@ class utils
     }
 
     /**
+     * Get user detail with identity fields.
+     *
+     * @param int $userid
+     * @param context $context
+     * @return array User object and extra fields value.
+     */
+    public static function get_user_details(int $userid, context $context): array {
+        $extrauserfieldsql = get_extra_user_fields_sql($context);
+        $extrauserfields = array_map('trim', explode(',', $extrauserfieldsql));
+
+        $user = \core_user::get_user($userid, get_all_user_name_fields(true) . $extrauserfieldsql);
+
+        // Process display of user identity fields.
+        $info = [];
+        foreach ($extrauserfields as $extrauserfield) {
+            if (!empty($user->$extrauserfield)) {
+                $info[] = $user->$extrauserfield;
+            }
+        }
+
+        return [$user, $info];
+    }
+
+    /**
      *
      * Set navbar in the embedded report.
      *
      * @param string $title
-     * @param int $userid
-     * @param \context $context
+     * @param context $context
+     * @param string $showonly
      */
-    public static function set_report_navbar(string $title, int $userid = 0, \context $context): void {
+    public static function set_report_navbar(string $title, context $context, string $showonly = ''): void {
         global $PAGE;
 
         if ($context->contextlevel == CONTEXT_MODULE) {
             $PAGE->navbar->add($title, new moodle_url('/report/embedquestion/activity.php', ['cmid' => $context->instanceid]));
-        } else if ($context->contextlevel == CONTEXT_COURSE && $userid) {
+        } else if ($context->contextlevel == CONTEXT_COURSE && !empty($showonly)) {
             $PAGE->navbar->add($title, new moodle_url('/report/embedquestion/index.php', ['courseid' => $context->instanceid]));
         } else {
             $PAGE->navbar->add($title);
         }
-        if ($userid) {
-            $extrauserfieldsql = get_extra_user_fields_sql($context);
-            $extrauserfields = array_map('trim', explode(',', $extrauserfieldsql));
-
-            $user = \core_user::get_user($userid, get_all_user_name_fields(true) . $extrauserfieldsql);
-
-            // Process display of user identity fields.
-            $info = [];
-            foreach ($extrauserfields as $extrauserfield) {
-                if (!empty($user->$extrauserfield)) {
-                    $info[] = $user->$extrauserfield;
-                }
-            }
-            $navlink = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
-                    ['fullname' => fullname($user), 'info' => implode(',', $info)]);
-            $PAGE->navbar->add($navlink);
+        if (!empty($showonly)) {
+            $PAGE->navbar->add($showonly);
         }
     }
 }

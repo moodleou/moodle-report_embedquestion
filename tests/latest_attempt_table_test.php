@@ -53,7 +53,7 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
 
     public function test_latest_attempt_table_no_filter() {
         // Check sql query wuth no filter.
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
+        $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $this->assertArrayHasKey('contextid', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
     }
@@ -61,7 +61,7 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
     public function test_latest_attempt_table_filter_lookback() {
         $now = time();
         $this->displayoptions->lookback = WEEKSECS * 3; // 3 weeks.
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
+        $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $this->assertArrayHasKey('contextid', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
         $this->assertArrayHasKey('lookback', $table->sql->params);
@@ -73,7 +73,7 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $this->displayoptions->datefrom = $now - (WEEKSECS * 4); // From 28 days ago.
         $this->displayoptions->dateto = $now - (DAYSECS * 6); // To 6 days ago.
 
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
+        $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $contextid = $this->context->id;
         $expectedwhere = " (r.contextid = :contextid
      OR cxt.path LIKE '%/$contextid/%')
@@ -92,14 +92,14 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $now = time();
         $this->displayoptions->datefrom = $now - (WEEKSECS * 4); // From 28 days ago.
 
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
+        $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $contextid = $this->context->id;
         $expectedwhere = " (r.contextid = :contextid
      OR cxt.path LIKE '%/$contextid/%')
      AND qas.timecreated > :datefrom";
         $this->assertContains($expectedwhere, $table->sql->where);
 
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
+        $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $this->assertArrayHasKey('contextid', $table->sql->params);
         $this->assertArrayHasKey('datefrom', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
@@ -110,13 +110,13 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $now = time();
         $this->displayoptions->dateto = $now - (WEEKSECS * 2); // From 14 days ago.
 
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
+        $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $contextid = $this->context->id;
         $expectedwhere = " (r.contextid = :contextid
      OR cxt.path LIKE '%/$contextid/%')
      AND qas.timecreated < :dateto";
         $this->assertContains($expectedwhere, $table->sql->where);
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
+        $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $this->assertArrayHasKey('contextid', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
         $this->assertArrayHasKey('dateto', $table->sql->params);
@@ -134,7 +134,7 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
 
         $this->displayoptions->locationids = [$pagecontext1->id, $pagecontext2->id];
 
-        $table = new latest_attempt_table($this->context, $this->course->id, 0, null, $this->displayoptions);
+        $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
 
         $keyparam1 = array_search($pagecontext1->id, $table->sql->params);
         $keyparam2 = array_search($pagecontext2->id, $table->sql->params);

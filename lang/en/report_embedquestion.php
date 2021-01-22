@@ -86,6 +86,8 @@ $string['privacy:metadata:report_embedquestion_attempt:timemodified'] = 'The tim
 $string['privacy:metadata:report_embedquestion_attempt:userid'] = 'The user who attempted the question';
 $string['privacy:preference:report_embedquestion_attempt:pagesize'] = 'The number of attempts to show on each page of the report';
 $string['type'] = 'Type';
+$string['showeverybody'] = 'Show everybody';
 $string['showonly'] = 'Show only';
+$string['showonly_heading'] = 'Showing only {$a}';
 $string['viewallattemptsforthisuser'] = 'View all embedded question latest attempts for this user';
 

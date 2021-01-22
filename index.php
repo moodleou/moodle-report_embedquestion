@@ -55,14 +55,18 @@ utils::validate_usageid($usageid, $userid);
 course_report_viewed::create(['context' => $context,
         'relateduserid' => $userid, 'other' => ['groupid' => $groupid]])->trigger();
 
+$showonly = '';
 // Create the right sort of report.
 if ($userid) {
     $report = new single_user_course_report($courseid, $userid, $context);
+    [$user, $info] = utils::get_user_details($userid, $context);
+    $showonly = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
+            ['fullname' => fullname($user), 'info' => implode(',', $info)]);
 } else {
     $report = new multi_user_course_report($courseid, $groupid, $context);
 }
 // Set navbar in the report.
-utils::set_report_navbar($report->get_title(), $userid, $context);
+utils::set_report_navbar($report->get_title(), $context, $showonly);
 
 $renderer = $PAGE->get_renderer('report_embedquestion');
 // Display the report.
@@ -72,6 +76,9 @@ if (!$download) {
     $PAGE->set_heading($title);
     $output = $OUTPUT->header();
     $output .= $renderer->report_heading($title);
+    if ($userid) {
+        $output .= $renderer->render_show_only_heading($showonly);
+    }
     ob_start();
     $report->display_download_content(null, $usageid);
     $output .= ob_get_contents();
