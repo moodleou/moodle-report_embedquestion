@@ -65,6 +65,8 @@ class report_display_options {
     public $userid = 0;
     /** @var string Whether the data should be downloaded in some format, or '' to display it. */
     public $download = '';
+    /** @var int Usage Id. */
+    public $usageid;
 
     /**
      * report_display_options constructor.
@@ -191,6 +193,7 @@ class report_display_options {
         $this->userid = optional_param('userid', 0, PARAM_INT);
         $this->group = groups_get_course_group($this->course, true);
         $this->download = optional_param('download', $this->download, PARAM_ALPHA);
+        $this->usageid = optional_param('usageid', 0, PARAM_INT);
     }
 
     /**

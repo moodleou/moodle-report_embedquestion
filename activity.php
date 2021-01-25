@@ -25,9 +25,8 @@
 require(__DIR__ . '/../../config.php');
 
 use \report_embedquestion\event\activity_report_viewed,
-    \report_embedquestion\output\multi_user_activity_report,
-    \report_embedquestion\output\single_user_activity_report,
     \report_embedquestion\utils;
+use report_embedquestion\local\report\progress_report;
 
 $cmid = required_param('cmid', PARAM_INT);
 $groupid = optional_param('groupid', 0, PARAM_INT);
@@ -56,16 +55,16 @@ utils::validate_usageid($usageid, $userid);
 activity_report_viewed::create(['context' => $context,
         'relateduserid' => $userid, 'other' => ['groupid' => $groupid]])->trigger();
 
+$report = progress_report::make($course, $context, $cm, $usageid ? true : false);
 // Create the right sort of report.
 if ($userid) {
-    $report = new single_user_activity_report($course, $cm, $userid, $context);
     [$user, $info] = utils::get_user_details($userid, $context);
     $showonly = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
             ['fullname' => fullname($user), 'info' => implode(',', $info)]);
     utils::set_report_navbar($report->get_title(), $context, $showonly);
-} else {
-    $report = new multi_user_activity_report($course, $cm, $groupid, $context);
+    $report->single_report($userid);
 }
+$report->init();
 $renderer = $PAGE->get_renderer('report_embedquestion');
 // Display the report.
 $download = optional_param('download', null, PARAM_RAW);
@@ -79,12 +78,12 @@ if (!$download) {
         $output .= $renderer->render_show_only_heading($showonly);
     }
     ob_start();
-    $report->display_download_content(null, $usageid);
+    $report->display();
     $output .= ob_get_contents();
     ob_end_clean();
     $output .= $OUTPUT->footer();
 
     echo $output;
 } else {
-    $report->display_download_content($download, $usageid);
+    $report->display();
 }

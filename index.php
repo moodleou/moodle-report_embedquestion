@@ -25,9 +25,8 @@
 require(__DIR__ . '/../../config.php');
 
 use \report_embedquestion\event\course_report_viewed,
-    \report_embedquestion\output\multi_user_course_report,
-    \report_embedquestion\output\single_user_course_report,
     \report_embedquestion\utils;
+use report_embedquestion\local\report\progress_report;
 
 $courseid = required_param('courseid', PARAM_INT);
 $groupid = optional_param('groupid', 0, PARAM_INT);
@@ -58,13 +57,12 @@ course_report_viewed::create(['context' => $context,
 $showonly = '';
 // Create the right sort of report.
 if ($userid) {
-    $report = new single_user_course_report($courseid, $userid, $context);
     [$user, $info] = utils::get_user_details($userid, $context);
     $showonly = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
             ['fullname' => fullname($user), 'info' => implode(',', $info)]);
-} else {
-    $report = new multi_user_course_report($courseid, $groupid, $context);
 }
+$report = progress_report::make(get_course($courseid), $context, null, $usageid ? true : false);
+$report->init();
 // Set navbar in the report.
 utils::set_report_navbar($report->get_title(), $context, $showonly);
 
@@ -80,12 +78,12 @@ if (!$download) {
         $output .= $renderer->render_show_only_heading($showonly);
     }
     ob_start();
-    $report->display_download_content(null, $usageid);
+    $report->display();
     $output .= ob_get_contents();
     ob_end_clean();
     $output .= $OUTPUT->footer();
 
     echo $output;
 } else {
-    $report->display_download_content($download, $usageid);
+    $report->display();
 }

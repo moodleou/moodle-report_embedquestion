@@ -207,6 +207,7 @@ class renderer extends plugin_renderer_base {
         $output .= html_writer::end_div();
         $output .= html_writer::end_div();
 
+        // We need custom logic for whether to enable or disable the button, based on which question types are selected.
         $this->page->requires->js_call_amd('report_embedquestion/download_responses', 'init');
 
         return $output;

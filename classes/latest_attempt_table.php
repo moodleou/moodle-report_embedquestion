@@ -102,7 +102,7 @@ class latest_attempt_table extends table_sql {
         $this->courseid = $courseid;
         $this->groupid = $displayoption->group;
         $this->cm = $cm;
-        $this->userid = $userid;
+        $this->userid = $displayoption->userid;
         $this->userfields = utils::get_user_fields($context);
         $this->extrauserfields = get_extra_user_fields($this->context);
         $this->isdownloading = $download;
