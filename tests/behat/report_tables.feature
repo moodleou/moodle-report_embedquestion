@@ -157,3 +157,4 @@ Feature: Teachers can see their students progress on embedded questions.
     And I log out
     And I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student1"
     And I should not see "Show only" in the "student1" "table_row"
+    And "Show everybody" "link" should not exist
