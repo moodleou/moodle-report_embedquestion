@@ -96,6 +96,12 @@ Feature: Teachers can see their students progress on embedded questions.
     And I should see "student1"
     And I should not see "student2"
 
+  Scenario: A student can only see his/her own progress in a course
+    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "student2"
+    Then I should see "Embedded question progress for Course 1"
+    And I should see "student2"
+    And I should not see "student1"
+
   Scenario: The report will show the IDs columns depend on the administration setting.
     Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "admin"
     And I should see "Embedded question progress for Test page"

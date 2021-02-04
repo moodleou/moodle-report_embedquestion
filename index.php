@@ -55,13 +55,14 @@ course_report_viewed::create(['context' => $context,
         'relateduserid' => $userid, 'other' => ['groupid' => $groupid]])->trigger();
 
 $showonly = '';
+$report = progress_report::make(get_course($courseid), $context, null, $usageid ? true : false);
 // Create the right sort of report.
 if ($userid) {
     [$user, $info] = utils::get_user_details($userid, $context);
     $showonly = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
             ['fullname' => fullname($user), 'info' => implode(',', $info)]);
+    $report->single_report($userid);
 }
-$report = progress_report::make(get_course($courseid), $context, null, $usageid ? true : false);
 $report->init();
 // Set navbar in the report.
 utils::set_report_navbar($report->get_title(), $context, $showonly);
