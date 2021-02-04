@@ -208,3 +208,21 @@ Feature: Testing attempt detail view and delete feature
     And I should see "Download to device"
     And "Download to device" "link" should exist
     And following "Download to device" should download between "1" and "40000" bytes
+
+  @javascript
+  Scenario: A teacher can download their students previous finished attempt progress in an activity for question type recordrtc
+    Given I check the "recordrtc" question type already installed for embed question
+    And the following "questions" exist:
+      | questioncategory | qtype     | name            | idnumber | template |
+      | Test questions   | recordrtc | Fourth question | test4    | audio    |
+    And the following "filter_embedquestion > Pages with embedded question" exist:
+      | name        | idnumber | course | question    | slot |
+      | Test page 4 | page4    | C1     | embed/test4 | 1    |
+    And "student1" has attempted embedded questions in "activity" context "page4":
+      | pagename | question    | response |
+      | C1:page4 | embed/test4 |          |
+    And "student1" has started embedded question "embed/test4" in "activity" context "page4" with slot "2"
+    When I am on the "page4" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
+    Then I should see "Not yet answered" in the "student1" "table_row"
+    And I click on "Select attempt" "checkbox" in the "student1" "table_row"
+    And the "Download selected response files" "button" should be enabled

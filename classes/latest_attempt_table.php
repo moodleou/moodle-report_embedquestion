@@ -29,6 +29,7 @@ require_once($CFG->libdir . '/tablelib.php');
 use cm_info;
 use context;
 use moodle_url;
+use question_state;
 use report_embedquestion\local\export\response_export;
 use stdClass;
 use table_sql;
@@ -217,8 +218,13 @@ class latest_attempt_table extends table_sql {
     public function col_checkbox(object $attempt): string {
         global $OUTPUT, $USER;
         $allowdownload = 0;
-        if (response_export::is_qtype_has_response_contain_file($attempt->questiontype) && $attempt->questionstate != 'todo') {
-            $allowdownload = 1;
+        if (response_export::is_qtype_has_response_contain_file($attempt->questiontype)) {
+            // We allow the user to download their responses in two cases:
+            // 1. Attempt that has only one slot and the state is not equal to Not yet answer.
+            // 2. Attempt that has more than one slot.
+            if (($attempt->slot == 1 && $attempt->questionstate != question_state::$todo) || ($attempt->slot > 1)) {
+                $allowdownload = 1;
+            }
         }
 
         if (has_capability('report/embedquestion:deleteanyattempt', $this->context) ||
