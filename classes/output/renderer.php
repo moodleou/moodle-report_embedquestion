@@ -64,36 +64,39 @@ class renderer extends plugin_renderer_base {
     /**
      * Render the questions content of a particular attempt.
      *
-     * @param $attemptobj
+     * @param \question_attempt $qa the question attempt to display.
+     * @param \context $context the context the attempt belongs to.
      * @return string HTML string.
      */
-    public function render_question_attempt_content($attemptobj): string {
+    public function render_question_attempt_content(\question_attempt $qa, \context $context): string {
 
         $displayoptions = new question_display_options();
+        $displayoptions->context = $context;
         $displayoptions->readonly = true;
         $displayoptions->manualcommentlink = question_display_options::HIDDEN;
         $displayoptions->history = question_display_options::VISIBLE;
         $displayoptions->flags = question_display_options::HIDDEN;
 
         // Adjust the display options before a question is rendered.
-        $attemptobj->get_behaviour()->adjust_display_options($displayoptions);
+        $qa->get_behaviour()->adjust_display_options($displayoptions);
 
         // The question number is always 'Question 1' for embedded questions. So that, we have param '1'.
-        return $attemptobj->render($displayoptions, 1);
+        return $qa->render($displayoptions, 1);
     }
 
     /**
      * Render attempt detail page.
      *
-     * @param array $sumdata
-     * @param $attemptobj
+     * @param array $sumdata information about which attempt this is.
+     * @param \question_attempt $qa the question attempt to display.
+     * @param \context $context the context the attempt belongs to.
      * @return string HTML string.
      */
-    public function render_attempt_detail(array $sumdata, $attemptobj): string {
+    public function render_attempt_detail(array $sumdata, \question_attempt $qa, \context $context): string {
         $output = '';
         $quizrenderer = $this->page->get_renderer('mod_quiz');
         $output .= $quizrenderer->review_summary_table($sumdata, 0);
-        $output .= $this->render_question_attempt_content($attemptobj);
+        $output .= $this->render_question_attempt_content($qa, $context);
         $output .= $this->output->close_window_button(get_string('closeattemptview', 'report_embedquestion'));
         return $output;
     }
