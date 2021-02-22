@@ -291,10 +291,11 @@ class renderer extends plugin_renderer_base {
      * Render show only heading and show everybody link.
      *
      * @param string $userinfo User info.
+     * @param moodle_url $showeverybodyurl Show everybody url.
      * @return string HTML string.
+     * @throws coding_exception
      */
-    public function render_show_only_heading(string $userinfo): string {
-        $showeverybodyurl = $this->page->url;
+    public function render_show_only_heading(string $userinfo, moodle_url $showeverybodyurl): string {
         $showeverybodyurl->remove_params('userid');
         $showeverybodystring = get_string('showeverybody', 'report_embedquestion');
 

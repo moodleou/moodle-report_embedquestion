@@ -97,17 +97,32 @@ abstract class progress_report {
     public abstract function get_url_report(): moodle_url;
 
     /**
+     * Get the report url with full params.
+     *
+     * @return moodle_url report url.
+     */
+    public function get_full_url_report(): moodle_url {
+        $url = $this->get_url_report();
+        $url->params($this->displayoptions->get_all_params());
+
+        return $url;
+    }
+
+    /**
      * Init the report.
      */
     public function init(): void {
         $this->displayoptions = new report_display_options($this->course->id, $this->cm);
+        $this->displayoptions->setup_general_from_params();
         if ($this->isattemptreport) {
             $this->displayoptions->process_settings_from_params();
             $this->reporttable =
                     new attempt_summary_table($this->context, $this->course->id, 0, $this->cm, $this->displayoptions->userid,
                             $this->displayoptions->usageid);
         } else {
-            $this->filterform = new filter($this->get_url_report()->out(false), ['context' => $this->context]);
+            $formurl = $this->get_url_report();
+            $formurl->params($this->displayoptions->get_general_params());
+            $this->filterform = new filter($formurl->out(false), ['context' => $this->context]);
             if ($fromform = $this->filterform->get_data()) {
                 $this->displayoptions->process_settings_from_form($fromform);
             } else {
@@ -166,7 +181,9 @@ abstract class progress_report {
         } else {
             if (!$this->displayoptions->download) {
                 if (!$this->displayoptions->userid) {
-                    groups_print_course_menu($this->course, $this->get_url_report());
+                    $groupurl = $this->get_full_url_report();
+                    $groupurl->remove_params('group');
+                    groups_print_course_menu($this->course, $groupurl);
                 }
                 $this->filterform->display();
                 utils::allow_downloadability_for_attempt_table($this->reporttable, $this->get_title(), $this->context);

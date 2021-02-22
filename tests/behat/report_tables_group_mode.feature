@@ -9,6 +9,7 @@ Feature: Testing Embedded Question report with group mode
       | username |
       | student1 |
       | student2 |
+      | student3 |
       | tutor    |
       | teacher  |
     And the following "courses" exist:
@@ -18,6 +19,7 @@ Feature: Testing Embedded Question report with group mode
       | user     | course | role           |
       | student1 | C1     | student        |
       | student2 | C1     | student        |
+      | student3 | C1     | student        |
       | tutor    | C1     | teacher        |
       | teacher  | C1     | editingteacher |
     And the following "groups" exist:
@@ -31,6 +33,7 @@ Feature: Testing Embedded Question report with group mode
       | tutor    | G1    |
       | student2 | G2    |
       | teacher  | G2    |
+      | student3 | G2    |
     And the following "activities" exist:
       | activity | name      | idnumber | course |
       | page     | Test page | page1    | C1     |
@@ -47,9 +50,12 @@ Feature: Testing Embedded Question report with group mode
     And "student2" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
       | C1:page1 | embed/test1 | False    |
+    And "student3" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response |
+      | C1:page1 | embed/test1 | True     |
 
   @javascript
-  Scenario: A teacher can see all students progress in a course
+  Scenario: A teacher can see all students progress in a course, separate groups and filter should not be changed when teacher changes the table preferences
     Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
     Then I should see "Embedded question progress for Course 1"
     And I set the field "Separate groups" to "All participants"
@@ -58,9 +64,20 @@ Feature: Testing Embedded Question report with group mode
     And I set the field "Separate groups" to "Group 1"
     And I should see "student1"
     And I should not see "student2"
+    And I should not see "student3"
+    And I set the field "Attempts made in the" to "Last 2 days"
+    And I press "Show report"
+    And the field "Separate groups" matches value "Group 1"
     And I set the field "Separate groups" to "Group 2"
-    And I should see "student2"
+    And the field "Attempts made in the" matches value "Last 2 days"
     And I should not see "student1"
+    And I should see "student2"
+    And I should see "student3"
+    And I set the field "Page size" to "1"
+    And I press "Show report"
+    And I click on "Next" "link"
+    And the field "Separate groups" matches value "Group 2"
+    And the field "Attempts made in the" matches value "Last 2 days"
 
   @javascript
   Scenario: A tutor can see their students progress in an activity

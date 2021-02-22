@@ -81,17 +81,32 @@ class report_display_options {
     }
 
     /**
-     * Get the URL parameters required to show the report with these options.
+     * Get the general parameters to show the report with these options. It will be used in form post url.
      * @return array URL parameter name => value.
      */
-    protected function get_url_params(): array {
+    public function get_general_params(): array {
         $params = [];
         if ($this->cm !== null) {
             $params['cmid'] = $this->cm->id;
         } else {
             $params['courseid'] = $this->courseid;
         }
+        if ($this->userid) {
+            $params['userid'] = $this->userid;
+        }
+        if (groups_get_course_group($this->course, true)) {
+            $params['group'] = $this->group;
+        }
 
+        return $params;
+    }
+
+    /**
+     * Get all parameters required to show the report with these options.
+     * @return array URL parameter name => value.
+     */
+    public function get_all_params(): array {
+        $params = $this->get_general_params();
         if ($this->locationids && count($this->locationids) > 0) {
             $params['locationids'] = implode('-', $this->locationids);
         }
@@ -107,9 +122,6 @@ class report_display_options {
         if ($this->dateto) {
             $params['dateto'] = $this->dateto;
         }
-        if (groups_get_course_group($this->course, true)) {
-            $params['group'] = $this->group;
-        }
 
         return $params;
     }
@@ -120,9 +132,9 @@ class report_display_options {
      */
     public function get_url(): moodle_url {
         if ($this->cm !== null) {
-            $url = utils::get_url($this->get_url_params(), 'activity');
+            $url = utils::get_url($this->get_all_params(), 'activity');
         } else {
-            $url = utils::get_url($this->get_url_params());
+            $url = utils::get_url($this->get_all_params());
         }
 
         return $url;
@@ -135,7 +147,7 @@ class report_display_options {
      * @param object $fromform The data from $mform->get_data() from the settings form.
      */
     public function process_settings_from_form($fromform) {
-        $this->setup_from_form_data($fromform);
+        $this->setup_filter_from_form_data($fromform);
         $this->update_user_preferences();
         $this->redirect_to_clean_url();
     }
@@ -146,7 +158,7 @@ class report_display_options {
      */
     public function process_settings_from_params() {
         $this->setup_from_user_preferences();
-        $this->setup_from_params();
+        $this->setup_filter_from_params();
     }
 
     /**
@@ -164,10 +176,10 @@ class report_display_options {
     }
 
     /**
-     * Set the fields of this object from the form data.
+     * Set the filter fields of this object from the form data.
      * @param object $fromform The data from $mform->get_data() from the settings form.
      */
-    public function setup_from_form_data($fromform) {
+    public function setup_filter_from_form_data($fromform) {
         // Only set the location filter for filter from from Course level only.
         if (isset($fromform->locationids)) {
             $this->locationids = $fromform->locationids;
@@ -179,9 +191,9 @@ class report_display_options {
     }
 
     /**
-     * Set the fields of this object from the URL parameters.
+     * Set the filter fields of this object from the URL parameters.
      */
-    public function setup_from_params() {
+    public function setup_filter_from_params() {
         $locationsstring = optional_param('locationids', '', PARAM_ALPHANUMEXT);
         if (!empty($locationsstring)) {
             $this->locationids = explode('-', $locationsstring);
@@ -189,7 +201,12 @@ class report_display_options {
         $this->lookback = optional_param('lookback', 0, PARAM_INT);
         $this->datefrom = optional_param('datefrom', 0, PARAM_INT);
         $this->dateto = optional_param('dateto', 0, PARAM_INT);
+    }
 
+    /**
+     * Set the general fields of this object from the URL parameters.
+     */
+    public function setup_general_from_params() {
         $this->userid = optional_param('userid', 0, PARAM_INT);
         $this->group = groups_get_course_group($this->course, true);
         $this->download = optional_param('download', $this->download, PARAM_ALPHA);

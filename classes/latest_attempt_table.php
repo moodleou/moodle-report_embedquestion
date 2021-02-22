@@ -108,21 +108,7 @@ class latest_attempt_table extends table_sql {
         $this->extrauserfields = get_extra_user_fields($this->context);
         $this->isdownloading = $download;
 
-        // Set base url.
-        $baseparams = [];
-        if ($this->userid) {
-            $baseparams['userid'] = $this->userid;
-        }
-        if ($this->groupid) {
-            $baseparams['groupid'] = $this->groupid;
-        }
-        if ($cm !== null) {
-            $baseparams['cmid'] = $cm->id;
-            $url = utils::get_url($baseparams, 'activity');
-        } else {
-            $baseparams['courseid'] = $this->courseid;
-            $url = utils::get_url($baseparams);
-        }
+        $url = $displayoption->get_url();
 
         $this->allowedjoins = $this->get_students_joins($this->groupid);
 
@@ -255,13 +241,8 @@ class latest_attempt_table extends table_sql {
             return strip_tags($html);
         }
         if (has_capability('report/embedquestion:viewallprogress', $this->context) && !$this->userid) {
-            if ($this->cm) {
-                $url = new moodle_url('/report/embedquestion/activity.php',
-                        ['cmid' => $this->cm->id, 'userid' => $attempt->userid]);
-            } else {
-                $url = new moodle_url('/report/embedquestion/index.php',
-                        ['courseid' => $this->courseid, 'userid' => $attempt->userid]);
-            }
+            $url = new moodle_url($this->baseurl);
+            $url->params(['userid' => $attempt->userid]);
             $renderer = $PAGE->get_renderer('report_embedquestion');
             $html .= $renderer->render_show_only_link($url);
         }

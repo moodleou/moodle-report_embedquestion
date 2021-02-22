@@ -75,7 +75,7 @@ if (!$download) {
     $output = $OUTPUT->header();
     $output .= $renderer->report_heading($title);
     if ($userid && has_capability('report/embedquestion:viewallprogress', $context)) {
-        $output .= $renderer->render_show_only_heading($showonly);
+        $output .= $renderer->render_show_only_heading($showonly, $report->get_full_url_report());
     }
     ob_start();
     $report->display();

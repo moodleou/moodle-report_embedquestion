@@ -11,6 +11,7 @@ Feature: Teachers can see their students progress on embedded questions.
       | student2 | Student   |    2    |    s2    | 12345678811 |
       | student3 | Student   |    3    |    s3    | 12345678711 |
       | student4 | Student   |    4    |    s4    | 12345678611 |
+      | student5 | Student   |    5    |    s5    | 12345678611 |
       | teacher  | Teacher   |    1    |    t1    | 12345678511 |
     And the following "courses" exist:
       | fullname | shortname |
@@ -21,6 +22,7 @@ Feature: Teachers can see their students progress on embedded questions.
       | student2 | C1     | student        |
       | student3 | C1     | student        |
       | student4 | C1     | student        |
+      | student5 | C1     | student        |
       | teacher  | C1     | editingteacher |
     And the following "activities" exist:
       | activity | name      | idnumber | course |
@@ -45,6 +47,13 @@ Feature: Teachers can see their students progress on embedded questions.
       | pagename        | question    | response |
       | Course:Course 1 | embed/test1 | True     |
     And "student4" has started embedded question "embed/test1" in "activity" context "page2"
+    And "student5" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response |
+      | C1:page1 | embed/test1 | True     |
+    And "student5" has attempted embedded questions in "course" context "Course 1":
+      | pagename        | question    | response |
+      | Course:Course 1 | embed/test1 | True     |
+    And "student5" has started embedded question "embed/test1" in "activity" context "page2"
     And the following "permission overrides" exist:
       | capability                                   | permission | role    | contextlevel | reference |
       | moodle/site:viewuseridentity                 | Allow      | student | System       |           |
@@ -164,3 +173,26 @@ Feature: Teachers can see their students progress on embedded questions.
     And I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student1"
     And I should not see "Show only" in the "student1" "table_row"
     And "Show everybody" "link" should not exist
+
+  @javascript
+  Scenario: A teacher can filter the report and the filter should not be changed when teacher change the table preferences
+    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
+    Then I should see "Embedded question progress for Course 1"
+    And I click on "Show only" "link" in the "student5" "table_row"
+    And I should see "Show everybody"
+
+    # Filter the result, the Show everybody link shouldn't disappear.
+    And I open the autocomplete suggestions list
+    And I click on "Test page" item in the autocomplete list
+    And I click on "Test page 2" item in the autocomplete list
+    And I set the field "Page size" to "1"
+    And I press "Show report"
+    And I should see "Show everybody"
+    And I should see "Student 5" in the "student5" "table_row"
+
+    # Change the paging, the filter shouldn't be changed.
+    And I click on "Next" "link"
+    And I should see "Student 5" in the "student5" "table_row"
+    And "Test page" "autocomplete_selection" should exist
+    And "Test page 2" "autocomplete_selection" should exist
+    And the field "Page size" matches value "1"
