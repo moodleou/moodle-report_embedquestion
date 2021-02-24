@@ -25,6 +25,7 @@
 namespace report_embedquestion;
 use action_link;
 use context;
+use filter_embedquestion\embed_id;
 use html_writer;
 use moodle_url;
 use user_picture;
@@ -215,7 +216,8 @@ class utils
      */
     public static function get_activity_link($attempt) {
         global $CFG;
-        $url = \html_writer::link($CFG->wwwroot . $attempt->pageurl . '#' . $attempt->embedid, $attempt->pagename);
+        $url = \html_writer::link($CFG->wwwroot . $attempt->pageurl . '#' .
+                embed_id::create_from_string($attempt->embedid)->to_html_id(), $attempt->pagename);
         return $url;
     }
 
