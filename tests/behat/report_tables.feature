@@ -7,12 +7,12 @@ Feature: Teachers can see their students progress on embedded questions.
   Background:
     Given the following "users" exist:
       | username | firstname | lastname| idnumber | phone1      |
-      | student1 | Student   |    1    |    s1    | 12345678911 |
-      | student2 | Student   |    2    |    s2    | 12345678811 |
-      | student3 | Student   |    3    |    s3    | 12345678711 |
-      | student4 | Student   |    4    |    s4    | 12345678611 |
-      | student5 | Student   |    5    |    s5    | 12345678611 |
-      | teacher  | Teacher   |    1    |    t1    | 12345678511 |
+      | student1 | Student   |    A    |    s1    | 12345678911 |
+      | student2 | Student   |    B    |    s2    | 12345678811 |
+      | student3 | Student   |    C    |    s3    | 12345678711 |
+      | student4 | Student   |    D    |    s4    | 12345678611 |
+      | student5 | Student   |    E    |    s5    | 12345678611 |
+      | teacher  | Teacher   |    F    |    t1    | 12345678511 |
     And the following "courses" exist:
       | fullname | shortname |
       | Course 1 | C1        |
@@ -26,7 +26,7 @@ Feature: Teachers can see their students progress on embedded questions.
       | teacher  | C1     | editingteacher |
     And the following "activities" exist:
       | activity | name      | idnumber | course |
-      | page     | Test page | page1    | C1     |
+      | page     | Test page 1 | page1    | C1     |
     And the following "question categories" exist:
       | contextlevel | reference | name          | idnumber |
       | Course       | C1        | Test questions| embed    |
@@ -100,7 +100,7 @@ Feature: Teachers can see their students progress on embedded questions.
     And I log out
     And I log in as "student1"
     And I am on "Course 1" course homepage
-    And I follow "Test page"
+    And I follow "Test page 1"
     And I navigate to "Embedded questions progress" in current page administration
     And I should see "student1"
     And I should not see "student2"
@@ -117,17 +117,17 @@ Feature: Teachers can see their students progress on embedded questions.
     And the following config values are set as admin:
       | showuseridentity | |
     And I reload the page
-    And I should not see "student1" in the "Student 1" "table_row"
-    And I should not see "s1" in the "Student 1" "table_row"
-    And I should not see "student1@gmail.com" in the "Student 1" "table_row"
-    And I should not see "12345678911" in the "Student 1" "table_row"
+    And I should not see "student1" in the "Student A" "table_row"
+    And I should not see "s1" in the "Student A" "table_row"
+    And I should not see "student1@gmail.com" in the "Student A" "table_row"
+    And I should not see "12345678911" in the "Student A" "table_row"
     And the following config values are set as admin:
     | showuseridentity | username,idnumber,email,phone1 |
     And I reload the page
-    And I should see "student1" in the "Student 1" "table_row"
-    And I should see "s1" in the "Student 1" "table_row"
-    And I should see "student1@example.com" in the "Student 1" "table_row"
-    And I should see "12345678911" in the "Student 1" "table_row"
+    And I should see "student1" in the "Student A" "table_row"
+    And I should see "s1" in the "Student A" "table_row"
+    And I should see "student1@example.com" in the "Student A" "table_row"
+    And I should see "12345678911" in the "Student A" "table_row"
 
   @javascript
   Scenario: The teacher can filter the report by activity.
@@ -136,13 +136,20 @@ Feature: Teachers can see their students progress on embedded questions.
     And I expand all fieldsets
     And I should see "Attempts from"
     And I should see "All activities" in the ".form-autocomplete-selection" "css_element"
+    And ".initialbar.firstinitial" "css_element" should exist
+    And ".initialbar.lastinitial " "css_element" should exist
     And I open the autocomplete suggestions list
-    And I click on "Test page" item in the autocomplete list
-    And "Test page" "autocomplete_selection" should exist
+    And I click on "Test page 1" item in the autocomplete list
+    And "Test page 1" "autocomplete_selection" should exist
     And I click on "Show report" "button"
     And I should see "student1"
     And I should see "student2"
     And I should not see "student4"
+    And I click on "A" "link" in the ".initialbar.lastinitial" "css_element"
+    And I should see "Student A"
+    And I should not see "Student B"
+    And I should not see "Student D"
+    And I click on "All" "link" in the ".initialbar.lastinitial" "css_element"
     And I open the autocomplete suggestions list
     And I click on "Test page 2" item in the autocomplete list
     And "Test page 2" "autocomplete_selection" should exist
@@ -150,21 +157,25 @@ Feature: Teachers can see their students progress on embedded questions.
     And I should see "student1"
     And I should see "student2"
     And I should see "student4"
-    And I click on "Test page" "autocomplete_selection"
-    And "Test page" "autocomplete_selection" should not exist
+    And I click on "Test page 1" "autocomplete_selection"
+    And "Test page 1" "autocomplete_selection" should not exist
     And I click on "Show report" "button"
     And I should not see "student1"
     And I should not see "student2"
     And I should see "student4"
 
   Scenario: The teacher can view all the attempts of a specific student using 'Show all' link
-    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher"
-    And I should see "Show only" in the "student1" "table_row"
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher"
+    Then I should see "Show only" in the "student1" "table_row"
     And I should see "Show only" in the "student2" "table_row"
-    When I click on "Show only" "link" in the "student1" "table_row"
-    Then I should see "Student 1 (student1)" in the ".breadcrumb" "css_element"
-    And I should see "Showing only Student 1 (student1)"
+    And ".initialbar.firstinitial" "css_element" should exist
+    And ".initialbar.lastinitial " "css_element" should exist
+    And I click on "Show only" "link" in the "student1" "table_row"
+    And I should see "Student A (student1)" in the ".breadcrumb" "css_element"
+    And I should see "Showing only Student A (student1)"
     And "Show everybody" "link" should exist
+    And ".initialbar.firstinitial" "css_element" should not exist
+    And ".initialbar.lastinitial " "css_element" should not exist
     And I should not see "student2"
     And I should not see "Show only" in the "student1" "table_row"
     And I click on "Show everybody" "link"
@@ -183,16 +194,16 @@ Feature: Teachers can see their students progress on embedded questions.
 
     # Filter the result, the Show everybody link shouldn't disappear.
     And I open the autocomplete suggestions list
-    And I click on "Test page" item in the autocomplete list
+    And I click on "Test page 1" item in the autocomplete list
     And I click on "Test page 2" item in the autocomplete list
     And I set the field "Page size" to "1"
     And I press "Show report"
     And I should see "Show everybody"
-    And I should see "Student 5" in the "student5" "table_row"
+    And I should see "Student E" in the "student5" "table_row"
 
     # Change the paging, the filter shouldn't be changed.
     And I click on "Next" "link"
-    And I should see "Student 5" in the "student5" "table_row"
-    And "Test page" "autocomplete_selection" should exist
+    And I should see "Student E" in the "student5" "table_row"
+    And "Test page 1" "autocomplete_selection" should exist
     And "Test page 2" "autocomplete_selection" should exist
     And the field "Page size" matches value "1"

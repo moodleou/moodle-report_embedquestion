@@ -169,7 +169,7 @@ abstract class progress_report {
      * @return bool
      */
     protected function get_report_use_initialsbar(): bool {
-        return $this->displayoptions->userid > 0;
+        return empty($this->displayoptions->userid);
     }
 
     /**
