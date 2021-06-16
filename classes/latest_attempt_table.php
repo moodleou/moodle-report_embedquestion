@@ -84,6 +84,8 @@ class latest_attempt_table extends table_sql {
 
     /** @var bool Report table has the qtype that have response files or not. */
     protected $hasresponsesqtype = false;
+    /** @var stdClass|null the sql object from the userfieldsapi */
+    protected $userfieldssql = null;
 
     /**
      * latest_attempt_table constructor.
@@ -104,8 +106,10 @@ class latest_attempt_table extends table_sql {
         $this->groupid = $displayoption->group;
         $this->cm = $cm;
         $this->userid = $displayoption->userid;
-        $this->userfields = utils::get_user_fields($context);
-        $this->extrauserfields = get_extra_user_fields($this->context);
+        $userfieldsapi = \core_user\fields::for_identity($context)->with_name()->excluding('id');
+        $this->userfields = $userfieldsapi->get_required_fields();
+        $this->userfieldssql = $userfieldsapi->get_sql('u', true);
+        $this->extrauserfields = \core_user\fields::get_identity_fields($context);
         $this->isdownloading = $download;
 
         $url = $displayoption->get_url();
@@ -185,7 +189,7 @@ class latest_attempt_table extends table_sql {
         }
         $columns[] = 'fullname';
         foreach ($this->extrauserfields as $field) {
-            $columns[] = $field;
+            $columns[] = strtolower($field);
         }
         $columns[] = 'questiontype';
         $columns[] = 'questionname';
@@ -305,8 +309,8 @@ class latest_attempt_table extends table_sql {
         $this->sqldata->fields[] = 'qas.id              AS questionattemptstepid';
         $this->sqldata->fields[] = 'qas.timecreated     AS questionattemptsteptime';
         if ($userfields) {
-            foreach ($userfields as $field) {
-                $this->sqldata->fields[] = "u.$field        AS $field";
+            foreach ($this->userfieldssql->mappings as $fieldname => $fieldvalue) {
+                $this->sqldata->fields[] = "$fieldvalue        AS $fieldname";
             }
         } else {
             $this->sqldata->fields[] = 'u.username      AS username';
@@ -343,6 +347,7 @@ class latest_attempt_table extends table_sql {
         $this->sqldata->from[] = 'JOIN {question_attempt_steps} qas ON (qa.id = qas.questionattemptid ' .
                 'AND qas.sequencenumber = (SELECT MAX(sequencenumber) FROM {question_attempt_steps} ' .
                 'WHERE questionattemptid = qas.questionattemptid))';
+        $this->sqldata->from[] = $this->userfieldssql->joins;
     }
 
     /**
@@ -364,7 +369,7 @@ class latest_attempt_table extends table_sql {
 
         $this->sqldata->where[]  = ' (r.contextid = :contextid';
         $this->sqldata->params['contextid'] = $contextid;
-
+        $this->sqldata->params = array_merge($this->sqldata->params, $this->userfieldssql->params);
         // Report is called from course->report.
         if ($this->cm === null) {
             $coursecontextid = $this->context->id;
@@ -401,7 +406,7 @@ class latest_attempt_table extends table_sql {
         // Location.
         if (!empty($displayoption->locationids)) {
             list($locationidssql, $params) = $DB->get_in_or_equal($displayoption->locationids, SQL_PARAMS_NAMED, 'location');
-            $this->sqldata->where[]  = ' AND r.contextid ' . $locationidssql;
+            $this->sqldata->where[] = ' AND r.contextid ' . $locationidssql;
             $this->sqldata->params = array_merge($this->sqldata->params, $params);
         }
 

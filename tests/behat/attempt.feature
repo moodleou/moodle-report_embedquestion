@@ -4,16 +4,25 @@ Feature: Testing attempt detail view and delete feature
   I should be able to view the attempt detail or delete it in Embed Question report
 
   Background:
-    Given the following "users" exist:
-      | username | firstname | lastname | email                |
-      | teacher1 | Teacher   | 1        | teacher1@example.com |
-      | tutor1   | Tutor     | 1        | tutor1@example.com   |
-      | student1 | Student   | 1        | student1@example.com |
-      | student2 | Student   | 2        | student2@example.com |
-      | student3 | Student   | 3        | student3@example.com |
+
     And the following "courses" exist:
       | fullname | shortname |
       | Course 1 | C1        |
+    Given I log in as "admin"
+    And I navigate to "Users > Accounts > User profile fields" in site administration
+    And I set the field "datatype" to "Text area"
+    And I set the following fields to these values:
+      | Short name | food  |
+      | Name       | Fave food |
+    And I click on "Save changes" "button"
+    And I log out
+    Given the following "users" exist:
+      | username | firstname | lastname | email                | profile_field_food |
+      | teacher1 | Teacher   | 1        | teacher1@example.com | bouillabaisse      |
+      | tutor1   | Tutor     | 1        | tutor1@example.com   | tiramisu           |
+      | student1 | Student   | 1        | student1@example.com | chocolate frog     |
+      | student2 | Student   | 2        | student2@example.com | crisps             |
+      | student3 | Student   | 3        | student3@example.com | lasagne            |
     And the following "course enrolments" exist:
       | user     | course | role           |
       | student1 | C1     | student        |
@@ -54,7 +63,7 @@ Feature: Testing attempt detail view and delete feature
       | capability                   | permission | role    | contextlevel | reference |
       | moodle/site:viewuseridentity | Allow      | student | System       |           |
     And the following config values are set as admin:
-      | showuseridentity | username |
+      | showuseridentity | username,profile_field_food |
 
   @javascript
   Scenario: A teacher can see their students attempt summary in an activity
@@ -165,7 +174,6 @@ Feature: Testing attempt detail view and delete feature
 
   @javascript
   Scenario: A teacher can download their students progress in an activity for question type essay
-    # We need to create the question here instead of the Background task because the PAGE->set_url of the essay generator will break the test.
     Given the following "questions" exist:
       | questioncategory | qtype | name            | idnumber | template         |
       | Test questions   | essay | Second question | test2    | editorfilepicker |
@@ -226,3 +234,11 @@ Feature: Testing attempt detail view and delete feature
     Then I should see "Not yet answered" in the "student1" "table_row"
     And I click on "Select attempt" "checkbox" in the "student1" "table_row"
     And the "Download selected response files" "button" should be enabled
+
+    @javascript
+    Scenario: Teacher can see custom user fields columns as additional user identity
+      And I log in as "admin"
+      And I am on "Course 1" course homepage
+      When I navigate to "Reports > Embedded questions progress" in current page administration
+      Then I should see "chocolate frog" in the "student1" "table_row"
+      And I should see "crisps" in the "student2" "table_row"
