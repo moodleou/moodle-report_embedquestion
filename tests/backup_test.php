@@ -203,7 +203,7 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
         $pages = get_coursemodules_in_course('page', $course->id);
         $this->assertEquals(0, count($pages));
 
-        // Restore quiz.
+        // Restore page.
         $recyclebin = new \tool_recyclebin\course_bin($course->id);
 
         // Notice is expected as mapping for question has null value for info and accessing info->qtype
