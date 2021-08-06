@@ -1,5 +1,12 @@
 # Change log for the Embedded questions progress report
 
+## Features in version 1.6
+
+* Support for custom profile fields in 'Show user identity' for Moodle 3.11+
+* Therefore, this version only works with Moodle 3.11 or later. The previous
+  version of this plugin works with older Moodles.
+
+
 ## Features in version 1.5
 
 * Support for the new language feature in the filter.
