@@ -97,6 +97,28 @@ class restore_report_embedquestion_plugin extends restore_report_plugin {
         $this->currentattemptdata = $data;
     }
 
+    public function process_question_attempt($data) {
+        global $DB;
+        // We need to override the trait method. It we are restoring a
+        // single-activity backup, then the questions won't be included
+        // (because the questions always come from course context).
+        // In this case, it is quite likely that the right thing to do
+        // is to link to the same questionid - if it exists on this system.
+        if (!$this->get_mapping('question', $data['questionid'])) {
+            $question = $DB->get_record('question', ['id' => $data['questionid']]);
+            if ($question) {
+                $this->set_mapping('question', $data['questionid'], $data['questionid']);
+                // However, for this to work, we need to set the 'info' of the mapping,
+                // which we can only do at a low level.
+                $mapping = $this->get_mapping('question', $data['questionid']);
+                restore_dbops::set_backup_ids_record($this->get_restoreid(),
+                        'question', $mapping->itemid, $mapping->newitemid, $mapping->parentitemid,
+                        (object) ['qtype' => $question->qtype]);
+            }
+        }
+        $this->restore_question_attempt_worker($data, '');
+    }
+
     protected function inform_new_usage_id($newusageid) {
         global $DB;
         // Retrieve data stashed by process_report_embedquestion_attempt.

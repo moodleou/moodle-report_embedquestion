@@ -65,7 +65,8 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $this->assertArrayHasKey('contextid', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
         $this->assertArrayHasKey('lookback', $table->sql->params);
-        $this->assertEquals($now - $this->displayoptions->lookback, $table->sql->params['lookback']);
+        $this->assertEqualsWithDelta($now - $this->displayoptions->lookback,
+                $table->sql->params['lookback'], 1); // Allow 1s passing to prevent random fails.
     }
 
     public function test_latest_attempt_table_filter_dates() {
