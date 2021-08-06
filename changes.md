@@ -1,5 +1,18 @@
 # Change log for the Embedded questions progress report
 
+## Features in version 1.5
+
+* Support for the new language feature in the filter.
+* The report now respects the 'Show user identity' admin setting.
+* Improved report options, e.g. filter by location, an number of rows per page.
+* Improvements in navigtion between different pages in the report.
+* If the Record audio/video qustions type is installed, students can now easily
+  download all their recordings. 
+* Ensure that all character that might appear in the idnubmers of embedded questions work
+  (Even though I would recommend keeping the idnumbers simple.)
+* Various other bug fixes.
+
+
 ## Features in version 1.4
 
 * Re-release to fix a mistake with the version number.
