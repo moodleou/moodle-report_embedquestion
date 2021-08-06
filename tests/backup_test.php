@@ -168,4 +168,64 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
         $this->assertCount(1, $quba->get_slots());
         $this->assertEquals(question_state::$gradedright, $quba->get_question_state(1));
     }
+
+    /**
+     * Delete and restore a page activity with embedded questions with attempts.
+     *
+     * The attempts should be restored.
+     */
+    public function test_restore_deleted_page_with_attempt() {
+        global $CFG, $DB;
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        // We want the course bin to be enabled.
+        set_config('coursebinenable', 1, 'tool_recyclebin');
+
+        $course = $this->getDataGenerator()->create_course();
+        $coursecontext = context_course::instance($course->id);
+        $question = $this->attemptgenerator->create_embeddable_question('truefalse',
+            null, [], ['contextid' => $coursecontext->id]);
+        $page = $this->generator->create_module('page', ['course' => $course->id,
+            'content' => '<p>Try this question: ' .
+                $this->attemptgenerator->get_embed_code($question) . '</p>']);
+        $pagecontext = context_module::instance($page->cmid);
+
+        // Create a student with an attempt at that question.
+        $user = $this->generator->create_user();
+        $this->generator->enrol_user($user->id, $course->id, 'student');
+        $this->attemptgenerator->create_attempt_at_embedded_question(
+            $question, $user, 'True', $pagecontext);
+
+        // Delete page
+        course_delete_module($page->cmid);
+        phpunit_util::run_all_adhoc_tasks();
+        $pages = get_coursemodules_in_course('page', $course->id);
+        $this->assertEquals(0, count($pages));
+
+        // Restore page.
+        $recyclebin = new \tool_recyclebin\course_bin($course->id);
+
+        // Notice is expected as mapping for question has null value for info and accessing info->qtype
+        // inside restore_question_attempt_worker() would raise notice
+        $this->expectException(\PHPUnit\Framework\Error\Notice::class);
+        $this->expectExceptionMessage("Trying to get property 'qtype' of non-object");
+
+        foreach ($recyclebin->get_items() as $item) {
+            $recyclebin->restore_item($item);
+        }
+        $pages = get_coursemodules_in_course('book', $course->id);
+        $this->assertEquals(1, count($pages));
+        $restoredpage = array_pop($pages);
+
+
+        // Verify the copied attempt in the page.
+        $newpagecontext = context_module::instance($restoredpage->id);
+        $copiedattempt = $DB->get_record('report_embedquestion_attempt',
+            ['contextid' => $newpagecontext->id], '*', MUST_EXIST);
+        $this->assertEquals($user->id, $copiedattempt->userid);
+        $quba = question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
+        $this->assertCount(1, $quba->get_slots());
+        $this->assertEquals(question_state::$gradedright, $quba->get_question_state(1));
+    }
 }
