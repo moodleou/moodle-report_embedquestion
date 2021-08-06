@@ -23,6 +23,7 @@
  */
 
 use report_embedquestion\local\export\response_export;
+use report_embedquestion\utils;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -44,7 +45,7 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
      */
     private $course;
     /**
-     * @var component_generator_base
+     * @var filter_embedquestion_generator
      */
     private $attemptgenerator;
     /**
@@ -136,8 +137,8 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
         $zipinfo = response_export::get_response_zip_file_info($questionusageids, $pagecontext, 0);
 
         $expectedfilename = response_export::get_export_file_name($this->course, $pagecontext->get_context_name(false));
-        [, $student1info] = response_export::get_user_details($this->student1->id, $pagecontext);
-        [, $student2info] = response_export::get_user_details($this->student2->id, $pagecontext);
+        [, $student1info] = utils::get_user_details($this->student1->id, $pagecontext);
+        [, $student2info] = utils::get_user_details($this->student2->id, $pagecontext);
         $student1folder = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
                 ['fullname' => fullname($this->student1), 'info' => implode(',', $student1info)]);
         $student2folder = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',

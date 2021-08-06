@@ -121,16 +121,6 @@ class utils
     }
 
     /**
-     * Return array of user fields.
-     *
-     * @param $context
-     * @return array
-     */
-    public static function get_user_fields($context) {
-        return array_unique(array_merge(get_all_user_name_fields(), get_extra_user_fields($context)));
-    }
-
-    /**
      * Return the question icon.
      *
      * @param string $qtype the question type string.
@@ -360,14 +350,12 @@ class utils
      * @return array User object and extra fields value.
      */
     public static function get_user_details(int $userid, context $context): array {
-        $extrauserfieldsql = get_extra_user_fields_sql($context);
-        $extrauserfields = array_map('trim', explode(',', $extrauserfieldsql));
-
-        $user = \core_user::get_user($userid, get_all_user_name_fields(true) . $extrauserfieldsql);
+        $user = \core_user::get_user($userid);
+        profile_load_data($user);
 
         // Process display of user identity fields.
         $info = [];
-        foreach ($extrauserfields as $extrauserfield) {
+        foreach (\core_user\fields::get_identity_fields($context) as $extrauserfield) {
             if (!empty($user->$extrauserfield)) {
                 $info[] = $user->$extrauserfield;
             }
@@ -396,6 +384,22 @@ class utils
         }
         if (!empty($showonly)) {
             $PAGE->navbar->add($showonly);
+        }
+    }
+
+    /**
+     * Display a user's name along with their identity field values (if any).
+     *
+     * @param \stdClass $user user object.
+     * @param array $info identity field values to show.
+     * @return string for display (not escaped).
+     */
+    public static function get_user_display(\stdClass $user, array $info): string {
+        if ($info) {
+            return get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
+                    ['fullname' => fullname($user), 'info' => implode(',', $info)]);
+        } else {
+            return fullname($user);
         }
     }
 }

@@ -25,7 +25,7 @@ Feature: Teachers can see their students progress on embedded questions.
       | student5 | C1     | student        |
       | teacher  | C1     | editingteacher |
     And the following "activities" exist:
-      | activity | name      | idnumber | course |
+      | activity | name        | idnumber | course |
       | page     | Test page 1 | page1    | C1     |
     And the following "question categories" exist:
       | contextlevel | reference | name          | idnumber |

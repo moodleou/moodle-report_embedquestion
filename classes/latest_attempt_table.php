@@ -137,7 +137,7 @@ class latest_attempt_table extends table_sql {
         }
         $headers[] = get_string('fullnameuser');
         foreach ($this->extrauserfields as $field) {
-            $headers[] = get_user_field_name($field);;
+            $headers[] = \core_user\fields::get_display_name($field);;
         }
         $headers[] = get_string('type', 'report_embedquestion');
         $headers[] = get_string('question');

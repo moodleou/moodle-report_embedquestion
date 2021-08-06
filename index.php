@@ -59,8 +59,7 @@ $report = progress_report::make(get_course($courseid), $context, null, $usageid 
 // Create the right sort of report.
 if ($userid) {
     [$user, $info] = utils::get_user_details($userid, $context);
-    $showonly = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
-            ['fullname' => fullname($user), 'info' => implode(',', $info)]);
+    $showonly = utils::get_user_display($user, $info);
     $report->single_report($userid);
 }
 $report->init();

@@ -4,19 +4,13 @@ Feature: Testing attempt detail view and delete feature
   I should be able to view the attempt detail or delete it in Embed Question report
 
   Background:
-
-    And the following "courses" exist:
+    Given the following "courses" exist:
       | fullname | shortname |
       | Course 1 | C1        |
-    Given I log in as "admin"
-    And I navigate to "Users > Accounts > User profile fields" in site administration
-    And I set the field "datatype" to "Text area"
-    And I set the following fields to these values:
-      | Short name | food  |
-      | Name       | Fave food |
-    And I click on "Save changes" "button"
-    And I log out
-    Given the following "users" exist:
+    And the following "custom profile fields" exist:
+      | datatype | shortname  | name      |
+      | text     | food       | Fave food |
+    And the following "users" exist:
       | username | firstname | lastname | email                | profile_field_food |
       | teacher1 | Teacher   | 1        | teacher1@example.com | bouillabaisse      |
       | tutor1   | Tutor     | 1        | tutor1@example.com   | tiramisu           |
@@ -79,11 +73,11 @@ Feature: Testing attempt detail view and delete feature
 
   @javascript
   Scenario: Students can see their attempt detail in a activity
-    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
     And I click on "Attempt summary" "link" in the "student2" "table_row"
     And I click on "Attempt detail view" "link" in the "Correct" "table_row"
-    When I switch to the browser tab opened by the app
-    And I should see "First question"
+    And I switch to the browser tab opened by the app
+    Then I should see "First question"
     And "quizreviewsummary" "table" should exist
     And the field "True" matches value "1"
     And I should see "The correct answer is 'True'"
@@ -91,11 +85,11 @@ Feature: Testing attempt detail view and delete feature
 
   @javascript
   Scenario: Teachers can see their student's attempts detail in a course
-    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher1"
+    When I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher1"
     And I click on "Attempt summary" "link" in the "student3" "table_row"
     And I click on "Attempt detail view" "link" in the "Incorrect" "table_row"
-    When I switch to the browser tab opened by the app
-    And I should see "First question"
+    And I switch to the browser tab opened by the app
+    Then I should see "First question"
     And "quizreviewsummary" "table" should exist
     And the field "False" matches value "1"
     And I should see "The correct answer is 'True'"
@@ -113,7 +107,7 @@ Feature: Testing attempt detail view and delete feature
 
   @javascript
   Scenario: A student can delete his/her own progress in an activity
-    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
     Then "Select attempt" "checkbox" should exist in the "student2" "table_row"
     And "Delete selected attempts" "button" should exist
     And the "Delete selected attempts" "button" should be disabled
@@ -126,7 +120,7 @@ Feature: Testing attempt detail view and delete feature
 
   @javascript
   Scenario: A student cannot delete his/her own progress in an activity if he/she does not have the permission
-    And the following "permission overrides" exist:
+    Given the following "permission overrides" exist:
       | capability                           | permission | role    | contextlevel | reference |
       | report/embedquestion:deletemyattempt | Prevent    | student | Course       | C1        |
     When I log in as "student2"
@@ -138,7 +132,7 @@ Feature: Testing attempt detail view and delete feature
 
   @javascript
   Scenario: A tutor can see their students progress but only can delete his/her own progress in an activity
-    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
     Then "Select attempt" "checkbox" should exist in the "tutor" "table_row"
     And "Select attempt" "checkbox" should not exist in the "student1" "table_row"
     And "Select attempt" "checkbox" should not exist in the "student2" "table_row"
@@ -155,7 +149,7 @@ Feature: Testing attempt detail view and delete feature
 
   @javascript
   Scenario: A teacher can see their students progress and can delete their students progress in an activity
-    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
     Then "Select attempt" "checkbox" should exist in the "tutor" "table_row"
     And "Select attempt" "checkbox" should exist in the "student1" "table_row"
     And "Select attempt" "checkbox" should exist in the "student2" "table_row"
@@ -235,10 +229,8 @@ Feature: Testing attempt detail view and delete feature
     And I click on "Select attempt" "checkbox" in the "student1" "table_row"
     And the "Download selected response files" "button" should be enabled
 
-    @javascript
-    Scenario: Teacher can see custom user fields columns as additional user identity
-      And I log in as "admin"
-      And I am on "Course 1" course homepage
-      When I navigate to "Reports > Embedded questions progress" in current page administration
-      Then I should see "chocolate frog" in the "student1" "table_row"
-      And I should see "crisps" in the "student2" "table_row"
+  @javascript
+  Scenario: Teacher can see custom user fields columns as additional user identity
+    When I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "admin"
+    Then I should see "chocolate frog" in the "student1" "table_row"
+    And I should see "crisps" in the "student2" "table_row"

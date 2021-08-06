@@ -23,8 +23,8 @@
  */
 
 namespace report_embedquestion\local\export;
+use report_embedquestion\utils;
 use context;
-use file_archive;
 use question_bank;
 use stdClass;
 use stored_file;
@@ -101,7 +101,7 @@ class response_export {
         foreach ($questionusageids as $qubaid) {
             if (!$userid) {
                 $attemptinfo = $DB->get_record('report_embedquestion_attempt', ['questionusageid' => $qubaid], '*', MUST_EXIST);
-                [$user, $info] = self::get_user_details($attemptinfo->userid, $context);
+                [$user, $info] = utils::get_user_details($attemptinfo->userid, $context);
             }
             $quba = \question_engine::load_questions_usage_by_activity($qubaid);
             foreach ($quba->get_slots() as $slotno) {
@@ -162,30 +162,5 @@ class response_export {
         }
 
         return "$shortname $activityname $base";
-    }
-
-    /**
-     * Get user detail with identity fields.
-     * TODO: Remove this function and use get_user_details() in report/embedquestion/classes/utils.php once #441821 has been merged.
-     *
-     * @param int $userid
-     * @param context $context
-     * @return array User object and extra fields value.
-     */
-    public static function get_user_details(int $userid, context $context): array {
-        $extrauserfieldsql = get_extra_user_fields_sql($context);
-        $extrauserfields = array_map('trim', explode(',', $extrauserfieldsql));
-
-        $user = \core_user::get_user($userid, get_all_user_name_fields(true) . $extrauserfieldsql);
-
-        // Process display of user identity fields.
-        $info = [];
-        foreach ($extrauserfields as $extrauserfield) {
-            if (!empty($user->$extrauserfield)) {
-                $info[] = $user->$extrauserfield;
-            }
-        }
-
-        return [$user, $info];
     }
 }

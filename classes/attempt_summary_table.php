@@ -52,7 +52,7 @@ class attempt_summary_table extends table_sql {
     public $perpage = 10;
 
     /**
-     * @var object $attempt
+     * @var stdClass $attempt
      */
     public $attempts = null;
 
@@ -62,7 +62,7 @@ class attempt_summary_table extends table_sql {
     public $useridfield = 'userid';
 
     /**
-     * @var array required user fields (e.g. all the name fields and extra profile fields).
+     * @var \core_user\fields info about required user name and info fields.
      */
     public $userfields = 'userid';
 
@@ -91,7 +91,7 @@ class attempt_summary_table extends table_sql {
         $this->cm = $cm;
         $this->userid = $userid;
         $this->usageid = $usageid;
-        $this->userfields = utils::get_user_fields($context);
+        $this->userfields = \core_user\fields::for_identity($context)->with_name()->excluding('id');
 
         $this->define_headers($this->get_headers());
         $this->define_columns($this->get_columns());
@@ -119,7 +119,7 @@ class attempt_summary_table extends table_sql {
     private function get_headers() {
         $headers = [];
         $headers[] = get_string('status');
-        $headers[] = get_string('grade');
+        $headers[] = get_string('gradenoun');
         $headers[] = get_string('attemptedon', 'report_embedquestion');
         return $headers;
     }
