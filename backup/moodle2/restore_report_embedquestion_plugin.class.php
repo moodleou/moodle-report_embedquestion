@@ -25,85 +25,83 @@
 defined('MOODLE_INTERNAL') || die();
 
 
-if (trait_exists('restore_questions_attempt_data_trait')) {
+/**
+ * Restore step for report_embedquestion.
+ */
+class restore_report_embedquestion_plugin extends restore_report_plugin {
+    use restore_questions_attempt_data_trait;
+
     /**
-     * Restore step for report_embedquestion.
+     * @var stdClass data can only be inserted after the question attept
+     * data is stored and we know the usage id. Therefore,
+     * process_report_embedquestion_attempt sets this, and then inform_new_usage_id
+     * saves it.
      */
-    class restore_report_embedquestion_plugin extends restore_report_plugin {
-        use restore_questions_attempt_data_trait;
+    protected $currentattemptdata;
 
-        /**
-         * @var stdClass data can only be inserted after the question attept
-         * data is stored and we know the usage id. Therefore,
-         * process_report_embedquestion_attempt sets this, and then inform_new_usage_id
-         * saves it.
-         */
-        protected $currentattemptdata;
-
-        /**
-         * Method called when a course is being restored.
-         *
-         * @return restore_path_element[];
-         */
-        protected function define_course_plugin_structure() {
-            if (!$this->get_setting_value('users')) {
-                // Not including userdata, so nothing to do.
-                return [];
-            }
-
-            return $this->define_context_plugin_structure();
+    /**
+     * Method called when a course is being restored.
+     *
+     * @return restore_path_element[];
+     */
+    protected function define_course_plugin_structure() {
+        if (!$this->get_setting_value('users')) {
+            // Not including userdata, so nothing to do.
+            return [];
         }
 
-        /**
-         * Method called when an activity is being restored.
-         *
-         * @return restore_path_element[];
-         */
-        protected function define_module_plugin_structure() {
-            if (!$this->get_setting_value('userinfo')) {
-                // Not including userdata, so nothing to do.
-                return [];
-            }
+        return $this->define_context_plugin_structure();
+    }
 
-            return $this->define_context_plugin_structure();
+    /**
+     * Method called when an activity is being restored.
+     *
+     * @return restore_path_element[];
+     */
+    protected function define_module_plugin_structure() {
+        if (!$this->get_setting_value('userinfo')) {
+            // Not including userdata, so nothing to do.
+            return [];
         }
 
-        /**
-         * Same structure is used for both courses and activities.
-         *
-         * @return restore_path_element[];
-         */
-        protected function define_context_plugin_structure() {
-            $paths = [];
+        return $this->define_context_plugin_structure();
+    }
 
-            // Our data.
-            $attempt = new restore_path_element('report_embedquestion_attempt',
-                    $this->get_pathfor('/report_embedquestion_attempts/report_embedquestion_attempt'));
-            $paths[] = $attempt;
+    /**
+     * Same structure is used for both courses and activities.
+     *
+     * @return restore_path_element[];
+     */
+    protected function define_context_plugin_structure() {
+        $paths = [];
 
-            // Add question attempt data.
-            $this->add_question_usages($attempt, $paths);
+        // Our data.
+        $attempt = new restore_path_element('report_embedquestion_attempt',
+                $this->get_pathfor('/report_embedquestion_attempts/report_embedquestion_attempt'));
+        $paths[] = $attempt;
 
-            return $paths;
-        }
+        // Add question attempt data.
+        $this->add_question_usages($attempt, $paths);
 
-        public function process_report_embedquestion_attempt($data) {
-            $data = (object) $data;
-            $data->userid = $this->get_mappingid('user', $data->userid);
-            $data->contextid = $this->task->get_contextid();
+        return $paths;
+    }
 
-            // We cannot insert this record until the question attempt data has been
-            // restored, so stash this away for now. It will be picked up in
-            // inform_new_usage_id which will be called soon.
-            $this->currentattemptdata = $data;
-        }
+    public function process_report_embedquestion_attempt($data) {
+        $data = (object) $data;
+        $data->userid = $this->get_mappingid('user', $data->userid);
+        $data->contextid = $this->task->get_contextid();
 
-        protected function inform_new_usage_id($newusageid) {
-            global $DB;
-            // Retrieve data stashed by process_report_embedquestion_attempt.
-            $data = $this->currentattemptdata;
-            $data->questionusageid = $newusageid;
-            $DB->insert_record('report_embedquestion_attempt', $data);
-        }
+        // We cannot insert this record until the question attempt data has been
+        // restored, so stash this away for now. It will be picked up in
+        // inform_new_usage_id which will be called soon.
+        $this->currentattemptdata = $data;
+    }
+
+    protected function inform_new_usage_id($newusageid) {
+        global $DB;
+        // Retrieve data stashed by process_report_embedquestion_attempt.
+        $data = $this->currentattemptdata;
+        $data->questionusageid = $newusageid;
+        $DB->insert_record('report_embedquestion_attempt', $data);
     }
 }

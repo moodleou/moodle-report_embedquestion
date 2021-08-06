@@ -28,80 +28,78 @@ require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
 require_once($CFG->dirroot . '/backup/moodle2/backup_stepslib.php');
 
 
-if (trait_exists('backup_questions_attempt_data_trait')) {
+/**
+ * Backup task for report_embedquestion.
+ */
+class backup_report_embedquestion_plugin extends backup_report_plugin {
+    use backup_questions_attempt_data_trait;
+
     /**
-     * Backup task for report_embedquestion.
+     * Is there any data to backup here?
+     *
+     * @return array
+     * @throws dml_exception
      */
-    class backup_report_embedquestion_plugin extends backup_report_plugin {
-        use backup_questions_attempt_data_trait;
+    protected function get_include_condition() {
+        global $DB;
 
-        /**
-         * Is there any data to backup here?
-         *
-         * @return array
-         * @throws dml_exception
-         */
-        protected function get_include_condition() {
-            global $DB;
-
-            if ($DB->record_exists('report_embedquestion_attempt',
-                    ['contextid' => $this->task->get_contextid()])) {
-                $result = 'include';
-            } else {
-                $result = '';
-            }
-
-            return ['sqlparam' => $result];
+        if ($DB->record_exists('report_embedquestion_attempt',
+                ['contextid' => $this->task->get_contextid()])) {
+            $result = 'include';
+        } else {
+            $result = '';
         }
 
-        /**
-         * Method called when a course is being backed up.
-         *
-         * @return backup_plugin_element
-         */
-        protected function define_course_plugin_structure() {
-            return $this->define_context_plugin_structure($this->get_setting_value('users'));
+        return ['sqlparam' => $result];
+    }
+
+    /**
+     * Method called when a course is being backed up.
+     *
+     * @return backup_plugin_element
+     */
+    protected function define_course_plugin_structure() {
+        return $this->define_context_plugin_structure($this->get_setting_value('users'));
+    }
+
+    /**
+     * Method called when an activity is being backed up.
+     *
+     * @return backup_plugin_element
+     */
+    protected function define_module_plugin_structure() {
+        return $this->define_context_plugin_structure($this->get_setting_value('userinfo'));
+    }
+
+    /**
+     * Same structure is used for both courses and activities.
+     *
+     * @param bool $includeusers whether the relevant setting for user data is on.
+     * @return backup_plugin_element
+     */
+    protected function define_context_plugin_structure(bool $includeusers) {
+        $plugin = $this->get_plugin_element(null, $this->get_include_condition(), 'include');
+        $pluginwrapper = new backup_nested_element($this->get_recommended_name());
+
+        // Define each element separated.
+        $attempts = new backup_nested_element('report_embedquestion_attempts');
+        $attempt = new backup_nested_element('report_embedquestion_attempt', ['id'],
+                ['userid', 'embedid', 'questionusageid', 'pagename', 'pageurl', 'timecreated', 'timemodified']);
+
+        // Define source - which only applies if the backup includes user data.
+        if ($includeusers) {
+            $attempt->set_source_table('report_embedquestion_attempt',
+                    array('contextid' => backup::VAR_CONTEXTID));
         }
 
-        /**
-         * Method called when an activity is being backed up.
-         *
-         * @return backup_plugin_element
-         */
-        protected function define_module_plugin_structure() {
-            return $this->define_context_plugin_structure($this->get_setting_value('userinfo'));
-        }
+        // Build the tree.
+        $plugin->add_child($pluginwrapper);
+        $pluginwrapper->add_child($attempts);
+        $attempts->add_child($attempt);
 
-        /**
-         * Same structure is used for both courses and activities.
-         *
-         * @param bool $includeusers whether the relevant setting for user data is on.
-         * @return backup_plugin_element
-         */
-        protected function define_context_plugin_structure(bool $includeusers) {
-            $plugin = $this->get_plugin_element(null, $this->get_include_condition(), 'include');
-            $pluginwrapper = new backup_nested_element($this->get_recommended_name());
+        // Add the question attempt data.
+        $this->add_question_usages($attempt, 'questionusageid');
 
-            // Define each element separated.
-            $attempts = new backup_nested_element('report_embedquestion_attempts');
-            $attempt = new backup_nested_element('report_embedquestion_attempt', ['id'],
-                    ['userid', 'embedid', 'questionusageid', 'pagename', 'pageurl', 'timecreated', 'timemodified']);
-
-            // Define source - which only applies if the backup includes user data.
-            if ($includeusers) {
-                $attempt->set_source_table('report_embedquestion_attempt',
-                        array('contextid' => backup::VAR_CONTEXTID));
-            }
-
-            // Build the tree.
-            $plugin->add_child($pluginwrapper);
-            $pluginwrapper->add_child($attempts);
-            $attempts->add_child($attempt);
-
-            // Add the question attempt data.
-            $this->add_question_usages($attempt, 'questionusageid');
-
-            return $plugin;
-        }
+        return $plugin;
     }
 }
