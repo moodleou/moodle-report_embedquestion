@@ -95,8 +95,8 @@ class response_export {
             unlink($filepath);
         }
         // Create a new zip file.
-        $zip_archive = new zip_archive();
-        $zip_archive->open($filepath, file_archive::CREATE);
+        $ziparchive = new zip_archive();
+        $ziparchive->open($filepath);
 
         foreach ($questionusageids as $qubaid) {
             if (!$userid) {
@@ -118,8 +118,8 @@ class response_export {
                             continue;
                         }
                         $hasfile = true;
+                        /** @var stored_file $file */
                         foreach ($files as $file) {
-                            /** @var stored_file $file */
                             $localname = '';
                             if (!$userid) {
                                 $localname = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
@@ -127,7 +127,7 @@ class response_export {
                             }
                             $questionname = str_replace('/', '-', get_string('pluginname', 'qtype_' . $question->get_type_name()));
                             $localname .= $questionname . '/' . $slotnoformat . '/' . $file->get_filename();
-                            $zip_archive->add_file_from_string($localname, $file->get_content());
+                            $ziparchive->add_file_from_string($localname, $file->get_content());
                         }
                     }
                 }
@@ -139,7 +139,7 @@ class response_export {
         }
 
         // Persist the zip file to the disk.
-        $zip_archive->close();
+        $ziparchive->close();
 
         return [
                 'file' => $zipfilename,
@@ -161,7 +161,7 @@ class response_export {
             $shortname = $course->id;
         }
 
-        return "{$shortname} {$activityname} {$base}";
+        return "$shortname $activityname $base";
     }
 
     /**

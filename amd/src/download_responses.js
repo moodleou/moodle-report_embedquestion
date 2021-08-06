@@ -69,8 +69,6 @@ define(['jquery'], function($) {
         isAllowDownloading: function(element) {
             let checkBox = $(element);
             let questionUsageMeta = checkBox.val().split('-');
-            console.log(questionUsageMeta[2]);
-
             return questionUsageMeta[2] == 1;
         }
     };

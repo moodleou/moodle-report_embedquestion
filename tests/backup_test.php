@@ -136,7 +136,7 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
         $this->attemptgenerator->create_attempt_at_embedded_question(
                 $question, $user, 'True', $pagecontext);
 
-        // Also add an attempt in the course context (as if the question was embedded in a label.)
+        // Also add an attempt in the course context (as if the question was embedded in a label).
         $this->attemptgenerator->create_attempt_at_embedded_question(
                 $question, $user, 'False', $coursecontext);
 

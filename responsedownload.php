@@ -34,7 +34,8 @@ $download = optional_param('download', 0, PARAM_BOOL);
 require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
 
-$pageurl = new moodle_url('/report/embedquestion/responsedownload.php', ['cmid' => $cmid, 'file' => $file, 'size' => $size]);
+$pageurl = new moodle_url('/report/embedquestion/responsedownload.php',
+        ['cmid' => $cmid, 'file' => $file, 'size' => $size]);
 $reporturl = new moodle_url('/report/embedquestion/activity.php', ['cmid' => $cmid]);
 $pagetitle = get_string('downloadresponse_title', 'report_embedquestion');
 $renderer = $PAGE->get_renderer('report_embedquestion');
@@ -49,11 +50,12 @@ if ($download) {
         readfile_accel($filepath, 'application/zip', true);
         redirect($pageurl);
     } else {
-        print_error('downloadresponse_error', 'report_embedquestion');
+        throw new moodle_exception('downloadresponse_error', 'report_embedquestion');
     }
 }
 
-$PAGE->navbar->add(get_string('activityreporttitle', 'report_embedquestion', $context->get_context_name(false, false)), $reporturl);
+$PAGE->navbar->add(get_string('activityreporttitle', 'report_embedquestion',
+        $context->get_context_name(false)), $reporturl);
 $PAGE->navbar->add(get_string('downloadresponse_title', 'report_embedquestion'));
 
 $PAGE->set_title($pagetitle);

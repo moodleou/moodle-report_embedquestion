@@ -90,7 +90,7 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
         $this->expectException('coding_exception');
         $this->expectExceptionMessage('Invalid question usage id');
 
-        $params = response_export::get_response_zip_file_info([$attempt->get_question_usage()->get_id()], $pagecontext, 0);
+        response_export::get_response_zip_file_info([$attempt->get_question_usage()->get_id()], $pagecontext, 0);
     }
 
     /**
@@ -103,7 +103,7 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
      * @param string $filename File name to test
      */
     public function test_get_zip_url_with_supported_qtype(string $qtype, string $which, string $repsonse, string $filename): void {
-        global $CFG, $PAGE;
+        global $CFG;
 
         if (!question_bank::is_qtype_installed($qtype)) {
             $this->markTestSkipped();
@@ -123,7 +123,7 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
         /** @var filter_embedquestion\attempt $attempt2 */
         $attempt2 = $this->attemptgenerator->create_attempt_at_embedded_question(
                 $question, $this->student1, $repsonse, $pagecontext, '', 2);
-        /** @var filter_embedquestion\attempt $attempt2 */
+        /** @var filter_embedquestion\attempt $attempt3 */
         $attempt3 = $this->attemptgenerator->create_attempt_at_embedded_question(
                 $question, $this->student2, $repsonse, $pagecontext, '', 1);
 
@@ -135,9 +135,9 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
 
         $zipinfo = response_export::get_response_zip_file_info($questionusageids, $pagecontext, 0);
 
-        $expectedfilename = response_export::get_export_file_name($this->course, $pagecontext->get_context_name(false, false));
-        [$notused, $student1info] = response_export::get_user_details($this->student1->id, $pagecontext);
-        [$notused, $student2info] = response_export::get_user_details($this->student2->id, $pagecontext);
+        $expectedfilename = response_export::get_export_file_name($this->course, $pagecontext->get_context_name(false));
+        [, $student1info] = response_export::get_user_details($this->student1->id, $pagecontext);
+        [, $student2info] = response_export::get_user_details($this->student2->id, $pagecontext);
         $student1folder = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
                 ['fullname' => fullname($this->student1), 'info' => implode(',', $student1info)]);
         $student2folder = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
@@ -154,13 +154,13 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
         $this->assertGreaterThan(0, $zipinfo['size']);
         $this->assertEquals(filesize($filepath), $zipinfo['size']);
 
-        $zip_archive = new zip_archive();
-        $zip_archive->open($filepath, file_archive::OPEN);
+        $ziparchive = new zip_archive();
+        $ziparchive->open($filepath, file_archive::OPEN);
 
-        $archivefiles = $zip_archive->list_files();
+        $archivefiles = $ziparchive->list_files();
         $this->assertIsArray($archivefiles);
         $this->assertCount(3, $archivefiles);
-        foreach ($archivefiles as $index => $file) {
+        foreach ($archivefiles as $file) {
             $expectedpathname1 = $student1folder . '/' . $questionname . '/attempt0001/' . $filename;
             $expectedpathname2 = $student1folder . '/' . $questionname . '/attempt0002/' . $filename;
             $expectedpathname3 = $student2folder . '/' . $questionname . '/attempt0001/' . $filename;
@@ -168,7 +168,7 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
                     $file->pathname === $expectedpathname3);
             $this->assertGreaterThan(0, $file->size);
         }
-        $zip_archive->close();
+        $ziparchive->close();
     }
 
     /**

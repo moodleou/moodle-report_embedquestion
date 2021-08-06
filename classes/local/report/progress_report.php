@@ -24,6 +24,8 @@
 
 namespace report_embedquestion\local\report;
 
+defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->dirroot . '/question/engine/lib.php');
 
 use cm_info;
@@ -71,7 +73,8 @@ abstract class progress_report {
      * @param bool $isattemptreport
      * @return progress_report the requested object.
      */
-    public static function make(stdClass $course, context $context, cm_info $cm = null, bool $isattemptreport = false): progress_report {
+    public static function make(stdClass $course, context $context, cm_info $cm = null,
+            bool $isattemptreport = false): progress_report {
         if ($cm) {
             $report = new activity_progress_report($course, $context, $cm);
         } else {
@@ -87,14 +90,14 @@ abstract class progress_report {
      *
      * @return string title.
      */
-    public abstract function get_title(): string;
+    abstract public function get_title(): string;
 
     /**
      * Get the report url.
      *
      * @return moodle_url report url.
      */
-    public abstract function get_url_report(): moodle_url;
+    abstract public function get_url_report(): moodle_url;
 
     /**
      * Get the report url with full params.
