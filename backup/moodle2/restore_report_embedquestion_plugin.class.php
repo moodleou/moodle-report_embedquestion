@@ -29,7 +29,9 @@ defined('MOODLE_INTERNAL') || die();
  * Restore step for report_embedquestion.
  */
 class restore_report_embedquestion_plugin extends restore_report_plugin {
-    use restore_questions_attempt_data_trait;
+    use restore_questions_attempt_data_trait {
+            process_question_attempt as trait_process_question_attempt;
+    }
 
     /**
      * @var stdClass data can only be inserted after the question attept
@@ -103,5 +105,10 @@ class restore_report_embedquestion_plugin extends restore_report_plugin {
         $data = $this->currentattemptdata;
         $data->questionusageid = $newusageid;
         $DB->insert_record('report_embedquestion_attempt', $data);
+    }
+
+	public function process_question_attempt($data) {
+            $this->set_mapping('question', $data['questionid'], $data['questionid']);
+            $this->trait_process_question_attempt($data);
     }
 }
