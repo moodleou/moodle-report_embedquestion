@@ -162,11 +162,12 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
         $this->assertIsArray($archivefiles);
         $this->assertCount(3, $archivefiles);
         foreach ($archivefiles as $file) {
-            $expectedpathname1 = $student1folder . '/' . $questionname . '/attempt0001/' . $filename;
-            $expectedpathname2 = $student1folder . '/' . $questionname . '/attempt0002/' . $filename;
-            $expectedpathname3 = $student2folder . '/' . $questionname . '/attempt0001/' . $filename;
-            $this->assertTrue($file->pathname === $expectedpathname1 or $file->pathname === $expectedpathname2 or
-                    $file->pathname === $expectedpathname3);
+            $possiblefilepaths = [
+                $student1folder . '/' . $questionname . '/attempt0001/' . $filename,
+                $student1folder . '/' . $questionname . '/attempt0002/' . $filename,
+                $student2folder . '/' . $questionname . '/attempt0001/' . $filename,
+            ];
+            $this->assertContains($file->pathname, $possiblefilepaths);
             $this->assertGreaterThan(0, $file->size);
         }
         $ziparchive->close();

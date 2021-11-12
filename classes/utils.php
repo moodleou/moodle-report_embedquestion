@@ -350,6 +350,9 @@ class utils
      * @return array User object and extra fields value.
      */
     public static function get_user_details(int $userid, context $context): array {
+        global $CFG;
+        require_once($CFG->dirroot.'/user/profile/lib.php');
+
         $user = \core_user::get_user($userid);
         profile_load_data($user);
 
