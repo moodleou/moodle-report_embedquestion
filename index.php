@@ -24,8 +24,8 @@
 
 require(__DIR__ . '/../../config.php');
 
-use \report_embedquestion\event\course_report_viewed,
-    \report_embedquestion\utils;
+use report_embedquestion\event\course_report_viewed;
+use report_embedquestion\utils;
 use report_embedquestion\local\report\progress_report;
 
 $courseid = required_param('courseid', PARAM_INT);
@@ -54,36 +54,35 @@ utils::validate_usageid($usageid, $userid);
 course_report_viewed::create(['context' => $context,
         'relateduserid' => $userid, 'other' => ['groupid' => $groupid]])->trigger();
 
-$showonly = '';
-$report = progress_report::make(get_course($courseid), $context, null, $usageid ? true : false);
 // Create the right sort of report.
+$showonly = '';
+$report = progress_report::make(get_course($courseid), $context, null, (bool) $usageid);
 if ($userid) {
     [$user, $info] = utils::get_user_details($userid, $context);
     $showonly = utils::get_user_display($user, $info);
     $report->single_report($userid);
 }
 $report->init();
+
 // Set navbar in the report.
 utils::set_report_navbar($report->get_title(), $context, $showonly);
 
-$renderer = $PAGE->get_renderer('report_embedquestion');
 // Display the report.
 if (!$download) {
     $title = $report->get_title();
     $PAGE->set_title($title);
     $PAGE->set_heading($title);
-    $output = $OUTPUT->header();
-    $output .= $renderer->report_heading($title);
-    if ($userid && has_capability('report/embedquestion:viewallprogress', $context)) {
-        $output .= $renderer->render_show_only_heading($showonly, $report->get_full_url_report());
-    }
-    ob_start();
-    $report->display();
-    $output .= ob_get_contents();
-    ob_end_clean();
-    $output .= $OUTPUT->footer();
+    /** @var report_embedquestion\output\renderer $renderer */
+    $renderer = $PAGE->get_renderer('report_embedquestion');
 
-    echo $output;
+    echo $OUTPUT->header();
+    echo $renderer->report_heading($title);
+    if ($userid && has_capability('report/embedquestion:viewallprogress', $context)) {
+        echo $renderer->render_show_only_heading($showonly, $report->get_full_url_report());
+    }
+    $report->display();
+    echo $OUTPUT->footer();
+
 } else {
     $report->display();
 }

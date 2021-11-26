@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Tests for the Embedded questions progress report backup and restore code.
- *
- * @package   report_embedquestion
- * @copyright 2019 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
- */
-
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -159,7 +151,7 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
 
         [$course, $page, $user] = $this->create_course_with_page_with_attempted_question();
 
-        // Delete page
+        // Delete page.
         course_delete_module($page->cmid);
         phpunit_util::run_all_adhoc_tasks();
         $pages = get_coursemodules_in_course('page', $course->id);
@@ -186,7 +178,7 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
     }
 
     /**
-     * Backup and restore a a page with embedded questions with attempts.
+     * Backup and restore a page with embedded questions with attempts.
      *
      * The attempts should be coped.
      */

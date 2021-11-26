@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Abstract class to represent report in the embed question.
- *
- * @package   report_embedquestion
- * @copyright 2021 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace report_embedquestion\local\report;
 
 defined('MOODLE_INTERNAL') || die();
@@ -40,6 +32,17 @@ use stdClass;
 
 /**
  * Abstract class to represent report in the embed question.
+ *
+ * The report can either relate to all embedded questions in a course (including all
+ * the activities the course contains), which is handled by the course_progress_report
+ * subclass or, just the embedded questions in one activity: activity_progress_report.
+ *
+ * The report can contain various amounts of information:
+ *
+ * - There can be a summary report, showing just the latest attempt at each question,
+ *   either for all users, or just one user (depending on the viewer's permissions, and choices.)
+ *   This is handled by latest_attempt_table.
+ * - or, it can be a detailed analysis of all attempts at one question, handled by attempt_summary_table.
  *
  * @package   report_embedquestion
  * @copyright 2021 The Open University
@@ -60,7 +63,7 @@ abstract class progress_report {
     /** @var report_display_options Report display options. */
     protected $displayoptions;
     /** @var bool Is the attempt summary report or not. */
-    protected $isattemptreport;
+    protected $isonequestiondetails;
     /** @var int Single report for specific user. */
     protected $singlereportforuser = 0;
 
@@ -70,17 +73,17 @@ abstract class progress_report {
      * @param stdClass $course
      * @param context $context
      * @param cm_info|null $cm
-     * @param bool $isattemptreport
+     * @param bool $isonequestiondetails
      * @return progress_report the requested object.
      */
     public static function make(stdClass $course, context $context, cm_info $cm = null,
-            bool $isattemptreport = false): progress_report {
+            bool $isonequestiondetails = false): progress_report {
         if ($cm) {
             $report = new activity_progress_report($course, $context, $cm);
         } else {
             $report = new course_progress_report($course, $context);
         }
-        $report->isattemptreport = $isattemptreport;
+        $report->isonequestiondetails = $isonequestiondetails;
 
         return $report;
     }
@@ -117,11 +120,13 @@ abstract class progress_report {
     public function init(): void {
         $this->displayoptions = new report_display_options($this->course->id, $this->cm);
         $this->displayoptions->setup_general_from_params();
-        if ($this->isattemptreport) {
+
+        if ($this->isonequestiondetails) {
             $this->displayoptions->process_settings_from_params();
-            $this->reporttable =
-                    new attempt_summary_table($this->context, $this->course->id, 0, $this->cm, $this->displayoptions->userid,
-                            $this->displayoptions->usageid);
+            $this->reporttable = new attempt_summary_table($this->displayoptions->usageid,
+                    $this->context, $this->course->id, $this->cm,
+                    $this->displayoptions->userid);
+
         } else {
             $formurl = $this->get_url_report();
             $formurl->params($this->displayoptions->get_general_params());
@@ -135,8 +140,8 @@ abstract class progress_report {
                 $this->displayoptions->userid = $this->singlereportforuser;
             }
             $this->filterform->set_data($this->displayoptions->get_initial_form_data());
-            $this->reporttable = new latest_attempt_table($this->context, $this->course->id, $this->cm, $this->displayoptions,
-                    $this->displayoptions->download);
+            $this->reporttable = new latest_attempt_table($this->context, $this->course->id, $this->cm,
+                    $this->displayoptions, $this->displayoptions->download);
         }
     }
 
@@ -163,7 +168,7 @@ abstract class progress_report {
      * @return int
      */
     public function get_report_page_size(): int {
-        return $this->isattemptreport ? report_display_options::DEFAULT_REPORT_PAGE_SIZE : $this->displayoptions->pagesize;
+        return $this->isonequestiondetails ? report_display_options::DEFAULT_REPORT_PAGE_SIZE : $this->displayoptions->pagesize;
     }
 
     /**
@@ -179,7 +184,7 @@ abstract class progress_report {
      * Display the report table.
      */
     public function display() {
-        if ($this->isattemptreport) {
+        if ($this->isonequestiondetails) {
             $this->display_attempt_summary();
         } else {
             if (!$this->displayoptions->download) {
@@ -202,9 +207,18 @@ abstract class progress_report {
      * Display the attempt summary table.
      */
     public function display_attempt_summary() {
-        $attempt = end($this->reporttable->rawdata);
-        // Display heading content.
-        echo utils::get_embed_location_summary($this->course->id, $attempt);
+        // We need information from rendering the table to display the information above it.
+        // So, render the table and catch the output.
+        ob_start();
         $this->reporttable->out($this->get_report_page_size(), $this->get_report_use_initialsbar());
+        $tablehtml = ob_get_contents();
+        ob_end_clean();
+
+        // Display heading content.
+        $attempt = end($this->reporttable->rawdata);
+        echo utils::get_embed_location_summary($this->course->id, $attempt);
+
+        // Then display the table.
+        echo $tablehtml;
     }
 }

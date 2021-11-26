@@ -49,8 +49,9 @@ class report_display_options {
     /** @var object Course. */
     private $course;
 
-    /** @var array Location ids. */
+    /** @var array of context ids, if the user has chosen to filter by particular locations. */
     public $locationids = [];
+
     /** @var int Filter number of days to look back. */
     public $lookback = 0;
     /** @var int Filter date from. */
@@ -107,7 +108,7 @@ class report_display_options {
      */
     public function get_all_params(): array {
         $params = $this->get_general_params();
-        if ($this->locationids && count($this->locationids) > 0) {
+        if ($this->locationids) {
             $params['locationids'] = implode('-', $this->locationids);
         }
         if ($this->lookback) {

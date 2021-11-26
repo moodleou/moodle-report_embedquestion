@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Display the report for latest attempt table.
- *
- * @package   report_embedquestion
- * @copyright 2019 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 namespace report_embedquestion;
 
 defined('MOODLE_INTERNAL') || die();
@@ -28,99 +21,80 @@ require_once($CFG->libdir . '/tablelib.php');
 
 use cm_info;
 use context;
+use core_user\fields;
 use moodle_url;
 use question_state;
 use report_embedquestion\local\export\response_export;
 use stdClass;
 use table_sql;
-use user_picture;
 use html_writer;
 
 /**
- * Display the report for latest attempt table.
+ * The report table shows the latest attempt at each different embedded question which matches the conditions.
  *
  * @package   report_embedquestion
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class latest_attempt_table extends table_sql {
-    /**
-     * @var stdClass The sql query we build up before parsing it and filling the parent's $sql variables.
-     */
-    protected $sqldata;
 
-    /**
-     * @var int $pagesize the default number of rows on a page.
-     */
+    /** @var int $perpage the default number of rows on a page. */
     public $perpage = 10;
 
-    /**
-     * @var object $attempt
-     */
-    protected $attempts = null;
+    /** @var context $context the context this report is for (coure or activity context). */
+    protected $context;
 
-    /**
-     * @var string, the name used an 'id' field for the user which is used by parent class in col_fullname() method.
-     */
-    public $useridfield = 'userid';
-
-    /**
-     * @var array required user fields (e.g. all the name fields and extra profile fields).
-     */
-    public $userfields = null;
-
-    /** @var array $extrauserfields extra user fields from user identity config. */
-    public $extrauserfields = [];
-
+    /** @var int $courseid the id of the current course. */
     protected $courseid = 0;
-    protected $cm = null;
-    protected $groupid = 0;
-    protected $userid = 0;
-    protected $context = null;
-    protected $allowedjoins = null;
+
+    /** @var cm_info|null $cm if set, this is a report for one activity, else a whole course. */
+    protected $cm;
+
+    /** @var int if set, only show data for users in this group, else all users. */
+    protected $groupid;
+
+    /** @var int if set, only show data for this one user, else all relevant. */
+    protected $userid;
 
     /** @var string|null the string used for file extension. */
     protected $isdownloading = null;
 
-    /** @var bool Report table has the qtype that have response files or not. */
+    /** @var bool set to true if the report contains any qtype that has response files. */
     protected $hasresponsesqtype = false;
-    /** @var stdClass|null the sql object from the userfieldsapi */
-    protected $userfieldssql = null;
+
+    /** @var fields information about which user fields to show. */
+    protected $userfields;
 
     /**
      * latest_attempt_table constructor.
      *
-     * @param context $context , the context object
-     * @param int $courseid the id of the current course
-     * @param cm_info|null $cm , the course-module object
+     * @param context $context the context object.
+     * @param int $courseid the id of the current course.
+     * @param cm_info|null $cm if set, this is a report for one activity, else a whole course.
      * @param report_display_options $displayoption The report display option ('look-back, datefrom, dateto).
-     * @param string|null $download the string used for file extension
-     * @param int $userid the userid as an optional param
+     * @param string|null $download the string used for file extension.
      */
-    public function __construct(context $context, $courseid, cm_info $cm = null,
-            report_display_options $displayoption, $download = null, $userid = 0) {
-        global $CFG;
+    public function __construct(context $context, int $courseid, ?cm_info $cm,
+            report_display_options $displayoption, string $download = null) {
         parent::__construct('report_embedquestion_latest_attempt');
+
         $this->context = $context;
         $this->courseid = $courseid;
         $this->groupid = $displayoption->group;
         $this->cm = $cm;
         $this->userid = $displayoption->userid;
-        $userfieldsapi = \core_user\fields::for_identity($context)->with_name()->excluding('id');
-        $this->userfields = $userfieldsapi->get_required_fields();
-        $this->userfieldssql = $userfieldsapi->get_sql('u', true);
-        $this->extrauserfields = \core_user\fields::get_identity_fields($context);
+        $this->userfields = fields::for_identity($context)->with_name();
         $this->isdownloading = $download;
 
-        $url = $displayoption->get_url();
+        // The name used an 'id' field for the user which is used by parent class in col_fullname() method.
+        $this->useridfield = 'userid';
 
-        $this->allowedjoins = $this->get_students_joins($this->groupid);
-
-        $this->generate_query($this->context->id, $this->userfields, $displayoption);
+        $this->generate_query($displayoption);
         $this->define_headers($this->get_headers());
         $this->define_columns($this->get_columns());
         $this->collapsible(false);
 
+        $url = $displayoption->get_url();
         $this->define_baseurl($url);
         $this->process_actions($url);
     }
@@ -129,15 +103,15 @@ class latest_attempt_table extends table_sql {
      * Return an array of the headers
      * @return array
      */
-    private function get_headers() {
+    private function get_headers(): array {
         $headers = [];
         if (!$this->isdownloading) {
             // We cannot use is_downloading() function here because the table constructor was called before the is_download().
             $headers[] = $this->checkbox_col_header('checkbox');
         }
         $headers[] = get_string('fullnameuser');
-        foreach ($this->extrauserfields as $field) {
-            $headers[] = \core_user\fields::get_display_name($field);;
+        foreach ($this->userfields->get_required_fields([fields::PURPOSE_IDENTITY]) as $field) {
+            $headers[] = fields::get_display_name($field);
         }
         $headers[] = get_string('type', 'report_embedquestion');
         $headers[] = get_string('question');
@@ -181,14 +155,14 @@ class latest_attempt_table extends table_sql {
      * Return an array of columns.
      * @return array
      */
-    private function get_columns() {
+    private function get_columns(): array {
         $columns = [];
         if (!$this->isdownloading) {
             // We cannot use is_downloading() function here because the table constructor was called before the is_download().
             $columns[] = 'checkbox';
         }
         $columns[] = 'fullname';
-        foreach ($this->extrauserfields as $field) {
+        foreach ($this->userfields->get_required_fields([fields::PURPOSE_IDENTITY]) as $field) {
             $columns[] = strtolower($field);
         }
         $columns[] = 'questiontype';
@@ -202,10 +176,10 @@ class latest_attempt_table extends table_sql {
     /**
      * Generate the display of the checkbox column.
      *
-     * @param object $attempt the table row being output.
+     * @param stdClass $attempt the table row being output.
      * @return string HTML content to go inside the td.
      */
-    public function col_checkbox(object $attempt): string {
+    public function col_checkbox(stdClass $attempt): string {
         global $OUTPUT, $USER;
         $allowdownload = 0;
         if (response_export::is_qtype_has_response_contain_file($attempt->questiontype)) {
@@ -220,7 +194,7 @@ class latest_attempt_table extends table_sql {
         if (has_capability('report/embedquestion:deleteanyattempt', $this->context) ||
                 ($USER->id == $attempt->userid && has_capability('report/embedquestion:deletemyattempt', $this->context))) {
             $checkbox = new \core\output\checkbox_toggleall('embed-attempts', false, [
-                    'id' => "questionusageid_{$attempt->questionusageid}",
+                    'id' => 'questionusageid_' . $attempt->questionusageid,
                     'name' => 'questionusageid[]',
                     'value' => $attempt->questionusageid . '-' . $attempt->slot . '-' . $allowdownload,
                     'label' => get_string('selectattempt', 'quiz'),
@@ -235,10 +209,10 @@ class latest_attempt_table extends table_sql {
 
     /**
      * Generate the display of the user's full name column.
-     * @param object $attempt the table row being output.
+     * @param stdClass $attempt the table row being output.
      * @return string HTML content to go inside the td.
      */
-    public function col_fullname($attempt) {
+    public function col_fullname($attempt): string {
         global $PAGE;
         $html = parent::col_fullname($attempt);
         if ($this->is_downloading() || empty($attempt)) {
@@ -247,13 +221,20 @@ class latest_attempt_table extends table_sql {
         if (has_capability('report/embedquestion:viewallprogress', $this->context) && !$this->userid) {
             $url = new moodle_url($this->baseurl);
             $url->params(['userid' => $attempt->userid]);
+            /** @var \report_embedquestion\output\renderer $renderer */
             $renderer = $PAGE->get_renderer('report_embedquestion');
             $html .= $renderer->render_show_only_link($url);
         }
         return $html;
     }
 
-    protected function col_questiontype($attempt) {
+    /**
+     * Render the contents of the question type icon column.
+     *
+     * @param stdClass $attempt data for the row of the table being shown.
+     * @return string HTML of the cell contents.
+     */
+    protected function col_questiontype(stdClass $attempt): string {
         if ($this->is_downloading()) {
             return $attempt->questiontype;
         }
@@ -263,7 +244,13 @@ class latest_attempt_table extends table_sql {
         return utils::get_question_icon($attempt->questiontype);
     }
 
-    protected function col_questionname($attempt) {
+    /**
+     * Render the contents of the question name column.
+     *
+     * @param stdClass $attempt data for the row of the table being shown.
+     * @return string HTML of the cell contents.
+     */
+    protected function col_questionname(stdClass $attempt): string {
         if ($this->is_downloading()) {
             return $attempt->questionname;
         }
@@ -272,180 +259,161 @@ class latest_attempt_table extends table_sql {
 
     /**
      * Generate the display of the attempt state column.
-     * @param object $attempt the table row being output.
+     *
+     * @param stdClass $attempt the table row being output.
      * @return string HTML content to go inside the td.
      */
-    protected function col_questionstate($attempt) {
+    protected function col_questionstate(stdClass $attempt): string {
         if ($this->is_downloading()) {
             return strip_tags(utils::get_question_state($attempt->questionstate));
         }
         return utils::get_question_state($attempt->questionstate);
     }
 
-    protected function col_embedid($attempt) {
-        if ($this->is_downloading()) {
-            return $attempt->embedid;
-        }
+    /**
+     * Generate the display of the attempt state column.
+     *
+     * @param stdClass $attempt the table row being output.
+     * @return string HTML content to go inside the td.
+     */
+    protected function col_embedid(stdClass $attempt): string {
         return $attempt->embedid;
     }
 
-    protected function col_pagename($attempt) {
+    /**
+     * Generate the display of the page name column.
+     *
+     * @param stdClass $attempt the table row being output.
+     * @return string HTML content to go inside the td.
+     */
+    protected function col_pagename(stdClass $attempt): string {
         if ($this->is_downloading()) {
             return $attempt->pagename;
         }
         return utils::get_activity_link($attempt);
     }
 
-    protected function col_questionattemptstepid($attempt) {
+    /**
+     * Generate the display of the action time column.
+     *
+     * @param stdClass $attempt the table row being output.
+     * @return string HTML content to go inside the td.
+     */
+    protected function col_questionattemptstepid(stdClass $attempt): string {
         if ($this->is_downloading()) {
             return userdate($attempt->questionattemptsteptime);
         }
         return utils::get_attempt_summary_link($attempt);
     }
 
-    protected function set_sql_data_fields($userfields) {
-        // Define the default fields.
-        $this->sqldata->fields = [];
-        $this->sqldata->fields[] = 'qas.id              AS questionattemptstepid';
-        $this->sqldata->fields[] = 'qas.timecreated     AS questionattemptsteptime';
-        if ($userfields) {
-            foreach ($this->userfieldssql->mappings as $fieldname => $fieldvalue) {
-                $this->sqldata->fields[] = "$fieldvalue        AS $fieldname";
-            }
-        } else {
-            $this->sqldata->fields[] = 'u.username      AS username';
-            $this->sqldata->fields[] = 'u.firstname     AS firstname';
-            $this->sqldata->fields[] = 'u.lastname      AS lastname';
-        }
-        $this->sqldata->fields[] = 'u.id                AS userid';
-        $this->sqldata->fields[] = 'q.qtype             AS questiontype';
-        $this->sqldata->fields[] = 'q.name              AS questionname';
-        $this->sqldata->fields[] = 'q.id                AS questionid';
-        $this->sqldata->fields[] = 'r.contextid         AS contextid';
-        $this->sqldata->fields[] = 'r.questionusageid   AS questionusageid';
-        $this->sqldata->fields[] = 'r.embedid           AS embedid';
-        $this->sqldata->fields[] = 'r.pagename          AS pagename';
-        $this->sqldata->fields[] = 'r.pageurl           AS pageurl';
-        $this->sqldata->fields[] = 'qa.id               AS questionattemptid';
-        $this->sqldata->fields[] = 'qa.slot             AS slot';
-        $this->sqldata->fields[] = 'qa.maxmark          AS maxmark';
-        $this->sqldata->fields[] = 'qas.state           AS questionstate';
-        $this->sqldata->fields[] = 'qas.fraction        AS fraction';
-    }
-
-    protected function set_sql_data_from() {
-        $this->sqldata->from = [];
-        $this->sqldata->from[] = '{report_embedquestion_attempt} r';
-        $this->sqldata->from[] = 'JOIN {context} cxt ON cxt.id = r.contextid';
-
-        $this->sqldata->from[] = 'JOIN {user} u ON u.id = r.userid';
-        $this->sqldata->from[] = $this->userfieldssql->joins;
-
-        $this->sqldata->from[] = "JOIN {question_usages} qu ON qu.id = r.questionusageid";
-
-        // Select latest question attempt steps.
-        $this->sqldata->from[] = 'JOIN {question_attempts} qa ON (qa.questionusageid = r.questionusageid ' .
-                'AND qa.slot = (SELECT MAX(slot) FROM {question_attempts} WHERE questionusageid = qu.id))';
-        $this->sqldata->from[] = 'JOIN {question} q ON q.id = qa.questionid';
-        $this->sqldata->from[] = 'JOIN {question_attempt_steps} qas ON (qa.id = qas.questionattemptid ' .
-                'AND qas.sequencenumber = (SELECT MAX(sequencenumber) FROM {question_attempt_steps} ' .
-                'WHERE questionattemptid = qas.questionattemptid))';
-    }
-
     /**
      * Generate the intermediate SQL data structure to retrieve the information required.
      *
-     * @param int $contextid
-     * @param array $userfields required user fields.
      * @param report_display_options $displayoption The report display option ('look-back, datefrom, dateto).
      */
-    protected function generate_query($contextid, $userfields, $displayoption) {
+    protected function generate_query(report_display_options $displayoption): void {
         global $DB;
 
-        // Set the sql data.
-        $this->sqldata = new stdClass();
-        $this->sqldata->where = [];
-        $this->sqldata->params = [];
-        $this->set_sql_data_fields($userfields);
-        $this->set_sql_data_from();
+        $this->sql = new stdClass();
 
-        // Report is called from course->report.
+        $userfieldssql = $this->userfields->get_sql('u', true);
+        $enroljoin = get_enrolled_with_capabilities_join($this->context, '',
+                'report/embedquestion:viewmyprogress', $this->groupid);
+
+        $this->sql->fields = "
+                qas.id              AS questionattemptstepid,
+                qas.timecreated     AS questionattemptsteptime,
+                qas.state           AS questionstate,
+                qas.fraction,
+                qa.id               AS questionattemptid,
+                qa.slot,
+                qa.maxmark          AS maxmark,
+                q.qtype             AS questiontype,
+                q.name              AS questionname,
+                q.id                AS questionid,
+                r.contextid,
+                r.userid,
+                r.questionusageid,
+                r.embedid,
+                r.pagename,
+                r.pageurl" .
+                $userfieldssql->selects;
+
+        $this->sql->from =
+                "{report_embedquestion_attempt} r
+
+                JOIN {context} ctx ON ctx.id = r.contextid
+
+                JOIN {user} u ON u.id = r.userid
+                $userfieldssql->joins
+
+                $enroljoin->joins
+
+                JOIN {question_usages} qu ON qu.id = r.questionusageid
+                -- Latest attempt in each usage.
+                JOIN {question_attempts} qa ON qa.questionusageid = r.questionusageid AND
+                        qa.slot = (SELECT MAX(slot) FROM {question_attempts} WHERE questionusageid = qu.id)
+                JOIN {question} q ON q.id = qa.questionid
+                -- Latest step in each question_attempt.
+                JOIN {question_attempt_steps} qas ON qa.id = qas.questionattemptid
+                        AND qas.sequencenumber = (
+                                SELECT MAX(sequencenumber)
+                                FROM {question_attempt_steps}
+                                WHERE questionattemptid = qas.questionattemptid
+                        )
+        ";
+
+        $this->sql->params = array_merge($userfieldssql->params, $enroljoin->params);
+
         if ($this->cm === null) {
-            $this->sqldata->where[] = "(cxt.id = :contextid OR cxt.path LIKE :contextpathpattern)";
-            $this->sqldata->params['contextid'] = $this->context->id;
-            $this->sqldata->params['contextpathpattern'] = $this->context->path . '/%';
+            $contextwhere = "(ctx.id = :contextid OR ctx.path LIKE :contextpathpattern)";
+            $this->sql->params['contextid'] = $this->context->id;
+            $this->sql->params['contextpathpattern'] = $this->context->path . '/%';
         } else {
-            $this->sqldata->where[] = 'r.contextid = :contextid';
-            $this->sqldata->params['contextid'] = $contextid;
+            $contextwhere = "r.contextid = :contextid";
+            $this->sql->params['contextid'] = $this->context->id;
         }
-        $this->sqldata->params = array_merge($this->sqldata->params, $this->userfieldssql->params);
-
+        $this->sql->where = "
+                $contextwhere
+                AND $enroljoin->wheres";
         // Single user report.
-        if ($this->userid > 0) {
-            $this->sqldata->where[]  = ' AND r.userid = :userid';
-            $this->sqldata->params['userid'] = $this->userid;
+        if ($this->userid) {
+            $this->sql->where .= "
+                AND r.userid = :userid";
+            $this->sql->params['userid'] = $this->userid;
         }
 
         // Filter data.
         if ($displayoption->lookback > 0) { // Look back.
-            $this->sqldata->where[]  = ' AND qas.timecreated > :lookback';
-            $this->sqldata->params['lookback'] = time() - $displayoption->lookback;
+            $this->sql->where .= "
+                AND qas.timecreated > :lookback";
+            $this->sql->params['lookback'] = time() - $displayoption->lookback;
 
         } else if ($displayoption->datefrom > 0 && $displayoption->dateto > 0) { // From - To.
-            $this->sqldata->where[]  = ' AND (qas.timecreated > :datefrom AND qas.timecreated < :dateto)';
-            $this->sqldata->params['datefrom'] = $displayoption->datefrom;
-            $this->sqldata->params['dateto'] = $displayoption->dateto + DAYSECS;
+            $this->sql->where .= "
+                AND qas.timecreated > :datefrom
+                AND qas.timecreated < :dateto";
+            $this->sql->params['datefrom'] = $displayoption->datefrom;
+            $this->sql->params['dateto'] = $displayoption->dateto + DAYSECS;
 
         } else if ($displayoption->datefrom > 0) { // From.
-            $this->sqldata->where[]  = ' AND qas.timecreated > :datefrom';
-            $this->sqldata->params['datefrom'] = $displayoption->datefrom;
+            $this->sql->where .= "
+                AND qas.timecreated > :datefrom";
+            $this->sql->params['datefrom'] = $displayoption->datefrom;
 
         } else if ($displayoption->dateto > 0) { // To.
-            $this->sqldata->where[]  = ' AND qas.timecreated < :dateto';
-            $this->sqldata->params['dateto'] = $displayoption->dateto + DAYSECS;
+            $this->sql->where .= "
+                AND qas.timecreated < :dateto";
+            $this->sql->params['dateto'] = $displayoption->dateto + DAYSECS;
         }
 
         // Location.
         if (!empty($displayoption->locationids)) {
-            list($locationidssql, $params) = $DB->get_in_or_equal($displayoption->locationids, SQL_PARAMS_NAMED, 'location');
-            $this->sqldata->where[] = ' AND r.contextid ' . $locationidssql;
-            $this->sqldata->params = array_merge($this->sqldata->params, $params);
-        }
-
-        $this->setup_sql_queries();
-
-        $this->sql = new stdClass();
-        $this->sql->fields = implode(",\n    ", $this->sqldata->fields);
-        $this->sql->from = implode("\n",  $this->sqldata->from);
-        $this->sql->where = implode("\n    ", $this->sqldata->where);
-        $this->sql->params = $this->sqldata->params;
-    }
-
-    /**
-     * Setup query with groupid, groupmode.
-     */
-    public function setup_sql_queries() {
-        $this->sqldata->from[] = $this->allowedjoins->joins;
-        $this->sqldata->where[] = ' AND ' . $this->allowedjoins->wheres;
-        $this->sqldata->params = array_merge($this->sqldata->params, $this->allowedjoins->params);
-    }
-
-    /**
-     * Get sql fragments (joins) which can be used to build queries that
-     * will select an appropriate set of students to show in the reports.
-     *
-     * @param int $groupid The group id.
-     * @return object with elements:
-     *         \core\dml\sql_join Contains joins, wheres, params for all the students to show in the report.
-     *
-     */
-    protected function get_students_joins($groupid) {
-        // We have a currently selected group.
-        if ($groupid) {
-            return get_enrolled_with_capabilities_join($this->context, '',
-                    'report/embedquestion:viewmyprogress', $groupid);
-        } else {
-            return get_enrolled_with_capabilities_join($this->context, '', 'report/embedquestion:viewmyprogress');
+            list($locationidssql, $params) = $DB->get_in_or_equal(
+                    $displayoption->locationids, SQL_PARAMS_NAMED, 'location');
+            $this->sql->where .= "
+                AND r.contextid $locationidssql";
+            $this->sql->params = array_merge($this->sql->params, $params);
         }
     }
 
@@ -471,6 +439,7 @@ class latest_attempt_table extends table_sql {
      */
     public function wrap_html_finish() {
         global $PAGE;
+        /** @var \report_embedquestion\output\renderer $renderer */
         $renderer = $PAGE->get_renderer('report_embedquestion');
 
         $output = html_writer::start_div('commands');

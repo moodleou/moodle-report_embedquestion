@@ -14,26 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Display the report for attempt summary table.
- *
- * @package   report_embedquestion
- * @copyright 2019 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 namespace report_embedquestion;
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/tablelib.php');
 
-use html_writer;
 use moodle_url;
 use stdClass;
 use table_sql;
-
+use core_user\fields;
 
 /**
- * Display the report for attempt summary table.
+ * This table shows all the attempts at one particular question.
  *
  * @package   report_embedquestion
  * @copyright 2019 The Open University
@@ -42,63 +34,59 @@ use table_sql;
 class attempt_summary_table extends table_sql {
 
     /**
-     * @var stdClass The sql query we build up before parsing it and filling the parent's $sql variables.
-     */
-    public $sqldata = null;
-
-    /**
      * @var int $pagesize the default number of rows on a page.
      */
     public $perpage = 10;
 
-    /**
-     * @var stdClass $attempt
-     */
-    public $attempts = null;
-
-    /**
-     * @var string the name used an 'id' field for the user which is used by parent class in col_fullname() method.
-     */
-    public $useridfield = 'userid';
-
-    /**
-     * @var \core_user\fields info about required user name and info fields.
-     */
-    public $userfields = 'userid';
-
-    public $courseid = 0;
-    public $cm = null;
-    public $groupid = 0;
-    public $userid = 0;
-    public $context = null;
+    /** @var int the report will just show details of all at attempts in this usage. */
     public $usageid = 0;
 
+    /** @var \context $context the context this report is for (coure or activity context). */
+    protected $context;
+
+    /** @var int $courseid the id of the current course. */
+    protected $courseid = 0;
+
+    /** @var \cm_info|null $cm if set, this is a report for one activity, else a whole course. */
+    protected $cm;
+
+    /** @var int if set, only show data for this one user, else all relevant. */
+    protected $userid;
+
     /**
-     * progress_table constructor.
-     * @param \context $context, the context object
-     * @param int $courseid the id of the current course
-     * @param int $groupid, the id of the group in a course
-     * @param \cm_info|null $cm, the course-module object
-     * @param int $userid, the userid as an optional param
-     * @param int $usageid, the questionusage id as an optional param
+     * @var fields info about required user name and info fields.
      */
-    public function __construct(\context $context, $courseid, $groupid = 0, \cm_info $cm = null, $userid = 0, $usageid = 0) {
-        global $CFG;
+    public $userfields;
+
+    /**
+     * Constructor.
+     *
+     * @param int $usageid the report will just show details of all at attempts in this usage.
+     * @param \context $context the context this report is for (coure or activity context).
+     * @param int $courseid the id of the current course.
+     * @param \cm_info|null $cm if set, this is a report for one activity, else a whole course.
+     * @param int $userid if set, only show data for this one user, else all relevant.
+     */
+    public function __construct(int $usageid, \context $context, int $courseid, \cm_info $cm = null,
+            int $userid = 0) {
+
         parent::__construct('report_embedquestion_attempt_summary');
+        $this->usageid = $usageid;
         $this->context = $context;
         $this->courseid = $courseid;
-        $this->groupid = $groupid;
         $this->cm = $cm;
         $this->userid = $userid;
-        $this->usageid = $usageid;
-        $this->userfields = \core_user\fields::for_identity($context)->with_name()->excluding('id');
+        $this->userfields = fields::for_identity($context)->with_name();
+
+        // The name used an 'id' field for the user which is used by parent class in col_fullname() method.
+        $this->useridfield = 'userid';
 
         $this->define_headers($this->get_headers());
         $this->define_columns($this->get_columns());
 
         $this->collapsible(false);
 
-        $this->generate_query($this->context->id, $this->userfields, $usageid);
+        $this->generate_query();
 
         if ($cm) {
             $url = new moodle_url('/report/embedquestion/activity.php',
@@ -108,15 +96,14 @@ class attempt_summary_table extends table_sql {
                     ['courseid' => $courseid, 'userid' => $userid, 'usageid' => $usageid]);
         }
         $this->define_baseurl($url);
-        $this->setup();
-        $this->query_db($this->perpage, false);
     }
 
     /**
-     * Return an array of the headers
+     * Return an array of the headers.
+     *
      * @return array
      */
-    private function get_headers() {
+    private function get_headers(): array {
         $headers = [];
         $headers[] = get_string('status');
         $headers[] = get_string('gradenoun');
@@ -126,9 +113,10 @@ class attempt_summary_table extends table_sql {
 
     /**
      * Return an array of columns.
+     *
      * @return array
      */
-    private function get_columns() {
+    private function get_columns(): array {
         $columns = [];
         $columns[] = 'questionstate';
         $columns[] = 'fraction';
@@ -138,104 +126,103 @@ class attempt_summary_table extends table_sql {
 
     /**
      * Generate the display of the attempt state column.
-     * @param object $attempt the table row being output.
+     *
+     * @param stdClass $attempt the table row being output.
      * @return string HTML content to go inside the td.
      */
-    public function col_questionstate($attempt) {
+    public function col_questionstate(stdClass $attempt): string {
         return utils::get_question_state($attempt->questionstate);
     }
 
-    public function col_fraction($attempt) {
+    /**
+     * Generate the display of the fraction (mark) column.
+     *
+     * @param stdClass $attempt the table row being output.
+     * @return string HTML content to go inside the td.
+     */
+    public function col_fraction(stdClass $attempt): string {
         global $PAGE;
         if ($attempt->questionstate === 'todo') {
-            return null;
+            return '';
         }
+        /** @var \report_embedquestion\output\renderer $renderer */
         $renderer = $PAGE->get_renderer('report_embedquestion');
         return $renderer->render_grade_link($attempt, $this->cm->id, $this->courseid);
     }
 
-    protected function col_questionattemptsteptime($row) {
+    /**
+     * Generate the link to the attempt summary.
+     *
+     * @param stdClass $attempt the table row being output.
+     * @return string HTML content to go inside the td.
+     */
+    protected function col_questionattemptsteptime(stdClass $attempt): string {
         if ($this->is_downloading()) {
-            return $row->questionattemptstepid;
+            return $attempt->questionattemptstepid;
         }
-        return utils::get_attempt_summary_link($row, $this->usageid);
-    }
-
-    protected function set_sql_data_fields($userfields) {
-        // Define the default fields.
-        $this->sqldata->fields = [];
-        $this->sqldata->fields[] = 'qas.id              AS questionattemptstepid';
-        $this->sqldata->fields[] = 'qas.timecreated     AS questionattemptsteptime';
-        foreach ($userfields as $field) {
-            $this->sqldata->fields[] = "u.$field        AS $field";
-        }
-        $this->sqldata->fields[] = 'u.id                AS userid';
-        $this->sqldata->fields[] = 'q.qtype             AS questiontype';
-        $this->sqldata->fields[] = 'q.name              AS questionname';
-        $this->sqldata->fields[] = 'q.id                AS questionid';
-        $this->sqldata->fields[] = 'r.contextid         AS contextid';
-        $this->sqldata->fields[] = 'r.questionusageid   AS questionusageid';
-        $this->sqldata->fields[] = 'r.embedid           AS embedid';
-        $this->sqldata->fields[] = 'r.pagename          AS pagename';
-        $this->sqldata->fields[] = 'r.pageurl           AS pageurl';
-        $this->sqldata->fields[] = 'qa.id               AS questionattemptid';
-        $this->sqldata->fields[] = 'qa.slot             AS slot';
-        $this->sqldata->fields[] = 'qa.maxmark          AS maxmark';
-        $this->sqldata->fields[] = 'qas.state           AS questionstate';
-        $this->sqldata->fields[] = 'qas.fraction        AS fraction';
-    }
-
-    public function set_sql_data_from() {
-        $this->sqldata->from = [];
-
-        $this->sqldata->from[] = '{report_embedquestion_attempt} r';
-        $this->sqldata->from[] = 'JOIN {context} cxt ON cxt.id = r.contextid';
-
-        $this->sqldata->from[] = 'JOIN {user} u ON u.id = r.userid';
-
-        $this->sqldata->from[] = 'JOIN {question_usages} qu ON qu.id = r.questionusageid';
-        $this->sqldata->from[] = "JOIN {question_attempts} qa ON qa.questionusageid = qu.id";
-        $this->sqldata->from[] = 'JOIN {question} q ON q.id = qa.questionid';
-        $this->sqldata->from[] = 'JOIN {question_attempt_steps} qas ON qa.id = qas.questionattemptid';
+        return utils::get_attempt_summary_link($attempt, $this->usageid);
     }
 
     /**
      * Generate the intermediate SQL data structure to retrieve the information required.
-     *
-     * @param $contextid
      */
-    protected function generate_query($contextid, $userfields, $usageid) {
-
-        // Set sql data.
-        $this->sqldata = new stdClass();
-        $this->sqldata->where = [];
-        $this->sqldata->params = [];
-        $this->set_sql_data_fields($userfields);
-        $this->set_sql_data_from();
-
-        // Note that usage id is always set when this table is being used.
-        $this->sqldata->where[]  = "r.questionusageid = $usageid";
-        $this->sqldata->params['usageid'] = $usageid;
-
-        // Report is called from course->report.
-        if ($this->cm === null) {
-            $this->sqldata->where[] = "AND (cxt.id = :contextid OR cxt.path LIKE :contextpathpattern)";
-            $this->sqldata->params['contextid'] = $this->context->id;
-            $this->sqldata->params['contextpathpattern'] = $this->context->path . '/%';
-        } else {
-            $this->sqldata->where[] = 'AND r.contextid = :contextid';
-            $this->sqldata->params['contextid'] = $contextid;
-        }
-        // Single user report.
-        if ($this->userid > 0) {
-            $this->sqldata->where[]  = ' AND r.userid = :userid';
-            $this->sqldata->params['userid'] = $this->userid;
-        }
+    protected function generate_query(): void {
 
         $this->sql = new stdClass();
-        $this->sql->fields = implode(",\n    ", $this->sqldata->fields);
-        $this->sql->from = implode("\n",  $this->sqldata->from);
-        $this->sql->where = implode("\n    ", $this->sqldata->where);
-        $this->sql->params = $this->sqldata->params;
+        $userfieldssql = $this->userfields->get_sql('u', true);
+
+        $this->sql->fields = "
+                qas.id              AS questionattemptstepid,
+                qas.timecreated     AS questionattemptsteptime,
+                qas.state           AS questionstate,
+                qas.fraction,
+                qa.id               AS questionattemptid,
+                qa.slot,
+                qa.maxmark          AS maxmark,
+                q.qtype             AS questiontype,
+                q.name              AS questionname,
+                q.id                AS questionid,
+                r.contextid,
+                r.userid,
+                r.questionusageid,
+                r.embedid,
+                r.pagename,
+                r.pageurl" .
+                $userfieldssql->selects;
+
+        $this->sql->from =
+                "{report_embedquestion_attempt} r
+                JOIN {context} cxt ON cxt.id = r.contextid
+
+                JOIN {user} u ON u.id = r.userid
+                $userfieldssql->joins
+
+                JOIN {question_usages} qu ON qu.id = r.questionusageid
+                JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+                JOIN {question} q ON q.id = qa.questionid
+                JOIN {question_attempt_steps} qas ON qa.id = qas.questionattemptid";
+
+        $this->sql->params = $userfieldssql->params;
+
+        $this->sql->where = "r.questionusageid = :usageid";
+        $this->sql->params['usageid'] = $this->usageid;
+
+        if ($this->cm === null) {
+            $this->sql->where .= "
+                    AND (ctx.id = :contextid OR ctx.path LIKE :contextpathpattern)";
+            $this->sql->params['contextid'] = $this->context->id;
+            $this->sql->params['contextpathpattern'] = $this->context->path . '/%';
+        } else {
+            $this->sql->where .= "
+                    AND r.contextid = :contextid";
+            $this->sql->params['contextid'] = $this->context->id;
+        }
+
+        // Single user report.
+        if ($this->userid) {
+            $this->sql->where .= "
+                AND r.userid = :userid";
+            $this->sql->params['userid'] = $this->userid;
+        }
     }
 }

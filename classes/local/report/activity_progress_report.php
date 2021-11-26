@@ -40,7 +40,7 @@ use stdClass;
 class activity_progress_report extends progress_report {
 
     /**
-     * activity_progress_report constructor.
+     * Constructor.
      *
      * @param stdClass $course
      * @param context $context

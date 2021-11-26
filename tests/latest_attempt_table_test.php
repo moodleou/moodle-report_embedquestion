@@ -28,7 +28,6 @@ global $CFG;
 require_once(__DIR__ . '/../classes/latest_attempt_table.php');
 use report_embedquestion\latest_attempt_table;
 use report_embedquestion\report_display_options;
-use report_embedquestion\utils;
 
 
 /**
@@ -75,8 +74,9 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $this->displayoptions->dateto = $now - (DAYSECS * 6); // To 6 days ago.
 
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
-        $contextid = $this->context->id;
-        $expectedwhere = "(qas.timecreated > :datefrom AND qas.timecreated < :dateto)";
+        $expectedwhere = "
+                AND qas.timecreated > :datefrom
+                AND qas.timecreated < :dateto";
         $this->assertStringContainsString($expectedwhere, $table->sql->where);
 
         $this->assertArrayHasKey('contextid', $table->sql->params);
@@ -92,7 +92,6 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $this->displayoptions->datefrom = $now - (WEEKSECS * 4); // From 28 days ago.
 
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
-        $contextid = $this->context->id;
         $expectedwhere = "AND qas.timecreated > :datefrom";
         $this->assertStringContainsString($expectedwhere, $table->sql->where);
 
@@ -108,7 +107,6 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
         $this->displayoptions->dateto = $now - (WEEKSECS * 2); // From 14 days ago.
 
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
-        $contextid = $this->context->id;
         $expectedwhere = "AND qas.timecreated < :dateto";
         $this->assertStringContainsString($expectedwhere, $table->sql->where);
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
