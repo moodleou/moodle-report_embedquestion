@@ -336,18 +336,20 @@ class latest_attempt_table extends table_sql {
     protected function set_sql_data_from() {
         $this->sqldata->from = [];
         $this->sqldata->from[] = '{report_embedquestion_attempt} r';
+        $this->sqldata->from[] = 'JOIN {context} cxt ON cxt.id = r.contextid';
+
         $this->sqldata->from[] = 'JOIN {user} u ON u.id = r.userid';
-        $this->sqldata->from[] = "JOIN {question_usages} qu ON " .
-                "(qu.id = r.questionusageid AND qu.component = 'report_embedquestion')";
+        $this->sqldata->from[] = $this->userfieldssql->joins;
+
+        $this->sqldata->from[] = "JOIN {question_usages} qu ON qu.id = r.questionusageid";
 
         // Select latest question attempt steps.
         $this->sqldata->from[] = 'JOIN {question_attempts} qa ON (qa.questionusageid = r.questionusageid ' .
                 'AND qa.slot = (SELECT MAX(slot) FROM {question_attempts} WHERE questionusageid = qu.id))';
-        $this->sqldata->from[] = 'JOIN {question} q ON (q.id = qa.questionid)';
+        $this->sqldata->from[] = 'JOIN {question} q ON q.id = qa.questionid';
         $this->sqldata->from[] = 'JOIN {question_attempt_steps} qas ON (qa.id = qas.questionattemptid ' .
                 'AND qas.sequencenumber = (SELECT MAX(sequencenumber) FROM {question_attempt_steps} ' .
                 'WHERE questionattemptid = qas.questionattemptid))';
-        $this->sqldata->from[] = $this->userfieldssql->joins;
     }
 
     /**
@@ -367,17 +369,17 @@ class latest_attempt_table extends table_sql {
         $this->set_sql_data_fields($userfields);
         $this->set_sql_data_from();
 
-        $this->sqldata->where[]  = ' (r.contextid = :contextid';
-        $this->sqldata->params['contextid'] = $contextid;
-        $this->sqldata->params = array_merge($this->sqldata->params, $this->userfieldssql->params);
         // Report is called from course->report.
         if ($this->cm === null) {
-            $coursecontextid = $this->context->id;
-            $this->sqldata->from[] = 'JOIN {context} cxt ON cxt.id = r.contextid';
-            $this->sqldata->where[] = " OR cxt.path LIKE '%/$coursecontextid/%')";
+            $this->sqldata->where[] = "(cxt.id = :contextid OR cxt.path LIKE :contextpathpattern)";
+            $this->sqldata->params['contextid'] = $this->context->id;
+            $this->sqldata->params['contextpathpattern'] = $this->context->path . '/%';
         } else {
-            $this->sqldata->where[] = ')';
+            $this->sqldata->where[] = 'r.contextid = :contextid';
+            $this->sqldata->params['contextid'] = $contextid;
         }
+        $this->sqldata->params = array_merge($this->sqldata->params, $this->userfieldssql->params);
+
         // Single user report.
         if ($this->userid > 0) {
             $this->sqldata->where[]  = ' AND r.userid = :userid';

@@ -187,13 +187,16 @@ class attempt_summary_table extends table_sql {
 
     public function set_sql_data_from() {
         $this->sqldata->from = [];
+
         $this->sqldata->from[] = '{report_embedquestion_attempt} r';
+        $this->sqldata->from[] = 'JOIN {context} cxt ON cxt.id = r.contextid';
+
         $this->sqldata->from[] = 'JOIN {user} u ON u.id = r.userid';
-        $this->sqldata->from[] = 'JOIN {question_usages} qu ON (qu.id = r.questionusageid ' .
-                'AND qu.component = \'report_embedquestion\')';
-        $this->sqldata->from[] = "JOIN {question_attempts} qa ON (qa.questionusageid = :usageid)";
-        $this->sqldata->from[] = 'JOIN {question} q ON (q.id = qa.questionid)';
-        $this->sqldata->from[] = 'JOIN {question_attempt_steps} qas ON (qa.id = qas.questionattemptid)';
+
+        $this->sqldata->from[] = 'JOIN {question_usages} qu ON qu.id = r.questionusageid';
+        $this->sqldata->from[] = "JOIN {question_attempts} qa ON qa.questionusageid = qu.id";
+        $this->sqldata->from[] = 'JOIN {question} q ON q.id = qa.questionid';
+        $this->sqldata->from[] = 'JOIN {question_attempt_steps} qas ON qa.id = qas.questionattemptid';
     }
 
     /**
@@ -201,7 +204,7 @@ class attempt_summary_table extends table_sql {
      *
      * @param $contextid
      */
-    protected function generate_query($contextid, $userfields, $usageid = 0) {
+    protected function generate_query($contextid, $userfields, $usageid) {
 
         // Set sql data.
         $this->sqldata = new stdClass();
@@ -210,19 +213,18 @@ class attempt_summary_table extends table_sql {
         $this->set_sql_data_fields($userfields);
         $this->set_sql_data_from();
 
-        $this->sqldata->where[]  = "r.questionusageid = $usageid AND ";
+        // Note that usage id is always set when this table is being used.
+        $this->sqldata->where[]  = "r.questionusageid = $usageid";
         $this->sqldata->params['usageid'] = $usageid;
-
-        $this->sqldata->where[]  = ' r.contextid = :contextid';
-        $this->sqldata->params['contextid'] = $contextid;
 
         // Report is called from course->report.
         if ($this->cm === null) {
-            $coursecontextid = $this->context->id;
-            $this->sqldata->from[] = 'JOIN {context} cxt ON cxt.id = r.contextid';
-            if ($usageid === 0) {
-                $this->sqldata->where[] = " OR cxt.path LIKE '%/$coursecontextid/%'";
-            }
+            $this->sqldata->where[] = "AND (cxt.id = :contextid OR cxt.path LIKE :contextpathpattern)";
+            $this->sqldata->params['contextid'] = $this->context->id;
+            $this->sqldata->params['contextpathpattern'] = $this->context->path . '/%';
+        } else {
+            $this->sqldata->where[] = 'AND r.contextid = :contextid';
+            $this->sqldata->params['contextid'] = $contextid;
         }
         // Single user report.
         if ($this->userid > 0) {

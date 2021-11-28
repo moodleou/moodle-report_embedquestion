@@ -76,9 +76,7 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
 
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $contextid = $this->context->id;
-        $expectedwhere = " (r.contextid = :contextid
-     OR cxt.path LIKE '%/$contextid/%')
-     AND (qas.timecreated > :datefrom AND qas.timecreated < :dateto)";
+        $expectedwhere = "(qas.timecreated > :datefrom AND qas.timecreated < :dateto)";
         $this->assertStringContainsString($expectedwhere, $table->sql->where);
 
         $this->assertArrayHasKey('contextid', $table->sql->params);
@@ -95,9 +93,7 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
 
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $contextid = $this->context->id;
-        $expectedwhere = " (r.contextid = :contextid
-     OR cxt.path LIKE '%/$contextid/%')
-     AND qas.timecreated > :datefrom";
+        $expectedwhere = "AND qas.timecreated > :datefrom";
         $this->assertStringContainsString($expectedwhere, $table->sql->where);
 
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
@@ -113,9 +109,7 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
 
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $contextid = $this->context->id;
-        $expectedwhere = " (r.contextid = :contextid
-     OR cxt.path LIKE '%/$contextid/%')
-     AND qas.timecreated < :dateto";
+        $expectedwhere = "AND qas.timecreated < :dateto";
         $this->assertStringContainsString($expectedwhere, $table->sql->where);
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $this->assertArrayHasKey('contextid', $table->sql->params);
