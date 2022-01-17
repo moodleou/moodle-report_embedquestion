@@ -133,7 +133,7 @@ abstract class progress_report {
             $this->filterform = new filter($formurl->out(false), ['context' => $this->context]);
             if ($fromform = $this->filterform->get_data()) {
                 $this->displayoptions->process_settings_from_form($fromform);
-            } else {
+            } else if (!$this->filterform->is_submitted()) {
                 $this->displayoptions->process_settings_from_params();
             }
             if ($this->singlereportforuser) {
