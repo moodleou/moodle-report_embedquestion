@@ -65,6 +65,9 @@ class latest_attempt_table extends table_sql {
     /** @var fields information about which user fields to show. */
     protected $userfields;
 
+    /** @var array Questionusage's ids which has at least one slot has a response file. */
+    protected $questionusagehasattachmentids = [];
+
     /**
      * latest_attempt_table constructor.
      *
@@ -183,10 +186,10 @@ class latest_attempt_table extends table_sql {
         global $OUTPUT, $USER;
         $allowdownload = 0;
         if (response_export::is_qtype_has_response_contain_file($attempt->questiontype)) {
-            // We allow the user to download their responses in two cases:
-            // 1. Attempt that has only one slot and the state is not equal to Not yet answer.
-            // 2. Attempt that has more than one slot.
-            if (($attempt->slot == 1 && $attempt->questionstate != question_state::$todo) || ($attempt->slot > 1)) {
+            // We allow the user to download their responses in cases:
+            // 1. Attempt that has only one slot and their response has file response.
+            // 2. Attempt that has more than one slot with at least one slot has a file response.
+            if (array_key_exists($attempt->questionusageid, $this->questionusagehasattachmentids)) {
                 $allowdownload = 1;
             }
         }
@@ -516,4 +519,52 @@ class latest_attempt_table extends table_sql {
         }
     }
 
+    /**
+     * Load any extra data after main query.
+     * At this point we need to check the attempt has at least one slot has a file response.
+     *
+     * @return  void
+     */
+    protected function load_extra_data() : void {
+        global $DB;
+
+        $questionusageids = [];
+        foreach ($this->rawdata as $attempt) {
+            if (!response_export::is_qtype_has_response_contain_file($attempt->questiontype)) {
+                continue;
+            }
+
+            if ($attempt->questionusageid > 0) {
+                $questionusageids[] = $attempt->questionusageid;
+            }
+        }
+
+        if (empty($questionusageids)) {
+            return;
+        }
+
+        list($areasql, $areaparam) = $DB->get_in_or_equal(utils::get_qtype_fileareas());
+        list($questionusageidsql, $questionusageidparam) = $DB->get_in_or_equal($questionusageids);
+        $sql = "SELECT qa.questionusageid
+                  FROM {question_attempts} as qa
+                  JOIN {question_attempt_steps} qas ON qas.questionattemptid = qa.id
+                            AND qas.sequencenumber = (
+                                SELECT MAX(sequencenumber)
+                                  FROM mdl_question_attempt_steps
+                                 WHERE questionattemptid = qas.questionattemptid
+                            )
+             LEFT JOIN {files} f ON f.component = 'question'
+                            AND f.filearea $areasql
+                            AND f.itemid = qas.id
+                            AND f.filename <> '.'
+                 WHERE qa.questionusageid $questionusageidsql AND f.filename IS NOT NULL
+              GROUP BY qa.questionusageid";
+        $this->questionusagehasattachmentids = $DB->get_records_sql($sql, array_merge($areaparam, $questionusageidparam));
+    }
+
+    public function query_db($pagesize, $useinitialsbar = true) {
+        parent::query_db($pagesize, $useinitialsbar);
+
+        $this->load_extra_data();
+    }
 }

@@ -405,4 +405,22 @@ class utils
             return fullname($user);
         }
     }
+
+    /**
+     * Return an array listing all response file area names of the question.
+     *
+     * @return array List of response file area names.
+     */
+    public static function get_qtype_fileareas(): array {
+        $qtypefileareas = [];
+
+        foreach (\question_bank::get_all_qtypes() as $qtype) {
+            $areas = $qtype->response_file_areas();
+            foreach ($areas as $area) {
+                $qtypefileareas[] = 'response_' . $area;
+            }
+        }
+
+        return array_unique($qtypefileareas);
+    }
 }
