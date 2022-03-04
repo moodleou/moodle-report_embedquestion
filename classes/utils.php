@@ -417,7 +417,7 @@ class utils
         foreach (\question_bank::get_all_qtypes() as $qtype) {
             $areas = $qtype->response_file_areas();
             foreach ($areas as $area) {
-                $qtypefileareas[] = 'response_' . $area;
+                $qtypefileareas[] = $area;
             }
         }
 

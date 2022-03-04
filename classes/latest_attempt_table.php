@@ -545,20 +545,20 @@ class latest_attempt_table extends table_sql {
 
         list($areasql, $areaparam) = $DB->get_in_or_equal(utils::get_qtype_fileareas());
         list($questionusageidsql, $questionusageidparam) = $DB->get_in_or_equal($questionusageids);
-        $sql = "SELECT qa.questionusageid
+        $sql = "SELECT DISTINCT qa.questionusageid
                   FROM {question_attempts} as qa
                   JOIN {question_attempt_steps} qas ON qas.questionattemptid = qa.id
                             AND qas.sequencenumber = (
-                                SELECT MAX(sequencenumber)
-                                  FROM mdl_question_attempt_steps
-                                 WHERE questionattemptid = qas.questionattemptid
+                                    SELECT MAX(sequencenumber)
+                                      FROM {question_attempt_steps} qas1
+                                 LEFT JOIN {question_attempt_step_data} qasd ON qasd.attemptstepid = qas1.id
+                                           AND qasd.name $areasql
+                                     WHERE questionattemptid = qas.questionattemptid and qasd.id IS NOT NULL
                             )
              LEFT JOIN {files} f ON f.component = 'question'
-                            AND f.filearea $areasql
                             AND f.itemid = qas.id
                             AND f.filename <> '.'
-                 WHERE qa.questionusageid $questionusageidsql AND f.filename IS NOT NULL
-              GROUP BY qa.questionusageid";
+                 WHERE qa.questionusageid $questionusageidsql AND f.filename IS NOT NULL";
         $this->questionusagehasattachmentids = $DB->get_records_sql($sql, array_merge($areaparam, $questionusageidparam));
     }
 
