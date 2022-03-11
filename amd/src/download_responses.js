@@ -16,13 +16,12 @@
 /**
  * Javascript for download responses event.
  *
- * @package   report_embedquestion
  * @copyright 2021 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define(['jquery'], function($) {
 
-    let t = {
+    const t = {
 
         /**
          * CSS Selector.
