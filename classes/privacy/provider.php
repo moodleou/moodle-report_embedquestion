@@ -14,15 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Privacy Subsystem implementation for report_embedquestion.
- *
- * @package   report_embedquestion
- * @copyright 2019 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace report_embedquestion\privacy;
+
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
@@ -32,12 +25,10 @@ use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 use filter_embedquestion\question_options;
 
-defined('MOODLE_INTERNAL') || die();
-
-
 /**
- * Privacy Subsystem for report_embedquestion.
+ * Privacy Subsystem implementation for report_embedquestion.
  *
+ * @package   report_embedquestion
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

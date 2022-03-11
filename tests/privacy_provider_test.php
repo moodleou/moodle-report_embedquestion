@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
 
+namespace report_embedquestion;
+
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
@@ -40,12 +42,12 @@ require_once($CFG->dirroot . '/question/tests/privacy_helper.php');
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
-class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests\provider_testcase {
+class privacy_provider_test extends \core_privacy\tests\provider_testcase {
 
-    use core_question_privacy_helper;
+    use \core_question_privacy_helper;
 
     /**
-     * @var filter_embedquestion_generator
+     * @var \filter_embedquestion_generator
      */
     protected $attemptgenerator;
 
@@ -56,10 +58,10 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
 
     /**
      * Helper: get the context and subcontext for a question.
-     * @param stdClass $question question.
+     * @param \stdClass $question question.
      * @return array context and subcontext array.
      */
-    protected function get_context_and_subcontext(stdClass $question): array {
+    protected function get_context_and_subcontext(\stdClass $question): array {
         [$embedid, $context] = $this->attemptgenerator->get_embed_id_and_context($question);
         $subcontext = [
                 get_string('attempts', 'report_embedquestion'),
@@ -102,7 +104,7 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
     public function test_get_users_in_context_no_data() {
         $this->resetAfterTest();
 
-        $userlist = new userlist(context_course::instance(SITEID), 'report_embedquestion');
+        $userlist = new userlist(\context_course::instance(SITEID), 'report_embedquestion');
         provider::get_users_in_context($userlist);
         $this->assertEquals([], $userlist->get_userids());
     }
@@ -135,14 +137,14 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
 
         $user = $this->getDataGenerator()->create_user();
         $approvedcontextlist = new approved_contextlist(
-                core_user::get_user($user->id), 'report_embedquestion', []);
+                \core_user::get_user($user->id), 'report_embedquestion', []);
 
         provider::export_user_data($approvedcontextlist);
 
         // No data should have been exported.
         $this->assertDebuggingNotCalled();
         /** @var \core_privacy\tests\request\content_writer $writer */
-        $writer = writer::with_context(context_system::instance());
+        $writer = writer::with_context(\context_system::instance());
         $this->assertFalse($writer->has_any_data_in_any_context());
     }
 
@@ -166,7 +168,7 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
 
         // Perform the export and check the data.
         $this->setUser($user);
-        $approvedcontextlist = new approved_contextlist(core_user::get_user($user->id),
+        $approvedcontextlist = new approved_contextlist(\core_user::get_user($user->id),
                 'report_embedquestion', $contextlist->get_contextids());
         provider::export_user_data($approvedcontextlist);
 
@@ -200,7 +202,7 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
         global $DB;
         $this->resetAfterTest();
 
-        provider::delete_data_for_all_users_in_context(context_course::instance(SITEID));
+        provider::delete_data_for_all_users_in_context(\context_course::instance(SITEID));
 
         $this->assertEquals(0, $DB->count_records('report_embedquestion_attempt'));
         $this->assertEquals(0, $DB->count_records('question_usages'));
@@ -215,7 +217,7 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
 
         // This is the attempt we will try to delete.
         $course = $this->getDataGenerator()->create_course();
-        $coursecontext = context_course::instance($course->id);
+        $coursecontext = \context_course::instance($course->id);
         $question = $this->attemptgenerator->create_embeddable_question('truefalse',
                 null, null, ['contextid' => $coursecontext->id]);
         $user = $this->getDataGenerator()->create_user();
@@ -236,7 +238,7 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
                 ['contextid' => $coursecontext->id]));
 
         // But not for the other quiz.
-        $frontpagecontext = context_course::instance(SITEID);
+        $frontpagecontext = \context_course::instance(SITEID);
         $this->assertEquals(1, $DB->count_records('report_embedquestion_attempt',
                 ['contextid' => $frontpagecontext->id]));
         $this->assertEquals(1, $DB->count_records('question_usages',
@@ -251,7 +253,7 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
 
         $user = $this->getDataGenerator()->create_user();
         $approvedcontextlist = new approved_contextlist(
-                core_user::get_user($user->id), 'report_embedquestion', []);
+                \core_user::get_user($user->id), 'report_embedquestion', []);
 
         provider::delete_data_for_user($approvedcontextlist);
         $this->assertDebuggingNotCalled();
@@ -274,9 +276,9 @@ class report_embedquestion_privacy_provider_testcase extends \core_privacy\tests
         $this->attemptgenerator->create_attempt_at_embedded_question($question, $otheruser, 'True');
 
         // Delete data for $user in the context under test.
-        $context = context_course::instance(SITEID);
+        $context = \context_course::instance(SITEID);
         $approvedcontextlist = new approved_contextlist(
-                core_user::get_user($user->id), 'report_embedquestion', [$context->id]);
+                \core_user::get_user($user->id), 'report_embedquestion', [$context->id]);
         provider::delete_data_for_user($approvedcontextlist);
         $this->assertDebuggingNotCalled();
 

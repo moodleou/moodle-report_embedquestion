@@ -21,13 +21,6 @@
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-
-/**
- * Restore step for report_embedquestion.
- */
 class restore_report_embedquestion_plugin extends restore_report_plugin {
     use restore_questions_attempt_data_trait;
 

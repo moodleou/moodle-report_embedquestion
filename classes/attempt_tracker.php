@@ -14,17 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Attempt tracker functions for report_embedquestion.
- *
- * @package   report_embedquestion
- * @copyright 2020 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace report_embedquestion;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Attempt tracker functions for report_embedquestion.

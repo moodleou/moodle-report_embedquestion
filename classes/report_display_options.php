@@ -14,21 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * This file defines the options for the embed question progress report.
- *
- * @package   report_embedquestion
- * @copyright 2021 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace report_embedquestion;
 
 use cm_info;
 use moodle_url;
 use stdClass;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * This file defines the options for the embed question progress report.

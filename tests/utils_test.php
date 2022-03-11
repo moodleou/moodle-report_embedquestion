@@ -14,30 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit test for the report_embedquestion util methods.
- *
- * @package    report_embedquestion
- * @copyright  2018 The Open University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once(__DIR__ . '/../classes/utils.php');
-
-use report_embedquestion\report_display_options;
-use report_embedquestion\utils;
-
+namespace report_embedquestion;
 
 /**
  * Unit tests for the util methods.
  *
+ * @package    report_embedquestion
  * @copyright  2019 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class report_embedquestion_utils_testcase extends advanced_testcase {
+class utils_test extends \advanced_testcase {
+
+    /** @var \testing_data_generator */
+    protected $generator;
+
+    /** @var \stdClass */
+    protected $course;
+
+    /** @var \mod_forum_generator */
+    protected $forumgenerator;
+
+    /** @var \filter_embedquestion_generator */
+    protected $attemptgenerator;
 
     protected function setUp(): void {
         parent::setUp();
@@ -57,7 +55,7 @@ class report_embedquestion_utils_testcase extends advanced_testcase {
         $catid = $DB->get_field('question_categories', 'idnumber', ['id' => $question->category]);
         $cmid = $page1->id;
 
-        $attempt = new stdClass();
+        $attempt = new \stdClass();
         $attempt->pagename = $this->course->shortname . ':' . $page1->name;
         $attempt->pageurl = '/mod/page/view.php?id=' . $page1->id;
         $attempt->embedid = $catid . '/' . $question->idnumber;
@@ -68,7 +66,6 @@ class report_embedquestion_utils_testcase extends advanced_testcase {
     }
 
     public function test_get_user_link() {
-        global $DB;
         $courseid = $this->course->id;
         $user = $this->generator->create_user();
         $userid = $user->id;
@@ -93,19 +90,19 @@ class report_embedquestion_utils_testcase extends advanced_testcase {
     public function test_get_url() {
         global $CFG;
         $params = ['courseid' => $this->course->id];
-        $expected = new moodle_url($CFG->wwwroot . "/report/embedquestion/index.php", $params);
+        $expected = new \moodle_url($CFG->wwwroot . "/report/embedquestion/index.php", $params);
         $actual = utils::get_url($params);
         $this->assertEquals($expected, $actual);
 
         $forum1 = $this->forumgenerator->create_instance(['course' => $this->course]);
         $params = ['cmid' => $forum1->id];
-        $expected = new moodle_url($CFG->wwwroot . "/report/embedquestion/activity.php", $params);
+        $expected = new \moodle_url($CFG->wwwroot . "/report/embedquestion/activity.php", $params);
         $actual = utils::get_url($params, 'activity');
         $this->assertEquals($expected, $actual);
     }
 
     public function test_get_filter_data() {
-        $expected = new stdClass();
+        $expected = new \stdClass();
         $expected->locationids = [];
         $expected->lookback = 0;
         $expected->datefrom = 0;

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace report_embedquestion;
+
 /**
  * Unit test for the report_embedquestion latest_attempt_table methods.
  *
@@ -21,22 +23,25 @@
  * @copyright  2020 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class report_embedquestion_latest_attempt_table_testcase extends \advanced_testcase {
 
-defined('MOODLE_INTERNAL') || die();
+    /** @var \testing_data_generator */
+    protected $generator;
 
-global $CFG;
-require_once(__DIR__ . '/../classes/latest_attempt_table.php');
-use report_embedquestion\latest_attempt_table;
-use report_embedquestion\report_display_options;
+    /** @var \stdClass */
+    protected $course;
 
+    /** @var \context_course */
+    protected $context;
 
-/**
- * Unit tests for the latest_attempt_table methods.
- *
- * @copyright  2020 The Open University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class report_embedquestion_latest_attempt_table_testcase extends advanced_testcase {
+    /** @var \mod_forum_generator */
+    protected $forumgenerator;
+
+    /** @var \filter_embedquestion_generator */
+    protected $attemptgenerator;
+
+    /** @var report_display_options */
+    protected $displayoptions;
 
     protected function setUp(): void {
         parent::setUp();
@@ -122,8 +127,8 @@ class report_embedquestion_latest_attempt_table_testcase extends advanced_testca
     public function test_latest_attempt_table_filter_locations() {
         $page1 = $this->generator->create_module('page', ['course' => $this->course->id, 'content' => '<p>Page 1: </p>']);
         $page2 = $this->generator->create_module('page', ['course' => $this->course->id, 'content' => '<p>Page 2: </p>']);
-        $pagecontext1 = context_module::instance($page1->cmid);
-        $pagecontext2 = context_module::instance($page2->cmid);
+        $pagecontext1 = \context_module::instance($page1->cmid);
+        $pagecontext2 = \context_module::instance($page2->cmid);
 
         $this->displayoptions->locationids = [$pagecontext1->id, $pagecontext2->id];
 

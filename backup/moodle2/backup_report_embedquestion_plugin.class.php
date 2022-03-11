@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+require_once($CFG->dirroot . '/backup/moodle2/backup_stepslib.php');
+
 /**
  * Backup task for report_embedquestion.
  *
  * @package   report_embedquestion
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-
-require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
-require_once($CFG->dirroot . '/backup/moodle2/backup_stepslib.php');
-
-
-/**
- * Backup task for report_embedquestion.
  */
 class backup_report_embedquestion_plugin extends backup_report_plugin {
     use backup_questions_attempt_data_trait;

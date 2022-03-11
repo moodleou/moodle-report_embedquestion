@@ -14,17 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Defines the renderer for the report_embedquestion module.
- *
- * @package   report_embedquestion
- * @copyright 2020 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace report_embedquestion\output;
-
-defined('MOODLE_INTERNAL') || die();
 
 use coding_exception;
 use html_writer;
@@ -34,10 +24,11 @@ use question_display_options;
 use report_embedquestion\utils;
 
 /**
- * The renderer for the report_embedquestion module.
+ * Defines the renderer for the report_embedquestion module.
  *
- * @copyright  2020 The Open University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   report_embedquestion
+ * @copyright 2020 The Open University
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class renderer extends plugin_renderer_base {
 

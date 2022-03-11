@@ -23,8 +23,6 @@
  */
 namespace report_embedquestion\event;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Embedded questions progress activity report viewed event.
  *

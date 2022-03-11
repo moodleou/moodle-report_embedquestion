@@ -14,23 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Attempt download functions for report_embedquestion.
- *
- * @package   report_embedquestion
- * @copyright 2021 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace report_embedquestion\local\export;
+
 use report_embedquestion\utils;
 use context;
 use question_bank;
 use stdClass;
 use stored_file;
 use zip_archive;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Attempt download functions for report_embedquestion.

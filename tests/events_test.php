@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace report_embedquestion;
+
 /**
  * Tests for the Embedded questions progress events.
  *
@@ -21,16 +23,7 @@
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-/**
- * Class for tests related to this plugins log events.
- *
- * @copyright 2019 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
- */
-class report_embedquestion_events_testcase extends advanced_testcase {
+class events_test extends \advanced_testcase {
 
     public function setUp(): void {
         $this->setAdminUser();
@@ -75,7 +68,7 @@ class report_embedquestion_events_testcase extends advanced_testcase {
                 array $extraurlparams, string $expecteddescription) {
 
         $course = $this->getDataGenerator()->create_course();
-        $context = context_course::instance($course->id);
+        $context = \context_course::instance($course->id);
 
         // Trigger event for log report viewed.
         $event = \report_embedquestion\event\course_report_viewed::create([
@@ -93,7 +86,7 @@ class report_embedquestion_events_testcase extends advanced_testcase {
         $this->assertInstanceOf('\report_embedquestion\event\course_report_viewed', $event);
         $this->assertEquals($context, $event->get_context());
         $this->assertEventContextNotUsed($event);
-        $this->assertEquals(new moodle_url('/report/embedquestion/index.php', ['courseid' => $course->id] + $extraurlparams),
+        $this->assertEquals(new \moodle_url('/report/embedquestion/index.php', ['courseid' => $course->id] + $extraurlparams),
                 $event->get_url());
         $this->assertEquals(str_replace('CID', $course->id, $expecteddescription),
                 $event->get_description());
@@ -104,7 +97,7 @@ class report_embedquestion_events_testcase extends advanced_testcase {
      */
     public function test_course_report_viewed_related_user_validation() {
         $course = $this->getDataGenerator()->create_course();
-        $context = context_course::instance($course->id);
+        $context = \context_course::instance($course->id);
 
         $this->expectException('coding_exception');
         \report_embedquestion\event\course_report_viewed::create([
@@ -118,7 +111,7 @@ class report_embedquestion_events_testcase extends advanced_testcase {
      */
     public function test_course_report_viewed_groupid_validation() {
         $course = $this->getDataGenerator()->create_course();
-        $context = context_course::instance($course->id);
+        $context = \context_course::instance($course->id);
 
         $this->expectException('coding_exception');
         \report_embedquestion\event\course_report_viewed::create([
@@ -132,8 +125,8 @@ class report_embedquestion_events_testcase extends advanced_testcase {
      * Test the course report viewed event has to have the right sort of context.
      */
     public function test_course_report_viewed_context_validation() {
-        $course = $this->getDataGenerator()->create_course();
-        $context = context_system::instance();
+        $this->getDataGenerator()->create_course();
+        $context = \context_system::instance();
 
         $this->expectException('coding_exception');
         \report_embedquestion\event\course_report_viewed::create([
@@ -170,9 +163,9 @@ class report_embedquestion_events_testcase extends advanced_testcase {
     /**
      * Helper function to setup a page.
      *
-     * @return stdClass the page from the generator.
+     * @return \stdClass the page from the generator.
      */
-    protected function create_page(): stdClass {
+    protected function create_page(): \stdClass {
         $generator  = $this->getDataGenerator();
         $course = $generator->create_course();
         $pagegenerator = $generator->get_plugin_generator('mod_page');
@@ -193,7 +186,7 @@ class report_embedquestion_events_testcase extends advanced_testcase {
             array $extraurlparams, string $expecteddescription) {
 
         $activity = $this->create_page();
-        $context = context_module::instance($activity->cmid);
+        $context = \context_module::instance($activity->cmid);
 
         // Trigger event for log report viewed.
         $event = \report_embedquestion\event\activity_report_viewed::create([
@@ -211,7 +204,7 @@ class report_embedquestion_events_testcase extends advanced_testcase {
         $this->assertInstanceOf('\report_embedquestion\event\activity_report_viewed', $event);
         $this->assertEquals($context, $event->get_context());
         $this->assertEventContextNotUsed($event);
-        $this->assertEquals(new moodle_url('/report/embedquestion/activity.php',
+        $this->assertEquals(new \moodle_url('/report/embedquestion/activity.php',
                 ['cmid' => $activity->cmid] + $extraurlparams),
                 $event->get_url());
         $this->assertEquals(str_replace('CMID', $activity->cmid, $expecteddescription),
@@ -223,7 +216,7 @@ class report_embedquestion_events_testcase extends advanced_testcase {
      */
     public function test_activity_report_viewed_related_user_validation() {
         $activity = $this->create_page();
-        $context = context_module::instance($activity->cmid);
+        $context = \context_module::instance($activity->cmid);
 
         $this->expectException('coding_exception');
         \report_embedquestion\event\activity_report_viewed::create([
@@ -237,7 +230,7 @@ class report_embedquestion_events_testcase extends advanced_testcase {
      */
     public function test_activity_report_viewed_groupid_validation() {
         $activity = $this->create_page();
-        $context = context_module::instance($activity->cmid);
+        $context = \context_module::instance($activity->cmid);
 
         $this->expectException('coding_exception');
         \report_embedquestion\event\activity_report_viewed::create([
@@ -252,7 +245,7 @@ class report_embedquestion_events_testcase extends advanced_testcase {
      */
     public function test_activity_report_viewed_context_validation() {
         $activity = $this->create_page();
-        $context = context_course::instance($activity->course);
+        $context = \context_course::instance($activity->course);
 
         $this->expectException('coding_exception');
         \report_embedquestion\event\activity_report_viewed::create([

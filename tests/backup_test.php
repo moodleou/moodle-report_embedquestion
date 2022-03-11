@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace report_embedquestion;
+
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -22,6 +24,10 @@ require_once($CFG->dirroot . '/backup/moodle2/backup_stepslib.php');
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot . '/course/externallib.php');
 
+use backup;
+use backup_controller;
+use base_setting;
+use restore_controller;
 
 /**
  * Tests for the Embedded questions progress report backup and restore code.
@@ -29,23 +35,20 @@ require_once($CFG->dirroot . '/course/externallib.php');
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
-class report_embedquestion_backup_testcase extends advanced_testcase {
+class backup_test extends \advanced_testcase {
 
     /**
-     * @var testing_data_generator
+     * @var \testing_data_generator
      */
     protected $generator;
 
     /**
-     * @var filter_embedquestion_generator
+     * @var \filter_embedquestion_generator
      */
     protected $attemptgenerator;
 
     protected function setUp(): void {
         parent::setUp();
-        if (!trait_exists('backup_questions_attempt_data_trait')) {
-            $this->markTestSkipped('Backup for this plugin only work in Moodle 3.8 or later.');
-        }
         $this->generator = $this->getDataGenerator();
         $this->attemptgenerator = $this->generator->get_plugin_generator('filter_embedquestion');
     }
@@ -62,13 +65,13 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
 
         // Create a course with a page that embeds a question.
         $course = $this->generator->create_course();
-        $coursecontext = context_course::instance($course->id);
+        $coursecontext = \context_course::instance($course->id);
         $question = $this->attemptgenerator->create_embeddable_question('truefalse',
                 null, [], ['contextid' => $coursecontext->id]);
         $page = $this->generator->create_module('page', ['course' => $course->id,
                 'content' => '<p>Try this question: ' .
                         $this->attemptgenerator->get_embed_code($question) . '</p>']);
-        $pagecontext = context_module::instance($page->cmid);
+        $pagecontext = \context_module::instance($page->cmid);
 
         // Create a student with an attempt at that question.
         $user = $this->generator->create_user();
@@ -108,7 +111,7 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
         [$course, $page, $user] = $this->create_course_with_page_with_attempted_question();
 
         // Backup and restore the course with user data.
-        $newcourseinfo = core_course_external::duplicate_course($course->id, 'Copied course',
+        $newcourseinfo = \core_course_external::duplicate_course($course->id, 'Copied course',
                 'CC', $course->category, true, [['name' => 'users', 'value' => true]]);
         $newcourse = get_course($newcourseinfo['id']);
 
@@ -118,22 +121,22 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
         $this->assertEquals($page->name, $newpage->name);
 
         // Verify the copied attempt in the course context.
-        $newcoursecontext = context_course::instance($newcourse->id);
+        $newcoursecontext = \context_course::instance($newcourse->id);
         $copiedattempt = $DB->get_record('report_embedquestion_attempt',
                 ['contextid' => $newcoursecontext->id], '*', MUST_EXIST);
         $this->assertEquals($user->id, $copiedattempt->userid);
-        $quba = question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
+        $quba = \question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
         $this->assertCount(1, $quba->get_slots());
-        $this->assertEquals(question_state::$gradedwrong, $quba->get_question_state(1));
+        $this->assertEquals(\question_state::$gradedwrong, $quba->get_question_state(1));
 
         // Verify the copied attempt in the page.
-        $newpagecontext = context_module::instance($newpage->id);
+        $newpagecontext = \context_module::instance($newpage->id);
         $copiedattempt = $DB->get_record('report_embedquestion_attempt',
                 ['contextid' => $newpagecontext->id], '*', MUST_EXIST);
         $this->assertEquals($user->id, $copiedattempt->userid);
-        $quba = question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
+        $quba = \question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
         $this->assertCount(1, $quba->get_slots());
-        $this->assertEquals(question_state::$gradedright, $quba->get_question_state(1));
+        $this->assertEquals(\question_state::$gradedright, $quba->get_question_state(1));
     }
 
     /**
@@ -153,7 +156,7 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
 
         // Delete page.
         course_delete_module($page->cmid);
-        phpunit_util::run_all_adhoc_tasks();
+        \phpunit_util::run_all_adhoc_tasks();
         $pages = get_coursemodules_in_course('page', $course->id);
         $this->assertEquals(0, count($pages));
 
@@ -168,13 +171,13 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
         $restoredpage = array_pop($pages);
 
         // Verify the attempt is in the page.
-        $newpagecontext = context_module::instance($restoredpage->id);
+        $newpagecontext = \context_module::instance($restoredpage->id);
         $copiedattempt = $DB->get_record('report_embedquestion_attempt',
             ['contextid' => $newpagecontext->id], '*', MUST_EXIST);
         $this->assertEquals($user->id, $copiedattempt->userid);
-        $quba = question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
+        $quba = \question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
         $this->assertCount(1, $quba->get_slots());
-        $this->assertEquals(question_state::$gradedright, $quba->get_question_state(1));
+        $this->assertEquals(\question_state::$gradedright, $quba->get_question_state(1));
     }
 
     /**
@@ -226,13 +229,13 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
         }
 
         // Verify the copied attempt in the page.
-        $newpagecontext = context_module::instance($newpage->id);
+        $newpagecontext = \context_module::instance($newpage->id);
         $copiedattempt = $DB->get_record('report_embedquestion_attempt',
                 ['contextid' => $newpagecontext->id], '*', MUST_EXIST);
         $this->assertEquals($user->id, $copiedattempt->userid);
-        $quba = question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
+        $quba = \question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
         $this->assertCount(1, $quba->get_slots());
-        $this->assertEquals(question_state::$gradedright, $quba->get_question_state(1));
+        $this->assertEquals(\question_state::$gradedright, $quba->get_question_state(1));
     }
 
     /**
@@ -243,13 +246,13 @@ class report_embedquestion_backup_testcase extends advanced_testcase {
         // Create a course with a page that embeds a question.
         $course = $this->generator->create_course(
                 ['fullname' => 'Original course', 'shortname' => 'OC']);
-        $coursecontext = context_course::instance($course->id);
+        $coursecontext = \context_course::instance($course->id);
         $question = $this->attemptgenerator->create_embeddable_question('truefalse',
                 null, [], ['contextid' => $coursecontext->id]);
         $page = $this->generator->create_module('page', ['course' => $course->id,
                 'content' => '<p>Try this question: ' .
                         $this->attemptgenerator->get_embed_code($question) . '</p>']);
-        $pagecontext = context_module::instance($page->cmid);
+        $pagecontext = \context_module::instance($page->cmid);
 
         // Create a student with an attempt at that question.
         $user = $this->generator->create_user();

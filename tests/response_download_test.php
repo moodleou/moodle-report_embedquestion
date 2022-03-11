@@ -14,18 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit test for the report_embedquestion response download.
- *
- * @package    report_embedquestion
- * @copyright  2021 The Open University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace report_embedquestion;
 
 use report_embedquestion\local\export\response_export;
-use report_embedquestion\utils;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Unit test for the report_embedquestion response download.
@@ -34,30 +25,30 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2021 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class report_embedquestion_response_download_testcase extends advanced_testcase {
+class response_download_test extends \advanced_testcase {
 
     /**
-     * @var testing_data_generator
+     * @var \testing_data_generator
      */
     private $generator;
     /**
-     * @var stdClass
+     * @var \stdClass
      */
     private $course;
     /**
-     * @var filter_embedquestion_generator
+     * @var \filter_embedquestion_generator
      */
     private $attemptgenerator;
     /**
-     * @var bool|context|context_course
+     * @var \context_course
      */
     private $coursecontext;
     /**
-     * @var stdClass
+     * @var \stdClass
      */
     private $student1;
     /**
-     * @var stdClass
+     * @var \stdClass
      */
     private $student2;
 
@@ -67,7 +58,7 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
         $this->resetAfterTest();
         $this->generator = $this->getDataGenerator();
         $this->course = $this->generator->create_course(['shortname' => 'Embedquestion_Course']);
-        $this->coursecontext = context_course::instance($this->course->id);
+        $this->coursecontext = \context_course::instance($this->course->id);
         $this->attemptgenerator = $this->generator->get_plugin_generator('filter_embedquestion');
         $this->student1 = $this->generator->create_user(['username' => 'student1']);
         $this->student2 = $this->generator->create_user(['username' => 'student2']);
@@ -83,9 +74,9 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
         $page = $this->generator->create_module('page', ['course' => $this->course->id,
                 'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>']);
 
-        $pagecontext = context_module::instance($page->cmid);
+        $pagecontext = \context_module::instance($page->cmid);
 
-        /** @var filter_embedquestion\attempt $attempt */
+        /** @var \filter_embedquestion\attempt $attempt */
         $attempt = $this->attemptgenerator->create_attempt_at_embedded_question($question, $this->student1, 'False', $pagecontext);
 
         $this->expectException('coding_exception');
@@ -106,7 +97,7 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
     public function test_get_zip_url_with_supported_qtype(string $qtype, string $which, string $repsonse, string $filename): void {
         global $CFG;
 
-        if (!question_bank::is_qtype_installed($qtype)) {
+        if (!\question_bank::is_qtype_installed($qtype)) {
             $this->markTestSkipped();
         }
 
@@ -116,15 +107,15 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
         $page = $this->generator->create_module('page', ['course' => $this->course->id,
                 'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>']);
 
-        $pagecontext = context_module::instance($page->cmid);
+        $pagecontext = \context_module::instance($page->cmid);
 
-        /** @var filter_embedquestion\attempt $attempt1 */
+        /** @var \filter_embedquestion\attempt $attempt1 */
         $attempt1 = $this->attemptgenerator->create_attempt_at_embedded_question(
                 $question, $this->student1, $repsonse, $pagecontext, '', 1);
-        /** @var filter_embedquestion\attempt $attempt2 */
+        /** @var \filter_embedquestion\attempt $attempt2 */
         $attempt2 = $this->attemptgenerator->create_attempt_at_embedded_question(
                 $question, $this->student1, $repsonse, $pagecontext, '', 2);
-        /** @var filter_embedquestion\attempt $attempt3 */
+        /** @var \filter_embedquestion\attempt $attempt3 */
         $attempt3 = $this->attemptgenerator->create_attempt_at_embedded_question(
                 $question, $this->student2, $repsonse, $pagecontext, '', 1);
 
@@ -155,8 +146,8 @@ class report_embedquestion_response_download_testcase extends advanced_testcase 
         $this->assertGreaterThan(0, $zipinfo['size']);
         $this->assertEquals(filesize($filepath), $zipinfo['size']);
 
-        $ziparchive = new zip_archive();
-        $ziparchive->open($filepath, file_archive::OPEN);
+        $ziparchive = new \zip_archive();
+        $ziparchive->open($filepath, \file_archive::OPEN);
 
         $archivefiles = $ziparchive->list_files();
         $this->assertIsArray($archivefiles);

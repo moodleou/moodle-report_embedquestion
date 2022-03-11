@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace report_embedquestion;
+
 /**
  * Unit test for the report_embedquestion attempt_tracker methods.
  *
@@ -21,26 +23,15 @@
  * @copyright  2020 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-use report_embedquestion\attempt_storage;
-
-defined('MOODLE_INTERNAL') || die();
-
-/**
- * Unit test for the report_embedquestion attempt_tracker methods.
- *
- * @copyright  2020 The Open University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
+class report_embedquestion_attempt_tracker_testcase extends \advanced_testcase {
 
     /**
-     * @var testing_data_generator
+     * @var \testing_data_generator
      */
     protected $generator;
 
     /**
-     * @var filter_embedquestion_generator
+     * @var \filter_embedquestion_generator
      */
     protected $attemptgenerator;
 
@@ -62,26 +53,26 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
         global $DB;
 
         $course = $this->generator->create_course();
-        $coursecontext = context_course::instance($course->id);
+        $coursecontext = \context_course::instance($course->id);
         $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $coursecontext->id]);
         $page = $this->generator->create_module('page', ['course' => $course->id,
                 'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>']);
-        $pagecontext = context_module::instance($page->cmid);
+        $pagecontext = \context_module::instance($page->cmid);
 
         // Create a student with an attempt at that question.
         $user = $this->generator->create_user();
         $this->generator->enrol_user($user->id, $course->id, 'student');
 
         // Make the cache.
-        $cache = cache::make(report_embedquestion\attempt_tracker::CACHE_COMPONENT,
-                report_embedquestion\attempt_tracker::CACHE_AREA);
+        $cache = \cache::make(attempt_tracker::CACHE_COMPONENT,
+                attempt_tracker::CACHE_AREA);
 
         // Verify that there is no cache at this time.
         $this->assertFalse($cache->has($coursecontext->id));
 
         // Verify that there is no attempt for the given context and user.
-        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
-        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
+        $this->assertFalse(attempt_tracker::user_has_attempt($coursecontext->id));
+        $this->assertFalse(attempt_tracker::user_has_attempt($pagecontext->id));
 
         // Verify that now we have the cache at this time.
         $this->assertTrue($cache->has($coursecontext->id));
@@ -100,7 +91,7 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
                 'embedid' => (string) $question->idnumber,
                 'questionusageid' => 1,
                 'pagename' => 'Test cache',
-                'pageurl' => (new moodle_url('/report/embedquestion/activity.php'))->out_as_local_url(false),
+                'pageurl' => (new \moodle_url('/report/embedquestion/activity.php'))->out_as_local_url(false),
                 'timecreated' => $now,
                 'timemodified' => $now
         ];
@@ -112,11 +103,11 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
                 'subcontext' => [$pagecontext->id => false],
         ], $cache->get($coursecontext->id));
         // Verify that the function will get the value from the cache, not from the database.
-        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
-        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
+        $this->assertFalse(attempt_tracker::user_has_attempt($coursecontext->id));
+        $this->assertFalse(attempt_tracker::user_has_attempt($pagecontext->id));
 
         // Invalidate the cache.
-        report_embedquestion\attempt_tracker::user_attempts_changed($pagecontext);
+        attempt_tracker::user_attempts_changed($pagecontext);
 
         // Verify that the value from the cache is updated to True.
         $this->assertEquals([
@@ -124,8 +115,8 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
                 'subcontext' => [$pagecontext->id => true]
         ], $cache->get($coursecontext->id));
         // Verify that the function will return the correct value.
-        $this->assertTrue(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
-        $this->assertTrue(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
+        $this->assertTrue(attempt_tracker::user_has_attempt($coursecontext->id));
+        $this->assertTrue(attempt_tracker::user_has_attempt($pagecontext->id));
 
         // Remove the dummy data.
         $DB->delete_records('report_embedquestion_attempt', ['questionusageid' => $attemptinfo['questionusageid']]);
@@ -136,11 +127,11 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
                 'subcontext' => [$pagecontext->id => true]
         ], $cache->get($coursecontext->id));
         // Verify that the function will get the value from the cache, not from the database.
-        $this->assertTrue(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
-        $this->assertTrue(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
+        $this->assertTrue(attempt_tracker::user_has_attempt($coursecontext->id));
+        $this->assertTrue(attempt_tracker::user_has_attempt($pagecontext->id));
 
         // Invalidate the cache.
-        report_embedquestion\attempt_tracker::user_attempts_changed($pagecontext);
+        attempt_tracker::user_attempts_changed($pagecontext);
 
         // Verify that the value from the cache is updated to True.
         $this->assertEquals([
@@ -148,8 +139,8 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
                 'subcontext' => [$pagecontext->id => false]
         ], $cache->get($coursecontext->id));
         // Verify that the function will return the correct value.
-        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
-        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
+        $this->assertFalse(attempt_tracker::user_has_attempt($coursecontext->id));
+        $this->assertFalse(attempt_tracker::user_has_attempt($pagecontext->id));
     }
 
     /**
@@ -157,19 +148,19 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
      */
     public function test_user_has_attempt_with_old_cache_hierarchy() {
         $course = $this->generator->create_course();
-        $coursecontext = context_course::instance($course->id);
+        $coursecontext = \context_course::instance($course->id);
         $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $coursecontext->id]);
         $page = $this->generator->create_module('page', ['course' => $course->id,
                 'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>']);
-        $pagecontext = context_module::instance($page->cmid);
+        $pagecontext = \context_module::instance($page->cmid);
 
         // Create a student with an attempt at that question.
         $user = $this->generator->create_user();
         $this->generator->enrol_user($user->id, $course->id, 'student');
 
         // Make the cache.
-        $cache = cache::make(report_embedquestion\attempt_tracker::CACHE_COMPONENT,
-                report_embedquestion\attempt_tracker::CACHE_AREA);
+        $cache = \cache::make(attempt_tracker::CACHE_COMPONENT,
+                attempt_tracker::CACHE_AREA);
 
         // Verify that there is no cache at this time.
         $this->assertFalse($cache->has($coursecontext->id));
@@ -177,7 +168,7 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
         // Create old cache hierarchy.
         $cache->set($coursecontext->id, ['value' => false]);
         // Verify that there is no attempt for the given context and user.
-        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($coursecontext->id));
+        $this->assertFalse(attempt_tracker::user_has_attempt($coursecontext->id));
         // Verify the cache hierarchy will be converted to the new one.
         $this->assertEquals([
                 'value' => false,
@@ -187,7 +178,7 @@ class report_embedquestion_attempt_tracker_testcase extends advanced_testcase {
         // Create old cache hierarchy.
         $cache->set($coursecontext->id, ['value' => false]);
         // Verify that there is no attempt for the given context and user.
-        $this->assertFalse(report_embedquestion\attempt_tracker::user_has_attempt($pagecontext->id));
+        $this->assertFalse(attempt_tracker::user_has_attempt($pagecontext->id));
         // Verify the cache hierarchy will be converted to the new one.
         $this->assertEquals([
                 'value' => false,

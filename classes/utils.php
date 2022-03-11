@@ -14,15 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Helper functions for report_embedquestion.
- *
- * @package   report_embedquestion
- * @copyright 2019 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace report_embedquestion;
+
 use action_link;
 use context;
 use filter_embedquestion\embed_id;
@@ -30,16 +23,14 @@ use html_writer;
 use moodle_url;
 use user_picture;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Helper functions for report_embedquestion.
  *
+ * @package   report_embedquestion
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class utils
-{
+class utils {
 
     /**
      * Used at the top of the drill-down for a single question. Give more info about the location.
