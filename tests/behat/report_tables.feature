@@ -76,6 +76,10 @@ Feature: Teachers can see their students progress on embedded questions.
     And I should see "Not yet answered" in the "student4" "table_row"
     And I should see "Correct" in the "student3" "table_row"
     And "Correct" "icon" should exist in the "student3" "table_row"
+    And I click on "Preview" "link" in the "student1" "table_row"
+    And I should see "First question"
+    # Question text - reasonable evidence we actually got to the preview page.
+    And I should see "The answer is true."
 
   Scenario: A teacher can see their students progress in an activity
     Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher"
@@ -90,6 +94,10 @@ Feature: Teachers can see their students progress on embedded questions.
     And "Incorrect" "icon" should exist in the "student2" "table_row"
     And I should not see "student3"
     And I should not see "student4"
+    And I click on "Preview" "link" in the "student1" "table_row"
+    And I should see "First question"
+    # Question text - reasonable evidence we actually got to the preview page.
+    And I should see "The answer is true."
 
   Scenario: A student can only see his/her own progress in an activity
     Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"

@@ -142,17 +142,23 @@ class utils {
      * @return string
      */
     public static function get_question_link($courseid, $questionid, $qtype, $questionname) {
-        global $CFG;
-        $url = new moodle_url($CFG->wwwroot . '/question/preview.php', ['id' => $questionid, 'courseid' => $courseid]);
+
         $previewlink = '';
         if (question_has_capability_on($questionid, 'view')) {
-            $previewlink = ' (' . html_writer::link($url, get_string('preview') . ')', ['target' => '_blank']);
+            if (class_exists('\qbank_previewquestion\helper')) {
+                $url = \qbank_previewquestion\helper::question_preview_url($questionid);
+            } else {
+                $url = question_preview_url($questionid);
+            }
+            $previewlink = ' (' . html_writer::link($url, get_string('preview'), ['target' => '_blank']) . ')';
         }
-        $icon = null;
+
+        $icon = '';
         if ($qtype) {
             $icon = self::get_question_icon($qtype);
         }
-        return html_writer::tag('span', $icon . $questionname . $previewlink, []);
+
+        return html_writer::span($icon . $questionname . $previewlink);
     }
 
     /**
