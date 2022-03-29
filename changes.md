@@ -1,5 +1,15 @@
 # Change log for the Embedded questions progress report
 
+## Features in version 1.7
+
+* This version works with Moodle 4.0.
+* The way the report loads data from the database has been changed to perform better.
+* Fixed a bug with changing the report options.
+* Fixed a bug with downloading response files when there are no files.
+* Fixed a bug downloading the response files from the
+  [Record audio/video question type](https://moodle.org/plugins/qtype_recordrtc).
+
+
 ## Features in version 1.6
 
 * Support for custom profile fields in 'Show user identity' for Moodle 3.11+
