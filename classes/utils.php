@@ -397,7 +397,7 @@ class utils {
     public static function get_user_display(\stdClass $user, array $info): string {
         if ($info) {
             return get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
-                    ['fullname' => fullname($user), 'info' => implode(',', $info)]);
+                    ['fullname' => fullname($user), 'info' => implode(', ', $info)]);
         } else {
             return fullname($user);
         }

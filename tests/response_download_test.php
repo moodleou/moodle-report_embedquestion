@@ -131,9 +131,9 @@ class response_download_test extends \advanced_testcase {
         [, $student1info] = utils::get_user_details($this->student1->id, $pagecontext);
         [, $student2info] = utils::get_user_details($this->student2->id, $pagecontext);
         $student1folder = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
-                ['fullname' => fullname($this->student1), 'info' => implode(',', $student1info)]);
+                ['fullname' => fullname($this->student1), 'info' => implode(', ', $student1info)]);
         $student2folder = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
-                ['fullname' => fullname($this->student2), 'info' => implode(',', $student2info)]);
+                ['fullname' => fullname($this->student2), 'info' => implode(', ', $student2info)]);
         $questionname = str_replace('/', '-', get_string('pluginname', 'qtype_' . $question->qtype));
 
         $this->assertIsArray($zipinfo);

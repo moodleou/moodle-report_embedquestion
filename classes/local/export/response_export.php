@@ -114,7 +114,7 @@ class response_export {
                             $localname = '';
                             if (!$userid) {
                                 $localname = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
-                                                ['fullname' => fullname($user), 'info' => implode(',', $info)]) . '/';
+                                                ['fullname' => fullname($user), 'info' => implode(', ', $info)]) . '/';
                             }
                             $questionname = str_replace('/', '-', get_string('pluginname', 'qtype_' . $question->get_type_name()));
                             $localname .= $questionname . '/' . $slotnoformat . '/' . $file->get_filename();
