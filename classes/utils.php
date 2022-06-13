@@ -420,4 +420,60 @@ class utils {
 
         return array_unique($qtypefileareas);
     }
+
+    /**
+     * We ignore various internal question states that aren't meaningful to users.
+     *
+     * @param \question_state $state a question state.
+     * @return bool whether to ignore.
+     */
+    protected static function is_ignored_question_state(\question_state $state): bool {
+        // We can't get default status string for those state, so skip them.
+        return $state === \question_state::$notstarted || $state === \question_state::$unprocessed;
+    }
+
+    /**
+     * Get the options to show in the 'Latest state' field of the filter form.
+     *
+     * @return array choices for the select menu. All, then the recognised question states.
+     */
+    public static function get_question_state_filter_options(): array {
+        $options = [report_display_options::LAST_ATTEMPT_STATUS_ALL => get_string('choosedots')];
+
+        foreach (\question_state::get_all() as $state) {
+            if (self::is_ignored_question_state($state)) {
+                continue;
+            }
+
+            $statestring = $state->default_string(true);
+            // Use the same for key and value, mainly so get_question_states_for_filter_option can work.
+            $options[$statestring] = $statestring;
+        }
+
+        return $options;
+    }
+
+    /**
+     * Several underlying question states may relate to one option in the dropdown. Get them all.
+     *
+     * @param string $wantedstate the state selected in the dropdown.
+     * @return array the names of the underlying question_states.
+     */
+    public static function get_question_states_for_filter_option(string $wantedstate): array {
+        $states = [];
+        foreach (\question_state::get_all() as $state) {
+            if (self::is_ignored_question_state($state)) {
+                continue;
+            }
+
+            $statestring = $state->default_string(true);
+            if ($statestring === $wantedstate) {
+                $states[] = (string) $state;
+            }
+        }
+
+        return $states;
+    }
+
+
 }

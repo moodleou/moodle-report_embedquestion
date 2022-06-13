@@ -27,6 +27,7 @@ namespace report_embedquestion\form;
 use context;
 use report_embedquestion\attempt_tracker;
 use report_embedquestion\report_display_options;
+use report_embedquestion\utils;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -73,7 +74,7 @@ class filter extends \moodleform {
 
         // Look back.
         $options = [
-            0 => get_string('choose'),
+            0 => get_string('choosedots'),
             DAYSECS => get_string('nday', 'report_embedquestion', 1),
             DAYSECS * 2 => get_string('ndays', 'report_embedquestion', 2),
             DAYSECS * 3 => get_string('ndays', 'report_embedquestion', 3),
@@ -97,6 +98,10 @@ class filter extends \moodleform {
         // Date to.
         $mform->addElement('date_selector', 'dateto', get_string('dateto', 'report_embedquestion'), ['optional' => true]);
         $mform->disabledIf('dateto', 'lookback', 'neq', 0);
+
+        // Last attempt status.
+        $mform->addElement('select', 'lastattemptstatus', get_string('latestattemptstatus', 'report_embedquestion'),
+                utils::get_question_state_filter_options());
 
         // Page size.
         $mform->addElement('text', 'pagesize', get_string('pagesize', 'mod_quiz'));

@@ -32,6 +32,9 @@ class report_display_options {
     /** @var int Number of attempts to show per page. */
     const DEFAULT_REPORT_PAGE_SIZE = 10;
 
+    /** @var string - Last attempt status for the filter. */
+    const LAST_ATTEMPT_STATUS_ALL = 'all';
+
     /** @var cm_info The course module objects. */
     public $cm;
     /** @var int Course id. */
@@ -58,6 +61,8 @@ class report_display_options {
     public $download = '';
     /** @var int Usage Id. */
     public $usageid;
+    /** @var string Last attempt status. */
+    public $lastattemptstatus = self::LAST_ATTEMPT_STATUS_ALL;
 
     /**
      * report_display_options constructor.
@@ -110,8 +115,8 @@ class report_display_options {
         if ($this->dateto) {
             $params['dateto'] = $this->dateto;
         }
-        if ($this->dateto) {
-            $params['dateto'] = $this->dateto;
+        if ($this->lastattemptstatus) {
+            $params['lastattemptstatus'] = $this->lastattemptstatus;
         }
 
         return $params;
@@ -162,6 +167,7 @@ class report_display_options {
         $toform->datefrom = $this->datefrom;
         $toform->dateto = $this->dateto;
         $toform->pagesize = $this->pagesize;
+        $toform->lastattemptstatus = $this->lastattemptstatus;
 
         return $toform;
     }
@@ -178,6 +184,7 @@ class report_display_options {
         $this->lookback = $fromform->lookback;
         $this->datefrom = $fromform->datefrom;
         $this->dateto = $fromform->dateto;
+        $this->lastattemptstatus = $fromform->lastattemptstatus;
         $this->pagesize = $fromform->pagesize;
     }
 
@@ -192,6 +199,7 @@ class report_display_options {
         $this->lookback = optional_param('lookback', 0, PARAM_INT);
         $this->datefrom = optional_param('datefrom', 0, PARAM_INT);
         $this->dateto = optional_param('dateto', 0, PARAM_INT);
+        $this->lastattemptstatus = optional_param('lastattemptstatus', self::LAST_ATTEMPT_STATUS_ALL, PARAM_TEXT);
     }
 
     /**

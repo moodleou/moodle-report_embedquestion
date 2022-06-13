@@ -172,6 +172,17 @@ Feature: Teachers can see their students progress on embedded questions.
     And I should not see "student2"
     And I should see "student4"
 
+  @javascript
+  Scenario: The teacher can filter the report by latest attempt status.
+    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
+    And I expand all fieldsets
+    And I should see "Latest attempt status"
+    And I set the field "Latest attempt status" to "Not yet answered"
+    And I click on "Show report" "button"
+    Then I should see "Embedded question progress for Course 1"
+    And I should see "Not yet answered" in the "Student D" "table_row"
+    And I should see "Not yet answered" in the "Student E" "table_row"
+
   Scenario: The teacher can view all the attempts of a specific student using 'Show all' link
     When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher"
     Then I should see "Show only" in the "student1" "table_row"

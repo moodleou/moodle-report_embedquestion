@@ -147,4 +147,21 @@ class report_embedquestion_latest_attempt_table_testcase extends \advanced_testc
         $expectedwhere = " AND r.contextid IN (:$keyparam1,:$keyparam2)";
         $this->assertStringContainsString($expectedwhere, $table->sql->where);
     }
+
+    /**
+     * Test the latest_attempt_table with last attempt status filter.
+     */
+    public function test_latest_attempt_table_filter_last_attempt_status() {
+        $this->displayoptions->lastattemptstatus = 'Correct'; // From 14 days ago.
+        $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
+        $keyparam1 = array_search('gradedright', $table->sql->params);
+        $keyparam2 = array_search('mangrright', $table->sql->params);
+        $expectedwhere = " AND qas.state IN (:$keyparam1,:$keyparam2)";
+
+        $this->assertStringContainsString('lastattemptstatus', $keyparam1);
+        $this->assertStringContainsString('lastattemptstatus', $keyparam2);
+        $this->assertArrayHasKey($keyparam1, $table->sql->params);
+        $this->assertArrayHasKey($keyparam2, $table->sql->params);
+        $this->assertStringContainsString($expectedwhere, $table->sql->where);
+    }
 }

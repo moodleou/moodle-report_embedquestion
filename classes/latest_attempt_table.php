@@ -418,6 +418,19 @@ class latest_attempt_table extends table_sql {
                 AND r.contextid $locationidssql";
             $this->sql->params = array_merge($this->sql->params, $params);
         }
+
+        // Last attempt state.
+        if (!empty($displayoption->lastattemptstatus) &&
+                $displayoption->lastattemptstatus !== report_display_options::LAST_ATTEMPT_STATUS_ALL) {
+
+            $states = utils::get_question_states_for_filter_option($displayoption->lastattemptstatus);
+
+            list($lastattempstatussql, $lastattempstatusparams) =
+                $DB->get_in_or_equal($states, SQL_PARAMS_NAMED, 'lastattemptstatus');
+            $this->sql->where .= "
+                AND qas.state $lastattempstatussql";
+            $this->sql->params = array_merge($this->sql->params, $lastattempstatusparams);
+        }
     }
 
     /**

@@ -108,9 +108,26 @@ class utils_test extends \advanced_testcase {
         $expected->datefrom = 0;
         $expected->dateto = 0;
         $expected->pagesize = report_display_options::DEFAULT_REPORT_PAGE_SIZE;
+        $expected->lastattemptstatus = report_display_options::LAST_ATTEMPT_STATUS_ALL;
 
         $displayoptions = new report_display_options($this->course->id, null);
         $actual = $displayoptions->get_initial_form_data();
         $this->assertEquals($expected, $actual);
+    }
+
+    public function test_get_question_state_filter_options() {
+        $result = utils::get_question_state_filter_options();
+        $this->assertArrayHasKey(\question_state::$gradedright->default_string(true), $result);
+        $this->assertArrayHasKey(\question_state::$complete->default_string(true), $result);
+    }
+
+    public function test_get_question_states_for_filter_option() {
+        $this->assertEquals(
+                [(string) \question_state::$gradedright, (string) \question_state::$mangrright],
+                utils::get_question_states_for_filter_option(\question_state::$gradedright->default_string(true)));
+
+        $this->assertEquals(
+                [(string) \question_state::$complete],
+                utils::get_question_states_for_filter_option(\question_state::$complete->default_string(true)));
     }
 }
