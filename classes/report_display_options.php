@@ -35,6 +35,9 @@ class report_display_options {
     /** @var string - Last attempt status for the filter. */
     const LAST_ATTEMPT_STATUS_ALL = 'all';
 
+    /** @var string - Question type for the filter. */
+    const QUESTION_TYPE_ALL = 'all';
+
     /** @var cm_info The course module objects. */
     public $cm;
     /** @var int Course id. */
@@ -63,6 +66,8 @@ class report_display_options {
     public $usageid;
     /** @var string Last attempt status. */
     public $lastattemptstatus = self::LAST_ATTEMPT_STATUS_ALL;
+    /** @var string Question type. */
+    public $questiontype = self::QUESTION_TYPE_ALL;
 
     /**
      * report_display_options constructor.
@@ -118,6 +123,9 @@ class report_display_options {
         if ($this->lastattemptstatus) {
             $params['lastattemptstatus'] = $this->lastattemptstatus;
         }
+        if ($this->questiontype) {
+            $params['questiontype'] = $this->questiontype;
+        }
 
         return $params;
     }
@@ -168,6 +176,7 @@ class report_display_options {
         $toform->dateto = $this->dateto;
         $toform->pagesize = $this->pagesize;
         $toform->lastattemptstatus = $this->lastattemptstatus;
+        $toform->questiontype = $this->questiontype;
 
         return $toform;
     }
@@ -186,6 +195,7 @@ class report_display_options {
         $this->dateto = $fromform->dateto;
         $this->lastattemptstatus = $fromform->lastattemptstatus;
         $this->pagesize = $fromform->pagesize;
+        $this->questiontype = $fromform->questiontype;
     }
 
     /**
@@ -200,6 +210,7 @@ class report_display_options {
         $this->datefrom = optional_param('datefrom', 0, PARAM_INT);
         $this->dateto = optional_param('dateto', 0, PARAM_INT);
         $this->lastattemptstatus = optional_param('lastattemptstatus', self::LAST_ATTEMPT_STATUS_ALL, PARAM_TEXT);
+        $this->questiontype = optional_param('questiontype', self::QUESTION_TYPE_ALL, PARAM_TEXT);
     }
 
     /**

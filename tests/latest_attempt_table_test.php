@@ -164,4 +164,19 @@ class report_embedquestion_latest_attempt_table_testcase extends \advanced_testc
         $this->assertArrayHasKey($keyparam2, $table->sql->params);
         $this->assertStringContainsString($expectedwhere, $table->sql->where);
     }
+
+    /**
+     * Test the latest_attempt_table with question type filter.
+     */
+    public function test_latest_attempt_table_filter_questiontypes() {
+        $this->displayoptions->questiontype = 'Record audio/video';
+        $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
+
+        $expectedwhere = " AND q.qtype = :questiontype";
+        $this->assertStringContainsString($expectedwhere, $table->sql->where);
+        $this->assertArrayHasKey('contextid', $table->sql->params);
+        $this->assertEquals($this->context->id, $table->sql->params['contextid']);
+        $this->assertArrayHasKey('questiontype', $table->sql->params);
+        $this->assertEquals($this->displayoptions->questiontype, $table->sql->params['questiontype']);
+    }
 }

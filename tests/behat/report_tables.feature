@@ -31,8 +31,10 @@ Feature: Teachers can see their students progress on embedded questions.
       | contextlevel | reference | name          | idnumber |
       | Course       | C1        | Test questions| embed    |
     And the following "questions" exist:
-      | questioncategory | qtype     | name           | idnumber |
-      | Test questions   | truefalse | First question | test1    |
+      | questioncategory | qtype     | name            | idnumber | template |
+      | Test questions   | truefalse | First question  | test1    |          |
+      | Test questions   | truefalse | Second question | test2    |          |
+      | Test questions   | recordrtc | Third question  | test3    | audio    |
     And the following "filter_embedquestion > Pages with embedded question" exist:
       | name        | idnumber | course | question    |
       | Test page 2 | page2    | C1     | embed/test1 |
@@ -40,6 +42,8 @@ Feature: Teachers can see their students progress on embedded questions.
     And "student1" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
       | C1:page1 | embed/test1 | True     |
+      | C1:page1 | embed/test2 | Fasle    |
+      | C1:page1 | embed/test3 |          |
     And "student2" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
       | C1:page1 | embed/test1 | False    |
@@ -226,3 +230,17 @@ Feature: Teachers can see their students progress on embedded questions.
     And "Test page 1" "autocomplete_selection" should exist
     And "Test page 2" "autocomplete_selection" should exist
     And the field "Page size" matches value "1"
+
+  @javascript
+  Scenario: The Embedded questions progress can filter question type.
+    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
+    When I set the field "Question types" to "True/False"
+    And I press "Show report"
+    Then I should see "First question"
+    And I should see "Second question"
+    And I should not see "Third question"
+    And I set the field "Question types" to "Record audio/video"
+    And I press "Show report"
+    And I should see "Third question"
+    And I should not see "First question"
+    And I should not see "Second question"

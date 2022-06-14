@@ -475,5 +475,19 @@ class utils {
         return $states;
     }
 
+    /**
+     * Get the options to show in the 'Question type' field of the filter form.
+     *
+     * @return array Choices for the select menu. All, then the recognised question types.
+     */
+    public static function get_qtype_names_filter_options(): array {
+        $options = [report_display_options::LAST_ATTEMPT_STATUS_ALL => get_string('choosedots')];
+        $createabletypes = \question_bank::get_creatable_qtypes();
 
+        foreach ($createabletypes as $qtypename => $qtype) {
+            $options[$qtypename] = $qtype->local_name();
+        }
+
+        return $options;
+    }
 }

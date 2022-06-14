@@ -431,6 +431,13 @@ class latest_attempt_table extends table_sql {
                 AND qas.state $lastattempstatussql";
             $this->sql->params = array_merge($this->sql->params, $lastattempstatusparams);
         }
+        // Question type.
+        if (!empty($displayoption->questiontype) &&
+            $displayoption->questiontype !== report_display_options::QUESTION_TYPE_ALL) {
+            $this->sql->where .= "
+                AND q.qtype = :questiontype";
+            $this->sql->params['questiontype'] = $displayoption->questiontype;
+        }
     }
 
     /**

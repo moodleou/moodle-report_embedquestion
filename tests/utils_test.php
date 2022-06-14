@@ -109,6 +109,7 @@ class utils_test extends \advanced_testcase {
         $expected->dateto = 0;
         $expected->pagesize = report_display_options::DEFAULT_REPORT_PAGE_SIZE;
         $expected->lastattemptstatus = report_display_options::LAST_ATTEMPT_STATUS_ALL;
+        $expected->questiontype = report_display_options::QUESTION_TYPE_ALL;
 
         $displayoptions = new report_display_options($this->course->id, null);
         $actual = $displayoptions->get_initial_form_data();
@@ -129,5 +130,11 @@ class utils_test extends \advanced_testcase {
         $this->assertEquals(
                 [(string) \question_state::$complete],
                 utils::get_question_states_for_filter_option(\question_state::$complete->default_string(true)));
+    }
+
+    public function test_get_qtype_names_filter_options() {
+        set_config('wordselect' . '_disabled', 1, 'question');
+        $expected = utils::get_qtype_names_filter_options();
+        $this->assertArrayNotHasKey('wordselect', $expected);
     }
 }

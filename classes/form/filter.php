@@ -99,6 +99,10 @@ class filter extends \moodleform {
         $mform->addElement('date_selector', 'dateto', get_string('dateto', 'report_embedquestion'), ['optional' => true]);
         $mform->disabledIf('dateto', 'lookback', 'neq', 0);
 
+        // Question types.
+        $mform->addElement('select', 'questiontype', get_string('questiontype', 'admin'),
+            utils::get_qtype_names_filter_options());
+
         // Last attempt status.
         $mform->addElement('select', 'lastattemptstatus', get_string('latestattemptstatus', 'report_embedquestion'),
                 utils::get_question_state_filter_options());
