@@ -133,8 +133,14 @@ class utils_test extends \advanced_testcase {
     }
 
     public function test_get_qtype_names_filter_options() {
-        set_config('wordselect' . '_disabled', 1, 'question');
+        // This test only works if a static cache question_bank::$questionconfig had not yet been populated.
+        // This cache is private, and there is no API to reset it, so we have to use reflection.
+        $ref = new \ReflectionProperty(\question_bank::class, 'questionconfig');
+        $ref->setAccessible(true);
+        $ref->setValue(null);
+
+        set_config('multichoice' . '_disabled', 1, 'question');
         $expected = utils::get_qtype_names_filter_options();
-        $this->assertArrayNotHasKey('wordselect', $expected);
+        $this->assertArrayNotHasKey('multichoice', $expected);
     }
 }
