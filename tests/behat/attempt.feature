@@ -164,6 +164,21 @@ Feature: Testing attempt detail view and delete feature
     And I should not see "student2"
 
   @javascript
+  Scenario: The 'Download all response files' button is enabled for all the question type.
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
+    Then "Download all response files" "button" should exist
+    And the "Download all response files" "button" should be enabled
+    And "Download selected response files" "button" should exist
+    And the "Download selected response files" "button" should be disabled
+
+  @javascript
+  Scenario: The 'Download selected response files' button is enabled for all the question type.
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
+    And I click on "Select attempt" "checkbox" in the "student1" "table_row"
+    Then "Download selected response files" "button" should exist
+    And the "Download selected response files" "button" should be enabled
+
+  @javascript
   Scenario: A teacher can download their students progress in an activity for question type essay
     Given the following "questions" exist:
       | questioncategory | qtype | name            | idnumber | template         |
@@ -171,21 +186,12 @@ Feature: Testing attempt detail view and delete feature
     And "student1" has attempted embedded questions in "activity" context "page2":
       | pagename | question    | response                                                         |
       | C1:page2 | embed/test2 | <p>The <b>cat</b> sat on the mat. Then it ate a <b>frog</b>.</p> |
-    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
-    Then "Download all response files" "button" should not exist
-    And "Download selected response files" "button" should not exist
-    And I log out
-    And I am on the "page2" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
-    And "Download all response files" "button" should exist
-    And "Download selected response files" "button" should exist
-    And the "Download selected response files" "button" should be disabled
+    When I am on the "page2" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
     And I click on "Select attempt" "checkbox" in the "student1" "table_row"
-    And the "Download selected response files" "button" should be enabled
     And I click on "Download selected response files" "button"
-    And I should see "Download zip or export the response files"
-    And I should see "Download to device"
+    Then I should see "Download to device"
     And "Download to device" "link" should exist
-    And following "Download to device" should download between "1" and "300" bytes
+    And following "Download to device" should download between "1" and "500000" bytes
 
   @javascript
   Scenario: A teacher can download their students progress in an activity for question type recordrtc
@@ -197,16 +203,11 @@ Feature: Testing attempt detail view and delete feature
       | pagename | question    | response |
       | C1:page3 | embed/test3 |          |
     When I am on the "page3" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
-    Then "Download all response files" "button" should exist
-    And "Download selected response files" "button" should exist
-    And the "Download selected response files" "button" should be disabled
     And I click on "Select attempt" "checkbox" in the "student1" "table_row"
-    And the "Download selected response files" "button" should be enabled
     And I click on "Download selected response files" "button"
-    And I should see "Download zip or export the response files"
-    And I should see "Download to device"
+    Then I should see "Download to device"
     And "Download to device" "link" should exist
-    And following "Download to device" should download between "1" and "40000" bytes
+    And following "Download to device" should download between "1" and "3000000" bytes
 
   @javascript
   Scenario: A teacher can download their students previous finished attempt progress in an activity for question type recordrtc
@@ -235,10 +236,34 @@ Feature: Testing attempt detail view and delete feature
     And I should see "Download zip or export the response files"
     And I should see "Download to device"
     And "Download to device" "link" should exist
-    And following "Download to device" should download between "1" and "40000" bytes
+    And following "Download to device" should download between "1" and "3000000" bytes
 
   @javascript
   Scenario: Teacher can see custom user fields columns as additional user identity
     When I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "admin"
     Then I should see "chocolate frog" in the "student1" "table_row"
     And I should see "crisps" in the "student2" "table_row"
+
+  @javascript
+  Scenario: A teacher can download their students progress in an activity for all question type.
+    Given I check the "truefalse" question type already installed for embed question
+    And the following "questions" exist:
+      | questioncategory | qtype     | name           | idnumber |
+      | Test questions   | truefalse | First question | test1    |
+    And "student1" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response |
+      | C1:page1 | embed/test1 |          |
+    And "student2" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response |
+      | C1:page1 | embed/test1 |          |
+    And "student3" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response |
+      | C1:page1 | embed/test1 |          |
+    And "tutor1" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response |
+      | C1:page1 | embed/test1 |          |
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
+    And I click on "Download all response files" "button"
+    Then I should see "Download to device"
+    And "Download to device" "link" should exist
+    And following "Download to device" should download between "1" and "3000000" bytes

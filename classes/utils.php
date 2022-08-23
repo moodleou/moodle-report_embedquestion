@@ -404,24 +404,6 @@ class utils {
     }
 
     /**
-     * Return an array listing all response file area names of the question.
-     *
-     * @return array List of response file area names.
-     */
-    public static function get_qtype_fileareas(): array {
-        $qtypefileareas = [];
-
-        foreach (\question_bank::get_all_qtypes() as $qtype) {
-            $areas = $qtype->response_file_areas();
-            foreach ($areas as $area) {
-                $qtypefileareas[] = $area;
-            }
-        }
-
-        return array_unique($qtypefileareas);
-    }
-
-    /**
      * We ignore various internal question states that aren't meaningful to users.
      *
      * @param \question_state $state a question state.
