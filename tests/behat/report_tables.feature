@@ -6,13 +6,13 @@ Feature: Teachers can see their students progress on embedded questions.
 
   Background:
     Given the following "users" exist:
-      | username | firstname | lastname| idnumber | phone1      |
-      | student1 | Student   |    A    |    s1    | 12345678911 |
-      | student2 | Student   |    B    |    s2    | 12345678811 |
-      | student3 | Student   |    C    |    s3    | 12345678711 |
-      | student4 | Student   |    D    |    s4    | 12345678611 |
-      | student5 | Student   |    E    |    s5    | 12345678611 |
-      | teacher  | Teacher   |    F    |    t1    | 12345678511 |
+      | username | firstname | lastname | idnumber | phone1      |
+      | student1 | Student   | A        | s1       | 12345678911 |
+      | student2 | Student   | B        | s2       | 12345678811 |
+      | student3 | Student   | C        | s3       | 12345678711 |
+      | student4 | Student   | D        | s4       | 12345678611 |
+      | student5 | Student   | E        | s5       | 12345678611 |
+      | teacher  | Teacher   | F        | t1       | 12345678511 |
     And the following "courses" exist:
       | fullname | shortname |
       | Course 1 | C1        |
@@ -28,8 +28,8 @@ Feature: Teachers can see their students progress on embedded questions.
       | activity | name        | idnumber | course |
       | page     | Test page 1 | page1    | C1     |
     And the following "question categories" exist:
-      | contextlevel | reference | name          | idnumber |
-      | Course       | C1        | Test questions| embed    |
+      | contextlevel | reference | name           | idnumber |
+      | Course       | C1        | Test questions | embed    |
     And the following "questions" exist:
       | questioncategory | qtype     | name            | idnumber | template |
       | Test questions   | truefalse | First question  | test1    |          |
@@ -59,8 +59,8 @@ Feature: Teachers can see their students progress on embedded questions.
       | Course:Course 1 | embed/test1 | True     |
     And "student5" has started embedded question "embed/test1" in "activity" context "page2"
     And the following "permission overrides" exist:
-      | capability                                   | permission | role    | contextlevel | reference |
-      | moodle/site:viewuseridentity                 | Allow      | student | System       |           |
+      | capability                   | permission | role    | contextlevel | reference |
+      | moodle/site:viewuseridentity | Allow      | student | System       |           |
     And the following config values are set as admin:
       | showuseridentity | username |
 
@@ -127,14 +127,14 @@ Feature: Teachers can see their students progress on embedded questions.
     Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "admin"
     And I should see "Embedded question progress for Test page"
     And the following config values are set as admin:
-      | showuseridentity | |
+      | showuseridentity |  |
     And I reload the page
     And I should not see "student1" in the "Student A" "table_row"
     And I should not see "s1" in the "Student A" "table_row"
     And I should not see "student1@gmail.com" in the "Student A" "table_row"
     And I should not see "12345678911" in the "Student A" "table_row"
     And the following config values are set as admin:
-    | showuseridentity | username,idnumber,email,phone1 |
+      | showuseridentity | username,idnumber,email,phone1 |
     And I reload the page
     And I should see "student1" in the "Student A" "table_row"
     And I should see "s1" in the "Student A" "table_row"

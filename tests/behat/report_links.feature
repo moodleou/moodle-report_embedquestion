@@ -21,8 +21,8 @@ Feature: Testing the Embedded questions progress link
       | activity | name      | idnumber | course |
       | page     | Test page | page1    | C1     |
     And the following "question categories" exist:
-      | contextlevel | reference | name          | idnumber |
-      | Course       | C1        | Test questions| embed    |
+      | contextlevel | reference | name           | idnumber |
+      | Course       | C1        | Test questions | embed    |
     And the following "questions" exist:
       | questioncategory | qtype     | name           | idnumber |
       | Test questions   | truefalse | First question | test1    |

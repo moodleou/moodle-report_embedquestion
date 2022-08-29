@@ -8,8 +8,8 @@ Feature: Testing attempt detail view and delete feature
       | fullname | shortname |
       | Course 1 | C1        |
     And the following "custom profile fields" exist:
-      | datatype | shortname  | name      |
-      | text     | food       | Fave food |
+      | datatype | shortname | name      |
+      | text     | food      | Fave food |
     And the following "users" exist:
       | username | firstname | lastname | email                | profile_field_food |
       | teacher1 | Teacher   | 1        | teacher1@example.com | bouillabaisse      |
@@ -123,10 +123,7 @@ Feature: Testing attempt detail view and delete feature
     Given the following "permission overrides" exist:
       | capability                           | permission | role    | contextlevel | reference |
       | report/embedquestion:deletemyattempt | Prevent    | student | Course       | C1        |
-    When I log in as "student2"
-    And I am on "Course 1" course homepage
-    And I follow "Test page"
-    And I navigate to "Embedded questions progress" in current page administration
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
     Then "Select attempt" "checkbox" should not exist in the "student2" "table_row"
     And "Delete selected attempts" "button" should exist
 
