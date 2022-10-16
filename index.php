@@ -27,6 +27,7 @@ require(__DIR__ . '/../../config.php');
 use report_embedquestion\event\course_report_viewed;
 use report_embedquestion\utils;
 use report_embedquestion\local\report\progress_report;
+use core\report_helper;
 
 $courseid = required_param('courseid', PARAM_INT);
 $groupid = optional_param('groupid', 0, PARAM_INT);
@@ -76,6 +77,9 @@ if (!$download) {
     $renderer = $PAGE->get_renderer('report_embedquestion');
 
     echo $OUTPUT->header();
+    // Print the selected dropdown.
+    $pluginname = get_string('pluginname', 'report_embedquestion');
+    report_helper::print_report_selector($pluginname);
     echo $renderer->report_heading($title);
     if ($userid && has_capability('report/embedquestion:viewallprogress', $context)) {
         echo $renderer->render_show_only_heading($showonly, $report->get_full_url_report());

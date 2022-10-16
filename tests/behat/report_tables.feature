@@ -66,7 +66,9 @@ Feature: Teachers can see their students progress on embedded questions.
 
   Scenario: A teacher can see their students progress in a course
     Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
-    Then I should see "Embedded question progress for Course 1"
+    Then the "jump" select box should contain "Embedded questions progress"
+    And "Embedded questions progress" "text" should exist
+    And I should see "Embedded question progress for Course 1"
     And ".groupselector" "css_element" should not exist
     And I should see "Download table data as"
     And I should see "student1"
