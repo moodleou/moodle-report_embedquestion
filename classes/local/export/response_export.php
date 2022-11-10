@@ -286,7 +286,7 @@ class response_export {
         // Load HTML and suppress any parsing errors (DOMDocument->loadHTML() does not current support HTML5 tags).
         $dom = new DOMDocument();
         libxml_use_internal_errors(true);
-        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $bodystring);
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $bodystring, LIBXML_HTML_NODEFDTD );
         libxml_clear_errors();
         // Find all tags.
         foreach ($tags as $tag) {

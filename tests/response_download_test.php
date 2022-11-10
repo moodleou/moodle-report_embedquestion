@@ -241,8 +241,7 @@ class response_download_test extends \advanced_testcase {
                 '<p>This is broken but it might happen when HTML without closing p tag:
                     <img class="icon " alt="Correct"
                     title="Correct" src="https://192.168.216.49/OU1422/theme/image.php/osep/core/1665974909/i/grade_correct">',
-                '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<?xml encoding="utf-8" ?><html><body><p>This is broken but it might happen when HTML without closing p tag:
+                '<?xml encoding="utf-8" ?><html><body><p>This is broken but it might happen when HTML without closing p tag:
                     <img class="icon " alt="Correct" title="Correct" src="./grade_correct.svg"></p></body></html>
 '],
             'Valid HTML with closing p tag' => [
@@ -250,8 +249,7 @@ class response_download_test extends \advanced_testcase {
                     <img class="icon " alt="Correct"
                     title="Correct" src="https://192.168.216.49/OU1422/theme/image.php/osep/core/1665974909/i/grade_correct">
                 </p>',
-                '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<?xml encoding="utf-8" ?><html><body><p>This is valid HTML via closing p tag:
+                '<?xml encoding="utf-8" ?><html><body><p>This is valid HTML via closing p tag:
                     <img class="icon " alt="Correct" title="Correct" src="./grade_correct.svg">
                 </p></body></html>
 '],
@@ -262,8 +260,7 @@ class response_download_test extends \advanced_testcase {
                         <source src="https://192.168.216.49/OU1422/draftfile.php/5/user/draft/922115512/recording.mp3">
                     </audio>
                 </span>',
-                '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<?xml encoding="utf-8" ?><html><body><span class="qtype_recordrtc-media-player flex-grow-1">
+                '<?xml encoding="utf-8" ?><html><body><span class="qtype_recordrtc-media-player flex-grow-1">
                     <p>This is audio tag that is not supported in DOMDocument. We hide the warning messages when rendering.</p>
                     <audio controls="" class="w-100, mw-100">
                         <source src="./recording.mp3">
@@ -277,8 +274,7 @@ class response_download_test extends \advanced_testcase {
                         <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
                     </svg>
                 </span>',
-                '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<?xml encoding="utf-8" ?><html><body><span class="filter_oumaths_equation filter_oumaths_svg">
+                '<?xml encoding="utf-8" ?><html><body><span class="filter_oumaths_equation filter_oumaths_svg">
                     <p>This is SVG tag that is not supported in DOMDocument. We hide the warning messages when rendering.</p>
                     <svg width="100" height="100">
                         <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow"></circle>
