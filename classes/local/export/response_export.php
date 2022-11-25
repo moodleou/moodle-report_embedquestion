@@ -51,6 +51,15 @@ class response_export {
     /** @var string The pre-loaded css content. */
     protected $csscontent = '';
 
+    /** @var array The list of question types have javascript need to include. */
+    const QUESTION_TYPES_HAVE_JS = ['ddmarker', 'ddimageortext', 'ddwtos', 'crossword', 'pmatch'];
+
+    /** @var context The context of the course. */
+    protected $coursecontext;
+
+    /** @var stdClass course object */
+    protected $course;
+
     /**
      * Return an array listing all the question types which might have response files.
      *
@@ -89,10 +98,11 @@ class response_export {
      */
     public static function get_response_zip_file_info(array $questionusageids, context $context, int $userid): array {
         global $CFG, $DB, $PAGE;
+        $self = new self();
 
-        $coursecontext = $context->get_course_context();
-        $course = get_course($coursecontext->instanceid);
-        $zipfilename = self::get_export_file_name($course, $context->get_context_name(false, false));
+        $self->coursecontext = $context->get_course_context();
+        $self->course = get_course($self->coursecontext->instanceid);
+        $zipfilename = self::get_export_file_name($self->course, $context->get_context_name(false, false));
 
         // Cache folder.
         $cachefolder = $CFG->dataroot . '/cache/report_embedquestion/download';
@@ -108,7 +118,6 @@ class response_export {
         $ziparchive->open($filepath);
 
         // Generate the css content first.
-        $self = new self();
         if (!$self->csscontent = $PAGE->theme->get_css_cached_content()) {
             $self->csscontent = $PAGE->theme->get_css_content();
         }
@@ -181,11 +190,18 @@ class response_export {
      */
     public function render_question_to_html_in_zip(zip_archive $ziparchive, string $filedirectory,
             \question_usage_by_activity $quba, \question_attempt $qa): void {
-        global $PAGE;
+        global $OUTPUT, $PAGE;
 
-        $behaviouroutput = $PAGE->get_renderer(get_class($qa->get_behaviour()));
-        $qtoutput = \quiz_answersheets\utils::get_question_renderer($PAGE, $qa);
-        $qoutput = $PAGE->get_renderer('quiz_answersheets', 'core_question_override');
+        $page = new \moodle_page();
+        $page->set_context($this->coursecontext);
+        $page->set_course($this->course);
+        $page->set_pagelayout('report');
+        $page->set_pagetype('report-embedquestion-activity');
+        $page->set_url($PAGE->url);
+
+        $behaviouroutput = $page->get_renderer(get_class($qa->get_behaviour()));
+        $qtoutput = \quiz_answersheets\utils::get_question_renderer($page, $qa);
+        $qoutput = $page->get_renderer('quiz_answersheets', 'core_question_override');
         $displayoption = new \question_display_options();
         $questionname = self::format_filename($qa->get_question()->name);
         if (\quiz_answersheets\utils::should_show_combined_feedback($qa->get_question()->get_type_name())) {
@@ -197,18 +213,27 @@ class response_export {
 
         $bodystring = $qoutput->question($qa, $behaviouroutput, $qtoutput, $displayoption, 0);
         $bodystring = $this->replace_resource_urls($bodystring, self::HTML_TAGS_WITH_SRC);
+        $jshead = $jstopbody = $jsendcode = '';
+        if (in_array($qa->get_question()->get_type_name(), self::QUESTION_TYPES_HAVE_JS)) {
+            $jshead = $page->requires->get_head_code($page, $OUTPUT);
+            $jstopbody = $page->requires->get_top_of_body_code($OUTPUT);
+            $jsendcode = $page->requires->get_end_code();
+        }
 
         $htmlstring = "<!DOCTYPE html>
                 <html lang='en'>
                 <head>
                     <title>$questionname</title>
                     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+                    $jshead
                     <style>
                         $this->csscontent
                     </style>
                 </head>
                 <body style='padding: 0 15px'>
+                    $jstopbody
                     $bodystring
+                    $jsendcode
                 </body>
                 </html>";
 
