@@ -147,7 +147,7 @@ class attempt_summary_table extends table_sql {
         }
         /** @var \report_embedquestion\output\renderer $renderer */
         $renderer = $PAGE->get_renderer('report_embedquestion');
-        return $renderer->render_grade_link($attempt, $this->cm->id, $this->courseid);
+        return $renderer->render_grade_link($attempt, $this->cm->id ?? null, $this->courseid);
     }
 
     /**
@@ -192,7 +192,7 @@ class attempt_summary_table extends table_sql {
 
         $this->sql->from =
                 "{report_embedquestion_attempt} r
-                JOIN {context} cxt ON cxt.id = r.contextid
+                JOIN {context} ctx ON ctx.id = r.contextid
 
                 JOIN {user} u ON u.id = r.userid
                 $userfieldssql->joins

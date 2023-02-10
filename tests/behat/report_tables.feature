@@ -159,7 +159,7 @@ Feature: Teachers can see their students progress on embedded questions.
     And I should see "student1"
     And I should see "student2"
     And I should not see "student4"
-    And I click on "A" "link" in the ".initialbar.lastinitial" "css_element"
+    And I click on "A" "link" in the ".initialbar.lastinitial .page-item.A" "css_element"
     And I should see "Student A"
     And I should not see "Student B"
     And I should not see "Student D"

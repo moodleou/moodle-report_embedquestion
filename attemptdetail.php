@@ -28,29 +28,51 @@ require(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 require_once($CFG->dirroot . '/question/engine/datalib.php');
 
-$cmid = required_param('cmid', PARAM_INT);
+$cmid = optional_param('cmid', null, PARAM_INT);
+$courseid = optional_param('courseid', null, PARAM_INT);
 $attemptid = required_param('attempt', PARAM_INT);
 
-list ($course, $cm) = get_course_and_cm_from_cmid($cmid);
+if (is_null($cmid) && is_null($courseid)) {
+    throw new moodle_exception('missingparam', '', '', 'courseid or cmid');
+}
+
+if ($cmid) {
+    [$course, $cm] = get_course_and_cm_from_cmid($cmid);
+    $context = context_module::instance($cm->id);
+    $url = new moodle_url('/report/embedquestion/attemptdetail.php',
+        ['cmid' => $cm->id, 'attempt' => $attemptid]);
+} else {
+    $course = get_course($courseid);
+    $cm = null;
+    $context = context_course::instance($courseid);
+    $url = new moodle_url('/report/embedquestion/attemptdetail.php',
+        ['courseid' => $courseid, 'attempt' => $attemptid]);
+}
+
 $qa = (new question_engine_data_mapper())->load_question_attempt($attemptid);
 $attemptinfo = $DB->get_record('report_embedquestion_attempt', ['questionusageid' => $qa->get_usage_id()], '*', MUST_EXIST);
 $userattemptid = $attemptinfo->userid;
 
 require_login($course, false, $cm);
-$context = context_module::instance($cm->id);
-
 $pagetitle = get_string('attempt-detail-page', 'report_embedquestion');
 
-$url = new moodle_url('/report/embedquestion/attemptdetail.php',
-        ['cmid' => $cm->id,
-                'attempt' => $attemptid]);
 $title = utils::get_title($context);
 $PAGE->set_url($url);
 $PAGE->set_pagelayout('popup');
-$PAGE->navbar->add($title, new moodle_url('/report/embedquestion/activity.php', ['cmid' => $cmid]));
-$PAGE->navbar->add(get_string('page-report-embedquestion-progress-detail', 'report_embedquestion'),
+
+// Set the navbar.
+if (is_null($cmid)) {
+    $PAGE->navbar->add($title, new moodle_url('/report/embedquestion/index.php', ['courseid' => $courseid]));
+    $PAGE->navbar->add(get_string('page-report-embedquestion-progress-detail', 'report_embedquestion'),
+        new moodle_url('/report/embedquestion/index.php',
+            ['courseid' => $courseid, 'userid' => $userattemptid, 'usageid' => $qa->get_usage_id()]));
+} else {
+    $PAGE->navbar->add($title, new moodle_url('/report/embedquestion/activity.php', ['cmid' => $cmid]));
+    $PAGE->navbar->add(get_string('page-report-embedquestion-progress-detail', 'report_embedquestion'),
         new moodle_url('/report/embedquestion/activity.php',
-                ['cmid' => $cmid, 'userid' => $userattemptid, 'usageid' => $qa->get_usage_id()]));
+            ['cmid' => $cmid, 'userid' => $userattemptid, 'usageid' => $qa->get_usage_id()]));
+}
+
 $PAGE->navbar->add(get_string('attempt-detail-page', 'report_embedquestion'), $url);
 
 if (!has_capability('report/embedquestion:viewallprogress', $context)) {

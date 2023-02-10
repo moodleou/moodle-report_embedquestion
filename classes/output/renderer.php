@@ -110,14 +110,20 @@ class renderer extends plugin_renderer_base {
      * @return string HTML string.
      */
     public function render_grade_link($attempt, $cmid, $courseid): string {
-        $url = new moodle_url('/report/embedquestion/attemptdetail.php',
-                ['cmid' => $cmid,
-                        'attempt' => $attempt->questionattemptid]);
+
+        $params = ['attempt' => $attempt->questionattemptid];
+
+        if (is_null($cmid)) {
+            $params['courseid'] = $courseid;
+        } else {
+            $params['cmid'] = $cmid;
+        }
+        $url = new moodle_url('/report/embedquestion/attemptdetail.php', $params);
 
         $attempturl = html_writer::link(
-                $url, utils::get_grade($courseid, $attempt->fraction, $attempt->maxmark),
-                ['target' => '_blank',
-                        'title' => get_string('attempt-detail-page', 'report_embedquestion')]);
+            $url, utils::get_grade($courseid, $attempt->fraction, $attempt->maxmark),
+            ['target' => '_blank',
+                'title' => get_string('attempt-detail-page', 'report_embedquestion')]);
 
         return $attempturl;
     }
