@@ -143,4 +143,56 @@ class utils_test extends \advanced_testcase {
         $expected = utils::get_qtype_names_filter_options();
         $this->assertArrayNotHasKey('multichoice', $expected);
     }
+
+    /**
+     * Test get attempt summary link function.
+     *
+     * @dataProvider test_get_attempt_summary_link_provider
+     * @covers \util::get_attempt_summary_link
+     *
+     * @param object $attempt The attempt object.
+     * @param string $expectedurl The expected url link.
+     */
+    public function test_get_attempt_summary_link(object $attempt, string $expectedurl) {
+        $this->setTimezone('UTC');
+        $actual = \report_embedquestion\utils::get_attempt_summary_link($attempt);
+        $this->assertEquals($expectedurl, $actual);
+    }
+
+    /**
+     * Data provider for test_get_attempt_summary_link() test cases.
+     *
+     * @coversNothing
+     * @return array List of data sets (test cases)
+     */
+    public function test_get_attempt_summary_link_provider() {
+        return [
+            'Course' => [
+                (object) [
+                    'pageurl' => '/course/view.php?id=4',
+                    'contextlevel' => CONTEXT_COURSE,
+                    'userid' => '3',
+                    'instanceid' => '4',
+                    'questionusageid' => '470',
+                    'questionattemptsteptime' => 1675326072,
+                ],
+                '<a title="Attempt summary" href=' .
+                    '"https://www.example.com/moodle/report/embedquestion/index.php?courseid=4&amp;userid=3&amp;usageid=470">' .
+                        'Thursday, 2 February 2023, 8:21 AM</a>',
+            ],
+            'Activity' => [
+                (object) [
+                    'pageurl' => '/mod/page/view.php?id=30',
+                    'contextlevel' => CONTEXT_MODULE,
+                    'userid' => '4',
+                    'instanceid' => '30',
+                    'questionusageid' => '477',
+                    'questionattemptsteptime' => 1675241978,
+                ],
+                '<a title="Attempt summary" href=' .
+                    '"https://www.example.com/moodle/report/embedquestion/activity.php?cmid=30&amp;userid=4&amp;usageid=477">' .
+                        'Wednesday, 1 February 2023, 8:59 AM</a>',
+            ],
+        ];
+    }
 }

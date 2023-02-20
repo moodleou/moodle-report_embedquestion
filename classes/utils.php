@@ -198,44 +198,36 @@ class utils {
 
     /**
      * Return the activity link.
-     * @param $attempt
-     * @return string
+     * @param object $attempt The attempt object
+     * @return string HTML activity link.
      */
-    public static function get_activity_link($attempt) {
-        global $CFG;
-        $url = \html_writer::link($CFG->wwwroot . $attempt->pageurl . '#' .
-                embed_id::create_from_string($attempt->embedid)->to_html_id(), $attempt->pagename);
+    public static function get_activity_link(object $attempt): string {
+        $url = new moodle_url($attempt->pageurl);
+        $url = \html_writer::link($url->out() . '#' .
+            embed_id::create_from_string($attempt->embedid)->to_html_id(), $attempt->pagename);
         return $url;
     }
 
     /**
      * Return attempt summary link.
-     * @param object $attempt, the attempt object
-     * @param int $usageid, the question usageid
-     * @return string
+     *
+     * @param object $attempt The attempt object
+     * @param int $usageid The question usageid
+     * @return string Question attempt time or attempt summary link.
      */
-    public static function get_attempt_summary_link($attempt, $usageid = 0) {
-        global $CFG;
-        $id = explode('=', $attempt->pageurl)[1];
-        if (explode(':', $attempt->pagename)[0] === 'Course') {
-            $url = $CFG->wwwroot . '/report/embedquestion/index.php?courseid=' . $id;
+    public static function get_attempt_summary_link(object $attempt, int $usageid = 0): string {
+        if ($attempt->contextlevel == CONTEXT_COURSE) {
+            $url = new moodle_url('/report/embedquestion/index.php', ['courseid' => $attempt->instanceid]);
         } else {
-            $paramstring = '?cmid=' . $id;
-            $url = $CFG->wwwroot . '/report/embedquestion/activity.php?cmid=' . $id;
+            $url = new moodle_url('/report/embedquestion/activity.php', ['cmid' => $attempt->instanceid]);
         }
-        $options = [
-            'userid' => $attempt->userid,
-            'usageid' => $attempt->questionusageid,
-        ];
-        $paramstring = '';
-        foreach ($options as $key => $option) {
-            $paramstring .= '&' . $key . '=' . $option;
-        }
+        $url->param('userid', $attempt->userid);
+        $url->param('usageid', $attempt->questionusageid);
 
         $formatteddate = userdate($attempt->questionattemptsteptime);
 
-        $url = \html_writer::link($url . $paramstring, $formatteddate,
-                ['title' => get_string('attemptsummary', 'report_embedquestion')]);
+        $url = \html_writer::link($url, $formatteddate,
+            ['title' => get_string('attemptsummary', 'report_embedquestion')]);
         if ($usageid > 0) {
             return $formatteddate;
         }

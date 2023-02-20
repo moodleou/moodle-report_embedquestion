@@ -329,7 +329,9 @@ class latest_attempt_table extends table_sql {
                 r.questionusageid,
                 r.embedid,
                 r.pagename,
-                r.pageurl" .
+                r.pageurl,
+                ctx.contextlevel,
+                ctx.instanceid" .
                 $userfieldssql->selects;
 
         $this->sql->from =
