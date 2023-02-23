@@ -236,12 +236,12 @@ Feature: Teachers can see their students progress on embedded questions.
   @javascript
   Scenario: The Embedded questions progress can filter question type.
     Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
-    When I set the field "Question types" to "True/False"
+    When I set the field "Question type" to "True/False"
     And I press "Show report"
     Then I should see "First question"
     And I should see "Second question"
     And I should not see "Third question"
-    And I set the field "Question types" to "Record audio/video"
+    And I set the field "Question type" to "Record audio/video"
     And I press "Show report"
     And I should see "Third question"
     And I should not see "First question"

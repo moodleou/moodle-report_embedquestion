@@ -22,6 +22,7 @@ use filter_embedquestion\embed_id;
 use html_writer;
 use moodle_url;
 use user_picture;
+use stdClass;
 
 /**
  * Helper functions for report_embedquestion.
@@ -36,7 +37,7 @@ class utils {
      * Used at the top of the drill-down for a single question. Give more info about the location.
      *
      * @param int $courseid, the course id
-     * @param object $attempt the question attempt object
+     * @param stdClass $attempt the question attempt object
      * @return string
      */
     public static function get_embed_location_summary($courseid, $attempt) {
@@ -198,24 +199,22 @@ class utils {
 
     /**
      * Return the activity link.
-     * @param object $attempt The attempt object
+     * @param stdClass $attempt row of data from the queries used to build the report tables.
      * @return string HTML activity link.
      */
-    public static function get_activity_link(object $attempt): string {
+    public static function get_activity_link(stdClass $attempt): string {
         $url = new moodle_url($attempt->pageurl);
-        $url = \html_writer::link($url->out() . '#' .
-            embed_id::create_from_string($attempt->embedid)->to_html_id(), $attempt->pagename);
-        return $url;
+        $url->set_anchor(embed_id::create_from_string($attempt->embedid)->to_html_id());
+        return \html_writer::link($url->out(), $attempt->pagename);;
     }
 
     /**
      * Return attempt summary link.
      *
-     * @param object $attempt The attempt object
-     * @param int $usageid The question usageid
+     * @param stdClass $attempt row of data from the queries used to build the report tables.
      * @return string Question attempt time or attempt summary link.
      */
-    public static function get_attempt_summary_link(object $attempt, int $usageid = 0): string {
+    public static function get_attempt_summary_link(stdClass $attempt): string {
         if ($attempt->contextlevel == CONTEXT_COURSE) {
             $url = new moodle_url('/report/embedquestion/index.php', ['courseid' => $attempt->instanceid]);
         } else {
@@ -224,14 +223,8 @@ class utils {
         $url->param('userid', $attempt->userid);
         $url->param('usageid', $attempt->questionusageid);
 
-        $formatteddate = userdate($attempt->questionattemptsteptime);
-
-        $url = \html_writer::link($url, $formatteddate,
+        return \html_writer::link($url, userdate($attempt->questionattemptsteptime),
             ['title' => get_string('attemptsummary', 'report_embedquestion')]);
-        if ($usageid > 0) {
-            return $formatteddate;
-        }
-        return $url;
     }
 
     /**
@@ -382,11 +375,11 @@ class utils {
     /**
      * Display a user's name along with their identity field values (if any).
      *
-     * @param \stdClass $user user object.
+     * @param stdClass $user user object.
      * @param array $info identity field values to show.
      * @return string for display (not escaped).
      */
-    public static function get_user_display(\stdClass $user, array $info): string {
+    public static function get_user_display(stdClass $user, array $info): string {
         if ($info) {
             return get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
                     ['fullname' => fullname($user), 'info' => implode(', ', $info)]);

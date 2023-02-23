@@ -61,7 +61,7 @@ class utils_test extends \advanced_testcase {
         $attempt->embedid = $catid . '/' . $question->idnumber;
         $embedid = $attempt->embedid;
         $expected = "<a href=\"https://www.example.com/moodle/mod/page/view.php?id=$cmid#$embedid\">$attempt->pagename</a>";
-        $actual = \report_embedquestion\utils::get_activity_link($attempt);
+        $actual = utils::get_activity_link($attempt);
         $this->assertEquals($expected, $actual);
     }
 
@@ -71,7 +71,7 @@ class utils_test extends \advanced_testcase {
         $userid = $user->id;
         $username = $user->username;
         $expected = "<a href=\"https://www.example.com/moodle/user/view.php?id=$userid&amp;course=$courseid\">$username</a>";
-        $actual = \report_embedquestion\utils::get_user_link($this->course->id, $user->id, $user->username);
+        $actual = utils::get_user_link($this->course->id, $user->id, $user->username);
         $this->assertEquals($expected, $actual);
     }
 
@@ -155,7 +155,7 @@ class utils_test extends \advanced_testcase {
      */
     public function test_get_attempt_summary_link(object $attempt, string $expectedurl) {
         $this->setTimezone('UTC');
-        $actual = \report_embedquestion\utils::get_attempt_summary_link($attempt);
+        $actual = utils::get_attempt_summary_link($attempt);
         $this->assertEquals($expectedurl, $actual);
     }
 

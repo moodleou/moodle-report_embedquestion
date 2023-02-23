@@ -160,7 +160,7 @@ class attempt_summary_table extends table_sql {
         if ($this->is_downloading()) {
             return $attempt->questionattemptstepid;
         }
-        return utils::get_attempt_summary_link($attempt, $this->usageid);
+        return userdate($attempt->questionattemptsteptime);
     }
 
     /**
