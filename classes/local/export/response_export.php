@@ -97,18 +97,15 @@ class response_export {
      * @return array [file => File name, size => File size]
      */
     public static function get_response_zip_file_info(array $questionusageids, context $context, int $userid): array {
-        global $CFG, $DB, $PAGE;
+        global $DB, $PAGE;
         $self = new self();
 
         $self->coursecontext = $context->get_course_context();
         $self->course = get_course($self->coursecontext->instanceid);
         $zipfilename = self::get_export_file_name($self->course, $context->get_context_name(false, false));
 
-        // Cache folder.
-        $cachefolder = $CFG->dataroot . '/cache/report_embedquestion/download';
-        // Check the cache folder is exist and create one if not.
-        check_dir_exists($cachefolder, true, true);
-        $filepath = $cachefolder . '/' . $zipfilename . '.zip';
+        // Get zip file path from temporary folder.
+        $filepath = utils::get_file_path_from_temporary_dir($zipfilename . '.zip');
         if (file_exists($filepath)) {
             // Remove the old file if exist.
             unlink($filepath);

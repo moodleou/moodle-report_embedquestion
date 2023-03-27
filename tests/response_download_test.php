@@ -124,9 +124,9 @@ class response_download_test extends \advanced_testcase {
         $this->assertIsArray($zipinfo);
         $this->assertArrayHasKey('file', $zipinfo);
         $this->assertArrayHasKey('size', $zipinfo);
+        $filepath = utils::get_file_path_from_temporary_dir($zipinfo['file'] . '.zip');
 
-        $filepath = $CFG->dataroot . '/cache/report_embedquestion/download/' . $zipinfo['file'] . '.zip';
-
+        $this->assertEquals($CFG->tempdir . '/reportembedquestiontemp/' . $zipinfo['file'] . '.zip', $filepath);
         $this->assertEquals($expectedfilename, $zipinfo['file']);
         $this->assertGreaterThan(0, $zipinfo['size']);
         $this->assertEquals(filesize($filepath), $zipinfo['size']);

@@ -457,4 +457,14 @@ class utils {
 
         return $options;
     }
+
+    /**
+     * Get file path of the file from temp directory.
+     *
+     * @param string $fullname name of the file include extension.E.g: sample.zip
+     * @return string full directory path of the file.
+     */
+    public static function get_file_path_from_temporary_dir(string $fullname): string {
+        return make_temp_directory('reportembedquestiontemp') . '/' . $fullname;
+    }
 }

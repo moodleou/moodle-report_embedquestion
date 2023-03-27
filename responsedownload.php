@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
+use report_embedquestion\utils;
 /**
  * Display the zip download link.
  *
@@ -41,7 +41,8 @@ $pagetitle = get_string('downloadresponse_title', 'report_embedquestion');
 $renderer = $PAGE->get_renderer('report_embedquestion');
 
 if ($download) {
-    $filepath = $CFG->dataroot . '/cache/report_embedquestion/download/' . $file . '.zip';
+    // Get file path from temporary folder.
+    $filepath = utils::get_file_path_from_temporary_dir($file . '.zip');;
     $filename = $file . '.zip';
     if (file_exists($filepath)) {
         header('Content-Disposition: attachment; filename="' . $filename . '"');

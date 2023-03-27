@@ -195,4 +195,15 @@ class utils_test extends \advanced_testcase {
             ],
         ];
     }
+
+    /**
+     * Test get the correct file path of the zip for report.
+     *
+     * @covers \util::get_file_path_from_temporary_dir
+     */
+    public function test_get_file_path_from_temporary_dir() {
+        global $CFG;
+        $actual = utils::get_file_path_from_temporary_dir('sample' . '.zip');
+        $this->assertEquals($CFG->tempdir . '/reportembedquestiontemp/sample.zip', $actual);
+    }
 }
