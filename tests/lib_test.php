@@ -27,7 +27,7 @@ require_once(__DIR__ . '/../lib.php');
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
-class report_embedquestion_lib_testcase extends \advanced_testcase {
+class lib_test extends \advanced_testcase {
 
     /**
      * @var \testing_data_generator

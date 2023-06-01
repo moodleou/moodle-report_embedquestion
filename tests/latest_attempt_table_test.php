@@ -23,7 +23,7 @@ namespace report_embedquestion;
  * @copyright  2020 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class report_embedquestion_latest_attempt_table_testcase extends \advanced_testcase {
+class latest_attempt_table_test extends \advanced_testcase {
 
     /** @var \testing_data_generator */
     protected $generator;
