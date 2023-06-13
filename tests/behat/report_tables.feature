@@ -188,6 +188,7 @@ Feature: Teachers can see their students progress on embedded questions.
     Then I should see "Embedded question progress for Course 1"
     And I should see "Not yet answered" in the "Student D" "table_row"
     And I should see "Not yet answered" in the "Student E" "table_row"
+    And "Select attempt 1" "checkbox" should be visible
 
   Scenario: The teacher can view all the attempts of a specific student using 'Show all' link
     When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "teacher"

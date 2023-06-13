@@ -193,7 +193,8 @@ class latest_attempt_table extends table_sql {
                     'id' => 'questionusageid_' . $attempt->questionusageid,
                     'name' => 'questionusageid[]',
                     'value' => $attempt->questionusageid . '-' . $attempt->slot . '-' . $allowdownload,
-                    'label' => get_string('selectattempt', 'quiz'),
+                    'label' => get_string('selectattempt', 'report_embedquestion',
+                        $this->currentrow + 1),
                     'labelclasses' => 'accesshide',
             ]);
 
