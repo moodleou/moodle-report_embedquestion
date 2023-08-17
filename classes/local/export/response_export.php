@@ -17,18 +17,29 @@
 namespace report_embedquestion\local\export;
 
 use DOMDocument;
+use DOMNode;
+use moodle_page;
+use moodle_url;
+use qbehaviour_renderer;
+use qtype_renderer;
+use question_attempt;
+use question_display_options;
+use question_engine;
+use question_state;
+use question_usage_by_activity;
+use quiz_answersheets\output\core_question_override_renderer;
 use report_embedquestion\utils;
 use context;
 use question_bank;
 use stdClass;
 use stored_file;
+use theme_config;
 use zip_archive;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/mod/quiz/report/answersheets/classes/output/match/renderer.php');
 require_once($CFG->dirroot . '/mod/quiz/report/answersheets/classes/output/renderer.php');
-require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
 
 /**
  * Attempt download functions for report_embedquestion.
@@ -102,7 +113,7 @@ class response_export {
 
         $self->coursecontext = $context->get_course_context();
         $self->course = get_course($self->coursecontext->instanceid);
-        $zipfilename = self::get_export_file_name($self->course, $context->get_context_name(false, false));
+        $zipfilename = self::get_export_file_name($self->course, $context->get_context_name(false));
 
         // Get zip file path from temporary folder.
         $filepath = utils::get_file_path_from_temporary_dir($zipfilename . '.zip');
@@ -120,19 +131,19 @@ class response_export {
         }
 
         // If there is more than one user, we will create a subfolder for their own user information.
-        $issubfolder = count($questionusageids) === 1 ? true : false;
+        $issubfolder = count($questionusageids) === 1;
 
         foreach ($questionusageids as $qubaid) {
             if (!$userid) {
                 $attemptinfo = $DB->get_record('report_embedquestion_attempt', ['questionusageid' => $qubaid], '*', MUST_EXIST);
                 [$user, $info] = utils::get_user_details($attemptinfo->userid, $context);
             }
-            $quba = \question_engine::load_questions_usage_by_activity($qubaid);
+            $quba = question_engine::load_questions_usage_by_activity($qubaid);
             foreach ($quba->get_slots() as $slotno) {
                 $question = $quba->get_question($slotno);
                 $qa = $quba->get_question_attempt($slotno);
 
-                if (count($quba->get_slots()) === 1 && $qa->get_state() === \question_state::$todo) {
+                if (count($quba->get_slots()) === 1 && $qa->get_state() === question_state::$todo) {
                     continue;
                 }
 
@@ -182,29 +193,32 @@ class response_export {
      *
      * @param zip_archive $ziparchive Zip archive instance.
      * @param string $filedirectory File directory.
-     * @param \question_usage_by_activity $quba The usage to check.
-     * @param \question_attempt $qa Question attempt to check.
+     * @param question_usage_by_activity $quba The usage to check.
+     * @param question_attempt $qa Question attempt to check.
      */
     public function render_question_to_html_in_zip(zip_archive $ziparchive, string $filedirectory,
-            \question_usage_by_activity $quba, \question_attempt $qa): void {
+            question_usage_by_activity $quba, question_attempt $qa): void {
         global $OUTPUT, $PAGE;
 
-        $page = new \moodle_page();
+        $page = new moodle_page();
         $page->set_context($this->coursecontext);
         $page->set_course($this->course);
         $page->set_pagelayout('report');
         $page->set_pagetype('report-embedquestion-activity');
         $page->set_url($PAGE->url);
 
+        /** @var qbehaviour_renderer $behaviouroutput */
         $behaviouroutput = $page->get_renderer(get_class($qa->get_behaviour()));
+        /** @var qtype_renderer $qoutput */
         $qtoutput = \quiz_answersheets\utils::get_question_renderer($page, $qa);
+        /** @var core_question_override_renderer $qoutput */
         $qoutput = $page->get_renderer('quiz_answersheets', 'core_question_override');
-        $displayoption = new \question_display_options();
+        $displayoption = new question_display_options();
         $questionname = self::format_filename($qa->get_question()->name);
         if (\quiz_answersheets\utils::should_show_combined_feedback($qa->get_question()->get_type_name())) {
-            $displayoption->generalfeedback = \question_display_options::HIDDEN;
-            $displayoption->numpartscorrect = \question_display_options::HIDDEN;
-            $displayoption->rightanswer = \question_display_options::HIDDEN;
+            $displayoption->generalfeedback = question_display_options::HIDDEN;
+            $displayoption->numpartscorrect = question_display_options::HIDDEN;
+            $displayoption->rightanswer = question_display_options::HIDDEN;
         }
         $displayoption->context = $quba->get_owning_context();
 
@@ -251,8 +265,8 @@ class response_export {
             return;
         }
 
-        $themename = $COURSE->theme ? $COURSE->theme : $CFG->theme;
-        $theme = \theme_config::load($themename);
+        $themename = $COURSE->theme ?: $CFG->theme;
+        $theme = theme_config::load($themename);
 
         foreach ($this->urlicons as $index => $url) {
             [$icon, $imagename] = self::get_icon_from_themeurl($url, $theme);
@@ -356,11 +370,11 @@ class response_export {
      * Get the file for a pluginfile URL. If it doesn't exist, it's not created.
      *
      * @param string $url Pluginfile URL.
-     * @return \stored_file|bool Stored_file instance if exists, false if not.
+     * @return stored_file|bool Stored_file instance if exists, false if not.
      */
     public static function get_file_from_pluginfile_url(string $url) {
         // Decode the URL before start processing it.
-        $url = new \moodle_url(urldecode($url));
+        $url = new moodle_url(urldecode($url));
 
         // Remove params from the URL (such as the 'forcedownload=1'), to avoid errors.
         $url->remove_params(array_keys($url->params()));
@@ -388,14 +402,14 @@ class response_export {
      * Get the icon for a themeplugin URL and path of icon.
      *
      * @param string $url Icon url.
-     * @param \theme_config $theme An instance of themconfig class.
+     * @param theme_config $theme An instance of themconfig class.
      * @return array A pair of icon file and path icon
      */
-    public static function get_icon_from_themeurl(string $url, \theme_config $theme): array {
+    public static function get_icon_from_themeurl(string $url, theme_config $theme): array {
 
         $url = substr($url, strpos($url, '.php/') + 5);
 
-        list($themename, $component, $rev, $icon) = explode('/', $url, 4);
+        [, $component, , $icon] = explode('/', $url, 4);
         $pathicon = explode("/", $icon);
         $pathicon = array_pop($pathicon);
         $iconfile = $theme->resolve_image_location($icon, $component, true);
