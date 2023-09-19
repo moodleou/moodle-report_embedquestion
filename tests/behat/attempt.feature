@@ -266,3 +266,21 @@ Feature: Testing attempt detail view and delete feature
     Then I should see "Download to device"
     And "Download to device" "link" should exist
     And following "Download to device" should download between "1" and "3000000" bytes
+
+  @javascript
+  Scenario: A teacher can download their students progress in the activity has special characters.
+    Given the following "activities" exist:
+      | activity | name                       | idnumber | course |
+      | page     | Test page 4 :%!@#$%^&():\/ | page4    | C1     |
+    And I check the "truefalse" question type already installed for embed question
+    And "student1" has attempted embedded questions in "activity" context "page4":
+      | pagename | question    | response |
+      | C1:page4 | embed/test1 |          |
+    And "student2" has attempted embedded questions in "activity" context "page4":
+      | pagename | question    | response |
+      | C1:page4 | embed/test1 |          |
+    When I am on the "page4" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
+    And I click on "Download all response files" "button"
+    Then I should see "Download to device"
+    And "Download to device" "link" should exist
+    And following "Download to device" should download between "1" and "3000000" bytes
