@@ -114,9 +114,9 @@ class response_export {
         $self->coursecontext = $context->get_course_context();
         $self->course = get_course($self->coursecontext->instanceid);
         $zipfilename = self::get_export_file_name($self->course, $context->get_context_name(false));
-
+        $cleanedzipfilename = self::format_filename($zipfilename);
         // Get zip file path from temporary folder.
-        $filepath = utils::get_file_path_from_temporary_dir($zipfilename . '.zip');
+        $filepath = utils::get_file_path_from_temporary_dir($cleanedzipfilename . '.zip');
         if (file_exists($filepath)) {
             // Remove the old file if exist.
             unlink($filepath);
@@ -183,7 +183,7 @@ class response_export {
         $ziparchive->close();
 
         return [
-                'file' => $zipfilename,
+                'file' => $cleanedzipfilename,
                 'size' => filesize($filepath)
         ];
     }
