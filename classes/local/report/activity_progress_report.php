@@ -56,6 +56,10 @@ class activity_progress_report extends progress_report {
         return get_string('activityreporttitle', 'report_embedquestion', $this->cm->get_formatted_name());
     }
 
+    public function get_table_caption(): string {
+        return get_string('reporttablecaption', 'report_embedquestion', $this->cm->get_formatted_name());
+    }
+
     public function get_url_report(): moodle_url {
         return utils::get_url(['cmid' => $this->cm->id], 'activity');
     }

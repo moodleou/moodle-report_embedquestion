@@ -53,6 +53,10 @@ class course_progress_report extends progress_report {
         return get_string('coursereporttitle', 'report_embedquestion', $this->context->get_context_name(false, false));
     }
 
+    public function get_table_caption(): string {
+        return get_string('reporttablecaption', 'report_embedquestion', $this->context->get_context_name(false, true));
+    }
+
     public function get_url_report(): moodle_url {
         return utils::get_url(['courseid' => $this->course->id]);
     }

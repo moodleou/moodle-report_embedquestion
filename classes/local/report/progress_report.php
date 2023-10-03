@@ -96,6 +96,13 @@ abstract class progress_report {
     abstract public function get_title(): string;
 
     /**
+     * Get the caption to add to the table.
+     *
+     * @return string title.
+     */
+    abstract public function get_table_caption(): string;
+
+    /**
      * Get the report url.
      *
      * @return moodle_url report url.
@@ -142,6 +149,7 @@ abstract class progress_report {
             $this->filterform->set_data($this->displayoptions->get_initial_form_data());
             $this->reporttable = new latest_attempt_table($this->context, $this->course->id, $this->cm,
                     $this->displayoptions, $this->displayoptions->download);
+            $this->reporttable->set_caption($this->get_table_caption(), null);
         }
     }
 
