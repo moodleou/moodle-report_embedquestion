@@ -35,6 +35,7 @@ use stdClass;
 use stored_file;
 use theme_config;
 use zip_archive;
+use filter_embedquestion\question_options;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -213,7 +214,7 @@ class response_export {
         $qtoutput = \quiz_answersheets\utils::get_question_renderer($page, $qa);
         /** @var core_question_override_renderer $qoutput */
         $qoutput = $page->get_renderer('quiz_answersheets', 'core_question_override');
-        $displayoption = new question_display_options();
+        $displayoption = new question_options();
         $questionname = self::format_filename($qa->get_question()->name);
         if (\quiz_answersheets\utils::should_show_combined_feedback($qa->get_question()->get_type_name())) {
             $displayoption->generalfeedback = question_display_options::HIDDEN;

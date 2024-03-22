@@ -195,7 +195,7 @@ Feature: Testing attempt detail view and delete feature
 
   @javascript
   Scenario: A teacher can download their students progress in an activity for question type recordrtc
-    Given the "qtype_recordrtc" plugin is installed
+    Given the qtype_recordrtc plugin is installed
     And the following "questions" exist:
       | questioncategory | qtype     | name           | idnumber | template |
       | Test questions   | recordrtc | Third question | test3    | audio    |
@@ -211,7 +211,7 @@ Feature: Testing attempt detail view and delete feature
 
   @javascript
   Scenario: A teacher can download their students previous finished attempt progress in an activity for question type recordrtc
-    Given the "qtype_recordrtc" plugin is installed
+    Given the qtype_recordrtc plugin is installed
     And the following "questions" exist:
       | questioncategory | qtype     | name            | idnumber | template |
       | Test questions   | recordrtc | Fourth question | test4    | audio    |
@@ -272,7 +272,6 @@ Feature: Testing attempt detail view and delete feature
     Given the following "activities" exist:
       | activity | name                       | idnumber | course |
       | page     | Test page 4 :%!@#$%^&():\/ | page4    | C1     |
-    And I check the "truefalse" question type already installed for embed question
     And "student1" has attempted embedded questions in "activity" context "page4":
       | pagename | question    | response |
       | C1:page4 | embed/test1 |          |
