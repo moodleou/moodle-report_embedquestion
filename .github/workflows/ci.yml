@@ -77,7 +77,8 @@ jobs:
         env:
           DB: ${{ matrix.database }}
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
-
+          MOODLE_APP: true
+          
       - name: PHP Lint
         if: ${{ always() }}
         run: moodle-plugin-ci phplint
