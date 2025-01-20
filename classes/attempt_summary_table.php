@@ -85,6 +85,8 @@ class attempt_summary_table extends table_sql {
         $this->define_columns($this->get_columns());
 
         $this->collapsible(false);
+        $this->no_sorting('attemptdetailview');
+        $this->no_sorting('questionattemptnumber');
 
         $this->generate_query();
 
@@ -105,9 +107,11 @@ class attempt_summary_table extends table_sql {
      */
     private function get_headers(): array {
         $headers = [];
+        $headers[] = get_string('attempt', 'report_embedquestion');
         $headers[] = get_string('status');
         $headers[] = get_string('gradenoun');
         $headers[] = get_string('attemptedon', 'report_embedquestion');
+        $headers[] = get_string('view');
         return $headers;
     }
 
@@ -118,9 +122,11 @@ class attempt_summary_table extends table_sql {
      */
     private function get_columns(): array {
         $columns = [];
+        $columns[] = 'questionattemptnumber';
         $columns[] = 'questionstate';
         $columns[] = 'fraction';
         $columns[] = 'questionattemptsteptime';
+        $columns[] = 'attemptdetailview';
         return $columns;
     }
 
@@ -141,13 +147,43 @@ class attempt_summary_table extends table_sql {
      * @return string HTML content to go inside the td.
      */
     public function col_fraction(stdClass $attempt): string {
+        if ($attempt->questionstate === 'todo') {
+            return '';
+        }
+
+        return utils::get_grade($this->courseid, $attempt->fraction, $attempt->maxmark);
+    }
+
+    /**
+     * Generate the display of the attempt column.
+     *
+     * @param stdClass $attempt the table row being output.
+     * @return string HTML content to go inside the td.
+     */
+    public function col_questionattemptnumber(stdClass $attempt): string {
+        if ($attempt->questionstate === 'todo') {
+            return '';
+        }
+
+        return $attempt->attemptnumber;
+    }
+
+    /**
+     * Generate the display of the attempt detail view column.
+     *
+     * @param stdClass $attempt the table row being output.
+     * @return string HTML content to go inside the td.
+     */
+    public function col_attemptdetailview(stdClass $attempt): string {
         global $PAGE;
+
         if ($attempt->questionstate === 'todo') {
             return '';
         }
         /** @var \report_embedquestion\output\renderer $renderer */
         $renderer = $PAGE->get_renderer('report_embedquestion');
-        return $renderer->render_grade_link($attempt, $this->cm->id ?? null, $this->courseid);
+
+        return $renderer->render_attempt_link($attempt, $this->cm->id ?? null, $this->courseid);
     }
 
     /**
@@ -189,7 +225,15 @@ class attempt_summary_table extends table_sql {
                 r.pagename,
                 r.pageurl,
                 ctx.contextlevel,
-                ctx.instanceid" .
+                ctx.instanceid,
+                (SELECT attempt_number
+                   FROM (SELECT ROW_NUMBER() OVER (order by qa.slot asc, prevstep.sequencenumber asc) AS attempt_number,
+                                prevstep.questionattemptid, qa.slot
+                           FROM {question_attempt_steps} prevstep
+                           JOIN {question_attempts} qa ON qa.id = prevstep.questionattemptid
+                          WHERE qa.questionusageid = r.questionusageid AND state <> :state) AS attemptnumbers
+                  WHERE attemptnumbers.questionattemptid = qas.questionattemptid
+                    AND qas.state <> :qasstate) AS attemptnumber" .
                 $userfieldssql->selects;
 
         $this->sql->from =
@@ -208,6 +252,8 @@ class attempt_summary_table extends table_sql {
 
         $this->sql->where = "r.questionusageid = :usageid";
         $this->sql->params['usageid'] = $this->usageid;
+        $this->sql->params['state'] = 'todo';
+        $this->sql->params['qasstate'] = 'todo';
 
         if ($this->cm === null) {
             $this->sql->where .= "
@@ -226,5 +272,28 @@ class attempt_summary_table extends table_sql {
                 AND r.userid = :userid";
             $this->sql->params['userid'] = $this->userid;
         }
+    }
+
+    #[\Override]
+    public function get_sql_sort() {
+        // Get sort settings from parent class.
+        $parentsorting = parent::get_sql_sort();
+
+        // Add the question_attempts 'slot' and question_attempt_steps 'id' column for sorting.
+        // This sort will help the sequence number increase correctly.
+        $newsorting = self::construct_order_by([
+            'qa.slot' => SORT_ASC,
+            'qas.id' => SORT_ASC
+        ]);
+
+        // Combine sort settings from parent class and new sort settings.
+        // If the table column is sorted, the priority sort will be the parent class.
+        // And it will keep the sequence number increase correctly.
+        if (!empty($parentsorting)) {
+            $parentstring = is_array($parentsorting) ? implode(', ', $parentsorting) : $parentsorting;
+            return $parentstring . ', ' . $newsorting;
+        }
+
+        return $newsorting;
     }
 }

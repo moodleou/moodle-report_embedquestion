@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['activityreporttitle'] = 'Embedded question progress for {$a}';
+$string['attempt'] = 'Attempt';
 $string['attemptedon'] = 'Attempted on';
 $string['attemptfinal'] = 'Latest attempt';
 $string['attempts'] = 'Embedded question attempts';

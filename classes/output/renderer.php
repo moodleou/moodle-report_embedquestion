@@ -22,6 +22,7 @@ use moodle_url;
 use plugin_renderer_base;
 use question_display_options;
 use report_embedquestion\utils;
+use mod_quiz\output\attempt_summary_information;
 
 /**
  * Defines the renderer for the report_embedquestion module.
@@ -86,7 +87,7 @@ class renderer extends plugin_renderer_base {
     public function render_attempt_detail(array $sumdata, \question_attempt $qa, \context $context): string {
         $output = '';
         $quizrenderer = $this->page->get_renderer('mod_quiz');
-        $output .= $quizrenderer->review_summary_table($sumdata, 0);
+        $output .= $quizrenderer->review_attempt_summary(attempt_summary_information::create_from_legacy_array($sumdata), 0);
         $output .= $this->render_question_attempt_content($qa, $context);
         $output .= $this->output->close_window_button(get_string('closeattemptview', 'report_embedquestion'));
         return $output;
@@ -102,14 +103,14 @@ class renderer extends plugin_renderer_base {
     }
 
     /**
-     * Render grade link to go to detail page.
+     * Render grade icon link to go to detail page.
      *
      * @param $attempt
      * @param $cmid
      * @param $courseid
      * @return string HTML string.
      */
-    public function render_grade_link($attempt, $cmid, $courseid): string {
+    public function render_attempt_link($attempt, $cmid, $courseid): string {
 
         $params = ['attempt' => $attempt->questionattemptid];
 
@@ -121,9 +122,10 @@ class renderer extends plugin_renderer_base {
         $url = new moodle_url('/report/embedquestion/attemptdetail.php', $params);
 
         $attempturl = html_writer::link(
-            $url, utils::get_grade($courseid, $attempt->fraction, $attempt->maxmark),
-            ['target' => '_blank',
-                'title' => get_string('attempt-detail-page', 'report_embedquestion')]);
+            $url, $this->output->pix_icon('i/preview', get_string('attempt-detail-page', 'report_embedquestion')), [
+                'target' => '_blank',
+            ]
+        );
 
         return $attempturl;
     }

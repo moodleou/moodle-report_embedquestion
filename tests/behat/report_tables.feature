@@ -12,7 +12,8 @@ Feature: Teachers can see their students progress on embedded questions.
       | student3 | Student   | C        | s3       | 12345678711 |
       | student4 | Student   | D        | s4       | 12345678611 |
       | student5 | Student   | E        | s5       | 12345678611 |
-      | teacher  | Teacher   | F        | t1       | 12345678511 |
+      | student6 | Student   | F        | s6       | 12345678611 |
+      | teacher  | Teacher   | G        | t1       | 12345678511 |
     And the following "courses" exist:
       | fullname | shortname |
       | Course 1 | C1        |
@@ -23,6 +24,7 @@ Feature: Teachers can see their students progress on embedded questions.
       | student3 | C1     | student        |
       | student4 | C1     | student        |
       | student5 | C1     | student        |
+      | student6 | C1     | student        |
       | teacher  | C1     | editingteacher |
     And the following "activities" exist:
       | activity | name        | idnumber | course |
@@ -58,6 +60,14 @@ Feature: Teachers can see their students progress on embedded questions.
       | pagename        | question    | response |
       | Course:Course 1 | embed/test1 | True     |
     And "student5" has started embedded question "embed/test1" in "activity" context "page2"
+    And "student6" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response | slot |
+      | C1:page1 | embed/test1 | True     | 1    |
+      | C1:page1 | embed/test1 | False    | 2    |
+      | C1:page1 | embed/test1 | True     | 3    |
+      | C1:page1 | embed/test1 | False    | 4    |
+      | C1:page1 | embed/test1 | True     | 5    |
+      | C1:page1 | embed/test1 | False    | 6    |
     And the following "permission overrides" exist:
       | capability                   | permission | role    | contextlevel | reference |
       | moodle/site:viewuseridentity | Allow      | student | System       |           |
@@ -126,6 +136,11 @@ Feature: Teachers can see their students progress on embedded questions.
     Then I should see "Embedded question progress for Course 1"
     And I should see "student2"
     And I should not see "student1"
+    And I click on "Attempt summary" "link" in the "student2" "table_row"
+    And I should see "Attempt"
+    And I should see "View"
+    And I click on "Attempt detail view" "link"
+    And I should see "Student B"
 
   Scenario: The report will show the IDs columns depend on the administration setting.
     Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "admin"
@@ -249,3 +264,14 @@ Feature: Teachers can see their students progress on embedded questions.
     And I should see "Third question"
     And I should not see "First question"
     And I should not see "Second question"
+
+  @javascript
+  Scenario: The Attempt detail view in the report should show the correct number of attempts.
+    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
+    When I click on "Show only" "link" in the "student6" "table_row"
+    And I click on "Attempt summary" "link" in the "student6" "table_row"
+    Then "Attempt detail view" "link" should exist
+    And I should see "1"
+    And I should see "5"
+    And I follow "Page 2"
+    And I should see "6"
