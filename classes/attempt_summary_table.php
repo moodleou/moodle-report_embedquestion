@@ -227,13 +227,16 @@ class attempt_summary_table extends table_sql {
                 ctx.contextlevel,
                 ctx.instanceid,
                 (SELECT attempt_number
-                   FROM (SELECT ROW_NUMBER() OVER (order by qa.slot asc, prevstep.sequencenumber asc) AS attempt_number,
-                                prevstep.questionattemptid, qa.slot
+                   FROM (SELECT ROW_NUMBER() OVER (ORDER BY qa.slot asc, min(prevstep.sequencenumber) asc) AS attempt_number,
+                                min(prevstep.sequencenumber), qa.slot, prevstep.questionattemptid
                            FROM {question_attempt_steps} prevstep
                            JOIN {question_attempts} qa ON qa.id = prevstep.questionattemptid
-                          WHERE qa.questionusageid = r.questionusageid AND state <> :state) AS attemptnumbers
+                          WHERE qa.questionusageid = r.questionusageid AND state <> :state
+                       GROUP BY qa.slot, prevstep.questionattemptid
+                        ) AS attemptnumbers
                   WHERE attemptnumbers.questionattemptid = qas.questionattemptid
-                    AND qas.state <> :qasstate) AS attemptnumber" .
+                    AND qas.state <> :qasstate
+                ) AS attemptnumber" .
                 $userfieldssql->selects;
 
         $this->sql->from =
