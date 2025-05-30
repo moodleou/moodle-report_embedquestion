@@ -22,10 +22,13 @@ namespace report_embedquestion;
  * @package   report_embedquestion
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
+ * @covers \report_embedquestion\event\course_report_viewed
+ * @covers \report_embedquestion\event\activity_report_viewed
  */
-class events_test extends \advanced_testcase {
+final class events_test extends \advanced_testcase {
 
     public function setUp(): void {
+        parent::setUp();
         $this->setAdminUser();
         $this->resetAfterTest();
     }
@@ -35,7 +38,7 @@ class events_test extends \advanced_testcase {
      *
      * @return array test cases.
      */
-    public function course_report_viewed_cases(): array {
+    public static function course_report_viewed_cases(): array {
         // 2 is admin user. 1 is guest. At this point in PHP unit, $USER is not set.
         // CID will get replaced by course id in the test.
         return [
@@ -65,7 +68,7 @@ class events_test extends \advanced_testcase {
      * @param string $expecteddescription expected description.
      */
     public function test_course_report_viewed(int $relateduserid, int $groupid,
-                array $extraurlparams, string $expecteddescription) {
+                array $extraurlparams, string $expecteddescription): void {
 
         $course = $this->getDataGenerator()->create_course();
         $context = \context_course::instance($course->id);
@@ -95,7 +98,7 @@ class events_test extends \advanced_testcase {
     /**
      * Test the course report viewed event has to have relateduserid set.
      */
-    public function test_course_report_viewed_related_user_validation() {
+    public function test_course_report_viewed_related_user_validation(): void {
         $course = $this->getDataGenerator()->create_course();
         $context = \context_course::instance($course->id);
 
@@ -109,7 +112,7 @@ class events_test extends \advanced_testcase {
     /**
      * Test the course report viewed event has to have groupid set.
      */
-    public function test_course_report_viewed_groupid_validation() {
+    public function test_course_report_viewed_groupid_validation(): void {
         $course = $this->getDataGenerator()->create_course();
         $context = \context_course::instance($course->id);
 
@@ -124,7 +127,7 @@ class events_test extends \advanced_testcase {
     /**
      * Test the course report viewed event has to have the right sort of context.
      */
-    public function test_course_report_viewed_context_validation() {
+    public function test_course_report_viewed_context_validation(): void {
         $this->getDataGenerator()->create_course();
         $context = \context_system::instance();
 
@@ -141,7 +144,7 @@ class events_test extends \advanced_testcase {
      *
      * @return array test cases.
      */
-    public function activity_report_viewed_cases(): array {
+    public static function activity_report_viewed_cases(): array {
         // 2 is admin user. 1 is guest. At this point in PHP unit, $USER is not set.
         // CMID will get replaced by activity id in the test.
         return [
@@ -183,7 +186,7 @@ class events_test extends \advanced_testcase {
      * @param string $expecteddescription expected description.
      */
     public function test_activity_report_viewed_all_users(int $relateduserid, int $groupid,
-            array $extraurlparams, string $expecteddescription) {
+            array $extraurlparams, string $expecteddescription): void {
 
         $activity = $this->create_page();
         $context = \context_module::instance($activity->cmid);
@@ -214,7 +217,7 @@ class events_test extends \advanced_testcase {
     /**
      * Test the activity report viewed event has to have relateduserid set.
      */
-    public function test_activity_report_viewed_related_user_validation() {
+    public function test_activity_report_viewed_related_user_validation(): void {
         $activity = $this->create_page();
         $context = \context_module::instance($activity->cmid);
 
@@ -228,7 +231,7 @@ class events_test extends \advanced_testcase {
     /**
      * Test the activity report viewed event has to have groupid set.
      */
-    public function test_activity_report_viewed_groupid_validation() {
+    public function test_activity_report_viewed_groupid_validation(): void {
         $activity = $this->create_page();
         $context = \context_module::instance($activity->cmid);
 
@@ -243,7 +246,7 @@ class events_test extends \advanced_testcase {
     /**
      * Test the activity report viewed event has to have the right sort of context.
      */
-    public function test_activity_report_viewed_context_validation() {
+    public function test_activity_report_viewed_context_validation(): void {
         $activity = $this->create_page();
         $context = \context_course::instance($activity->course);
 

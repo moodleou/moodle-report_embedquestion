@@ -25,7 +25,7 @@
 /**
  * Embedded questions progress report database upgrade function.
  *
- * @param string $oldversion the version we are upgrading from.
+ * @param int $oldversion the version we are upgrading from.
  * @return bool true for success.
  */
 function xmldb_report_embedquestion_upgrade(int $oldversion) {

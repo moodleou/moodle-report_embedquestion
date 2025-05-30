@@ -38,6 +38,7 @@ class provider implements
         \core_privacy\local\request\core_userlist_provider,
         \core_privacy\local\request\user_preference_provider {
 
+    #[\Override]
     public static function get_metadata(collection $items): collection {
 
         // The table 'report_embedquestion_attempt' stores a record of each set of attempts
@@ -61,6 +62,7 @@ class provider implements
         return $items;
     }
 
+    #[\Override]
     public static function get_contexts_for_userid(int $userid): contextlist {
         $contextlist = new contextlist();
 
@@ -73,6 +75,7 @@ class provider implements
         return $contextlist;
     }
 
+    #[\Override]
     public static function get_users_in_context(userlist $userlist) {
         $userlist->add_from_sql('userid', "
                 SELECT DISTINCT userid
@@ -81,6 +84,7 @@ class provider implements
                 ", ['contextid' => $userlist->get_context()->id]);
     }
 
+    #[\Override]
     public static function export_user_data(approved_contextlist $contextlist) {
         global $DB;
 
@@ -120,6 +124,7 @@ class provider implements
         $attempts->close();
     }
 
+    #[\Override]
     public static function delete_data_for_all_users_in_context(\context $context) {
         global $DB;
         $transaction = $DB->start_delegated_transaction();
@@ -131,6 +136,7 @@ class provider implements
         $transaction->allow_commit();
     }
 
+    #[\Override]
     public static function delete_data_for_user(approved_contextlist $contextlist) {
         global $DB;
         $contextids = $contextlist->get_contextids();
@@ -155,6 +161,7 @@ class provider implements
         $transaction->allow_commit();
     }
 
+    #[\Override]
     public static function delete_data_for_users(approved_userlist $userlist) {
         global $DB;
         $userids = $userlist->get_userids();

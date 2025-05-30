@@ -24,8 +24,9 @@ use report_embedquestion\local\export\response_export;
  * @package    report_embedquestion
  * @copyright  2021 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \report_embedquestion\local\export\response_export
  */
-class response_download_test extends \advanced_testcase {
+final class response_download_test extends \advanced_testcase {
 
     /**
      * @var \testing_data_generator
@@ -73,12 +74,14 @@ class response_download_test extends \advanced_testcase {
      * @dataProvider get_zip_url_with_supported_qtype_cases
      *
      * @param string $qtype Question type.
-     * @param string $which Which type of the given question type.
-     * @param string $attachmentfilename The name of the attachment file to test.
+     * @param string|null $which Which type of the given question type.
+     * @param string $response The response to the question.
+     * @param string|null $attachmentfilename The name of the attachment file to test.
      * @param string $filename File name to test.
      * @param int $expectedfiles The expected number of files.
+     *
      */
-    public function test_get_zip_url_with_supported_qtype(string $qtype, ?string $which, string $repsonse,
+    public function test_get_zip_url_with_supported_qtype(string $qtype, ?string $which, string $response,
             ?string $attachmentfilename, string $filename, int $expectedfiles): void {
         global $CFG, $PAGE;
         $PAGE->set_url('/');
@@ -96,18 +99,18 @@ class response_download_test extends \advanced_testcase {
 
         /** @var \filter_embedquestion\attempt $attempt1 */
         $attempt1 = $this->attemptgenerator->create_attempt_at_embedded_question(
-                $question, $this->student1, $repsonse, $pagecontext, '', 1);
+                $question, $this->student1, $response, $pagecontext, '', 1);
         /** @var \filter_embedquestion\attempt $attempt2 */
         $attempt2 = $this->attemptgenerator->create_attempt_at_embedded_question(
-                $question, $this->student1, $repsonse, $pagecontext, '', 2);
+                $question, $this->student1, $response, $pagecontext, '', 2);
         /** @var \filter_embedquestion\attempt $attempt3 */
         $attempt3 = $this->attemptgenerator->create_attempt_at_embedded_question(
-                $question, $this->student2, $repsonse, $pagecontext, '', 1);
+                $question, $this->student2, $response, $pagecontext, '', 1);
 
         $questionusageids = [
                 $attempt1->get_question_usage()->get_id(),
                 $attempt2->get_question_usage()->get_id(),
-                $attempt3->get_question_usage()->get_id()
+                $attempt3->get_question_usage()->get_id(),
         ];
 
         $zipinfo = response_export::get_response_zip_file_info($questionusageids, $pagecontext, 0);
@@ -162,7 +165,7 @@ class response_download_test extends \advanced_testcase {
      *
      * @return array
      */
-    public function get_zip_url_with_supported_qtype_cases(): array {
+    public static function get_zip_url_with_supported_qtype_cases(): array {
         return [
             'Export file with question type recordrtc' => [
                 'recordrtc',
@@ -186,7 +189,7 @@ class response_download_test extends \advanced_testcase {
                 'True',
                 null,
                 'True-false question-response.html',
-                3
+                3,
             ],
             'Export file with question type shortanswer' => [
                 'shortanswer',
@@ -194,7 +197,7 @@ class response_download_test extends \advanced_testcase {
                 '',
                 null,
                 'Short answer question-response.html',
-                3
+                3,
             ],
         ];
     }
@@ -204,17 +207,17 @@ class response_download_test extends \advanced_testcase {
      *
      * @return array The test case data.
      */
-    public function get_filenames(): array {
+    public static function get_filenames(): array {
         return [
             'Filename has slash' => [
-                '/questionname/response.html', '-questionname-response.html'
+                '/questionname/response.html', '-questionname-response.html',
             ],
             'Filename has slashes' => [
-                '///questionname/response.html', '---questionname-response.html'
+                '///questionname/response.html', '---questionname-response.html',
             ],
             'Filename has special character' => [
-                '%!@#$%^&():\/questionname_response.html', '%!@#$%^()-questionname_response.html'
-            ]
+                '%!@#$%^&():\/questionname_response.html', '%!@#$%^()-questionname_response.html',
+            ],
         ];
     }
 
@@ -235,7 +238,7 @@ class response_download_test extends \advanced_testcase {
      *
      * @return array The test case data.
      */
-    public function get_resources(): array {
+    public static function get_resources(): array {
         return [
             'Invalid HTML without closing p tag' => [
                 '<p>This is broken but it might happen when HTML without closing p tag:
@@ -280,7 +283,7 @@ class response_download_test extends \advanced_testcase {
                         <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow"></circle>
                     </svg>
                 </span></body></html>
-']
+'],
         ];
     }
 

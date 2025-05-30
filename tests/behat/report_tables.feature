@@ -36,7 +36,6 @@ Feature: Teachers can see their students progress on embedded questions.
       | questioncategory | qtype     | name            | idnumber | template |
       | Test questions   | truefalse | First question  | test1    |          |
       | Test questions   | truefalse | Second question | test2    |          |
-      | Test questions   | recordrtc | Third question  | test3    | audio    |
     And the following "filter_embedquestion > Pages with embedded question" exist:
       | name        | idnumber | course | question    |
       | Test page 2 | page2    | C1     | embed/test1 |
@@ -45,7 +44,6 @@ Feature: Teachers can see their students progress on embedded questions.
       | pagename | question    | response |
       | C1:page1 | embed/test1 | True     |
       | C1:page1 | embed/test2 | Fasle    |
-      | C1:page1 | embed/test3 |          |
     And "student2" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
       | C1:page1 | embed/test1 | False    |
@@ -253,7 +251,13 @@ Feature: Teachers can see their students progress on embedded questions.
 
   @javascript
   Scenario: The Embedded questions progress can filter question type.
-    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
+    Given the qtype_recordrtc plugin is installed
+    And the following "question categories" exist:
+      | Test questions | recordrtc | Third question | test3 | audio |
+    And "student1" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response |
+      | C1:page1 | embed/test3 |          |
+    And I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
     When I set the field "Question type" to "True/False"
     And I press "Show report"
     Then I should see "First question"

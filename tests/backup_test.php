@@ -33,9 +33,11 @@ use restore_controller;
  * Tests for the Embedded questions progress report backup and restore code.
  *
  * @copyright 2019 The Open University
+ * @package   report_embedquestion
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
+ * @covers \backup_report_embedquestion_plugin
  */
-class backup_test extends \advanced_testcase {
+final class backup_test extends \advanced_testcase {
 
     /**
      * @var \testing_data_generator
@@ -58,7 +60,7 @@ class backup_test extends \advanced_testcase {
      *
      * The attempts should not be coped.
      */
-    public function test_duplicate_activity_should_not_copy_attempts() {
+    public function test_duplicate_activity_should_not_copy_attempts(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -100,7 +102,7 @@ class backup_test extends \advanced_testcase {
      *
      * The attempts should be coped.
      */
-    public function test_backup_and_restore_course_with_user_data_should_copy_attempts() {
+    public function test_backup_and_restore_course_with_user_data_should_copy_attempts(): void {
         global $CFG, $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -144,7 +146,7 @@ class backup_test extends \advanced_testcase {
      *
      * The attempts should be restored.
      */
-    public function test_restore_deleted_page_with_attempt() {
+    public function test_restore_deleted_page_with_attempt(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -185,7 +187,7 @@ class backup_test extends \advanced_testcase {
      *
      * The attempts should be coped.
      */
-    public function test_backup_and_restore_page_with_user_data_should_copy_attempts() {
+    public function test_backup_and_restore_page_with_user_data_should_copy_attempts(): void {
         global $CFG, $DB, $USER;
         $this->resetAfterTest();
         $this->setAdminUser();

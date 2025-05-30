@@ -75,7 +75,7 @@ class report_display_options {
      * @param int $courseid
      * @param cm_info|null $cm
      */
-    public function __construct(int $courseid, cm_info $cm = null) {
+    public function __construct(int $courseid, ?cm_info $cm = null) {
         $this->cm = $cm;
         $this->courseid = $courseid;
         $this->course = get_course($this->courseid);
@@ -239,6 +239,9 @@ class report_display_options {
         set_user_preference('report_embedquestion_pagesize', $this->pagesize);
     }
 
+    /**
+     * Redirect to the clean URL for this report.
+     */
     public function redirect_to_clean_url() {
         redirect($this->get_url());
     }

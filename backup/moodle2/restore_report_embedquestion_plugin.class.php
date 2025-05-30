@@ -79,6 +79,11 @@ class restore_report_embedquestion_plugin extends restore_report_plugin {
         return $paths;
     }
 
+    /**
+     * Process the report_embedquestion_attempt element.
+     *
+     * @param array $data the data to process.
+     */
     public function process_report_embedquestion_attempt($data) {
         $data = (object) $data;
         $data->userid = $this->get_mappingid('user', $data->userid);
@@ -90,6 +95,11 @@ class restore_report_embedquestion_plugin extends restore_report_plugin {
         $this->currentattemptdata = $data;
     }
 
+    /**
+     * Process the question attempt element.
+     *
+     * @param array $data the data to process.
+     */
     public function process_question_attempt($data) {
         global $DB;
         // We need to override the trait method. It we are restoring a
@@ -112,6 +122,15 @@ class restore_report_embedquestion_plugin extends restore_report_plugin {
         $this->restore_question_attempt_worker($data, '');
     }
 
+    /**
+     * Update after restore with the new usage id.
+     *
+     * This is called after the question attempt data has been restored, so that
+     * we can insert the report_embedquestion_attempt record with the correct
+     * questionusageid.
+     *
+     * @param int $newusageid the new usage id.
+     */
     protected function inform_new_usage_id($newusageid) {
         global $DB;
         // Retrieve data stashed by process_report_embedquestion_attempt.

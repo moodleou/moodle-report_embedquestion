@@ -29,6 +29,7 @@ use filter_embedquestion\embed_location;
  */
 class attempt_storage extends \filter_embedquestion\attempt_storage {
 
+    #[\Override]
     public function find_existing_attempt(embed_id $embedid, embed_location $embedlocation,
             \stdClass $user): array {
         global $DB;
@@ -46,6 +47,7 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
         return [$quba, end($allslots)];
     }
 
+    #[\Override]
     public function update_timemodified(int $qubaid): void {
         global $DB;
 
@@ -53,6 +55,7 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
                 ['questionusageid' => $qubaid]);
     }
 
+    #[\Override]
     public function make_new_usage(embed_id $embedid, embed_location $embedlocation,
             \stdClass $user): \question_usage_by_activity {
         $quba = \question_engine::make_questions_usage_by_activity(
@@ -60,6 +63,7 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
         return $quba;
     }
 
+    #[\Override]
     public function new_usage_saved(\question_usage_by_activity $quba,
             embed_id $embedid, embed_location $embedlocation, \stdClass $user): void {
         global $DB;
@@ -80,6 +84,7 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
         attempt_tracker::user_attempts_changed($embedlocation->context);
     }
 
+    #[\Override]
     public function verify_usage(\question_usage_by_activity $quba, \context $context): void {
         global $DB, $USER;
 
@@ -98,6 +103,7 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
         }
     }
 
+    #[\Override]
     public function delete_attempt(\question_usage_by_activity $quba) {
         global $DB;
 

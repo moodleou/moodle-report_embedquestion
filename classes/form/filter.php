@@ -119,6 +119,7 @@ class filter extends \moodleform {
         $mform->addElement('submit', 'submitbutton', get_string('showreport', 'mod_quiz'));
     }
 
+    #[\Override]
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
         if ($data['lookback'] > 0 && ($data['datefrom'] > 0 || $data['dateto'] > 0)) {

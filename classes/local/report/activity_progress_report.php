@@ -52,14 +52,17 @@ class activity_progress_report extends progress_report {
         $this->cm = $cm;
     }
 
+    #[\Override]
     public function get_title(): string {
         return get_string('activityreporttitle', 'report_embedquestion', $this->cm->get_formatted_name());
     }
 
+    #[\Override]
     public function get_table_caption(): string {
         return get_string('reporttablecaption', 'report_embedquestion', $this->cm->get_formatted_name());
     }
 
+    #[\Override]
     public function get_url_report(): moodle_url {
         return utils::get_url(['cmid' => $this->cm->id], 'activity');
     }

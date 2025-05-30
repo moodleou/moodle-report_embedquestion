@@ -84,7 +84,7 @@ class backup_report_embedquestion_plugin extends backup_report_plugin {
         // Define source - which only applies if the backup includes user data.
         if ($includeusers) {
             $attempt->set_source_table('report_embedquestion_attempt',
-                    array('contextid' => backup::VAR_CONTEXTID));
+                    ['contextid' => backup::VAR_CONTEXTID]);
         }
 
         // Build the tree.

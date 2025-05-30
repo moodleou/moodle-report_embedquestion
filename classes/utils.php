@@ -36,11 +36,10 @@ class utils {
     /**
      * Used at the top of the drill-down for a single question. Give more info about the location.
      *
-     * @param int $courseid, the course id
+     * @param int $courseid the course id
      * @param stdClass $attempt the question attempt object
-     * @return string
      */
-    public static function get_embed_location_summary($courseid, $attempt) {
+    public static function get_embed_location_summary(int $courseid, stdClass $attempt) {
         global $USER;
         $context = html_writer::tag('span', get_string('attemptsummarycontext', 'report_embedquestion',
                 self::get_activity_link($attempt)), ['class' => 'heading-context']);
@@ -124,25 +123,28 @@ class utils {
     }
 
     /**
-     * @param $courseid
-     * @param $userid
-     * @param $username
+     * Get a link to a user's profile.
+     *
+     * @param int $courseid
+     * @param int $userid
+     * @param string $username
      * @return string
-     * @throws \moodle_exception
      */
-    public static function get_user_link($courseid, $userid, $username) {
+    public static function get_user_link(int $courseid, int $userid, string $username): string {
         $profileurl = new \moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
         return html_writer::link($profileurl, $username);
     }
 
     /**
-     * @param $courseid
-     * @param $questionid
-     * @param $qtype
-     * @param $questionname
+     * Return a link to a question, with an icon and preview link if appropriate.
+     *
+     * @param int $courseid
+     * @param int $questionid
+     * @param string|null $qtype
+     * @param string $questionname
      * @return string
      */
-    public static function get_question_link($courseid, $questionid, $qtype, $questionname) {
+    public static function get_question_link(int $courseid, int $questionid, ?string $qtype, string $questionname): string {
 
         $previewlink = '';
         if (question_has_capability_on($questionid, 'view')) {
@@ -164,6 +166,7 @@ class utils {
 
     /**
      * Return an appropriate icon (green tick, red cross, etc.) for a grade.
+     *
      * @param string $state the string such as 'gradedright', 'gradedwrong', 'gradedpartial'.
      * @return string html fragment.
      */
@@ -245,12 +248,13 @@ class utils {
     /**
      * Display dataformt selector's form for latest_attempt_table to be downloadable,
      * so that users who can view this report are able to download the latest attempt table.
-     * @param $table, the table object
-     * @param $title, the report title
-     * @param $context, the report context object
      *
+     * @param latest_attempt_table $table the table object
+     * @param string $title the report title
+     * @param context $context the report context object
      */
-    public static function allow_downloadability_for_attempt_table ($table, $title, $context) {
+    public static function allow_downloadability_for_attempt_table(latest_attempt_table $table,
+            string $title, context $context): void {
         if (has_capability('report/embedquestion:viewallprogress', $context) ||
             has_capability('report/embedquestion:viewmyprogress', $context)) {
             $download = optional_param('download', '', PARAM_ALPHA);
@@ -289,7 +293,7 @@ class utils {
         $sumdata['user'] = [
                 'title' => $userpicture,
                 'content' => new action_link(new moodle_url('/user/view.php',
-                        ['id' => $student->id]), fullname($student, true))
+                        ['id' => $student->id]), fullname($student, true)),
         ];
         $sumdata['question'] = [
                 'title' => get_string('question', 'moodle'),
@@ -306,10 +310,10 @@ class utils {
     /**
      * Get a suitable page title.
      *
-     * @param $context
+     * @param context $context
      * @return string the string title.
      */
-    public static function get_title($context): string {
+    public static function get_title(context $context): string {
         return get_string($context->contextlevel == CONTEXT_COURSE ? 'coursereporttitle' : 'activityreporttitle',
                 'report_embedquestion', $context->get_context_name(false, false));
     }
@@ -320,7 +324,7 @@ class utils {
      * @param int $contextid Context id
      * @return bool
      */
-    public static function user_can_see_report(int $contextid) {
+    public static function user_can_see_report(int $contextid): bool {
         return attempt_tracker::user_has_attempt($contextid);
     }
 

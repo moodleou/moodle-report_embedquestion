@@ -22,8 +22,9 @@ namespace report_embedquestion;
  * @package    report_embedquestion
  * @copyright  2019 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \report_embedquestion\utils
  */
-class utils_test extends \advanced_testcase {
+final class utils_test extends \advanced_testcase {
 
     /** @var \testing_data_generator */
     protected $generator;
@@ -47,7 +48,7 @@ class utils_test extends \advanced_testcase {
         $this->attemptgenerator = $this->generator->get_plugin_generator('filter_embedquestion');
     }
 
-    public function test_get_activity_link () {
+    public function test_get_activity_link(): void {
         global $DB;
         $pagegen = $this->generator->get_plugin_generator('mod_page');
         $page1 = $pagegen->create_instance(['course' => $this->course]);
@@ -65,7 +66,7 @@ class utils_test extends \advanced_testcase {
         $this->assertEquals($expected, $actual);
     }
 
-    public function test_get_user_link() {
+    public function test_get_user_link(): void {
         $courseid = $this->course->id;
         $user = $this->generator->create_user();
         $userid = $user->id;
@@ -75,7 +76,7 @@ class utils_test extends \advanced_testcase {
         $this->assertEquals($expected, $actual);
     }
 
-    public function test_get_grade() {
+    public function test_get_grade(): void {
         global $CFG;
         $courseid = $this->course->id;
         $fraction = 0.6666667;
@@ -87,7 +88,7 @@ class utils_test extends \advanced_testcase {
         }
     }
 
-    public function test_get_url() {
+    public function test_get_url(): void {
         global $CFG;
         $params = ['courseid' => $this->course->id];
         $expected = new \moodle_url($CFG->wwwroot . "/report/embedquestion/index.php", $params);
@@ -101,7 +102,7 @@ class utils_test extends \advanced_testcase {
         $this->assertEquals($expected, $actual);
     }
 
-    public function test_get_filter_data() {
+    public function test_get_filter_data(): void {
         $expected = new \stdClass();
         $expected->locationids = [];
         $expected->lookback = 0;
@@ -116,13 +117,13 @@ class utils_test extends \advanced_testcase {
         $this->assertEquals($expected, $actual);
     }
 
-    public function test_get_question_state_filter_options() {
+    public function test_get_question_state_filter_options(): void {
         $result = utils::get_question_state_filter_options();
         $this->assertArrayHasKey(\question_state::$gradedright->default_string(true), $result);
         $this->assertArrayHasKey(\question_state::$complete->default_string(true), $result);
     }
 
-    public function test_get_question_states_for_filter_option() {
+    public function test_get_question_states_for_filter_option(): void {
         $this->assertEquals(
                 [(string) \question_state::$gradedright, (string) \question_state::$mangrright],
                 utils::get_question_states_for_filter_option(\question_state::$gradedright->default_string(true)));
@@ -132,12 +133,12 @@ class utils_test extends \advanced_testcase {
                 utils::get_question_states_for_filter_option(\question_state::$complete->default_string(true)));
     }
 
-    public function test_get_qtype_names_filter_options() {
+    public function test_get_qtype_names_filter_options(): void {
         // This test only works if a static cache question_bank::$questionconfig had not yet been populated.
         // This cache is private, and there is no API to reset it, so we have to use reflection.
         $ref = new \ReflectionProperty(\question_bank::class, 'questionconfig');
         $ref->setAccessible(true);
-        $ref->setValue(null);
+        $ref->setValue(null, null);
 
         set_config('multichoice' . '_disabled', 1, 'question');
         $expected = utils::get_qtype_names_filter_options();
@@ -147,13 +148,13 @@ class utils_test extends \advanced_testcase {
     /**
      * Test get attempt summary link function.
      *
-     * @dataProvider test_get_attempt_summary_link_provider
+     * @dataProvider get_attempt_summary_link_provider
      * @covers \util::get_attempt_summary_link
      *
      * @param object $attempt The attempt object.
      * @param string $expectedurl The expected url link.
      */
-    public function test_get_attempt_summary_link(object $attempt, string $expectedurl) {
+    public function test_get_attempt_summary_link(object $attempt, string $expectedurl): void {
         $this->setTimezone('UTC');
         $actual = utils::get_attempt_summary_link($attempt);
         $this->assertEquals($expectedurl, $actual);
@@ -165,7 +166,7 @@ class utils_test extends \advanced_testcase {
      * @coversNothing
      * @return array List of data sets (test cases)
      */
-    public function test_get_attempt_summary_link_provider() {
+    public static function get_attempt_summary_link_provider(): array {
         return [
             'Course' => [
                 (object) [
@@ -201,7 +202,7 @@ class utils_test extends \advanced_testcase {
      *
      * @covers \util::get_file_path_from_temporary_dir
      */
-    public function test_get_file_path_from_temporary_dir() {
+    public function test_get_file_path_from_temporary_dir(): void {
         global $CFG;
         $actual = utils::get_file_path_from_temporary_dir('sample' . '.zip');
         $this->assertEquals($CFG->tempdir . '/reportembedquestiontemp/sample.zip', $actual);
