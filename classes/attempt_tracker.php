@@ -25,7 +25,13 @@ namespace report_embedquestion;
  */
 class attempt_tracker {
 
+    /**
+     * @var string Cache component and area for report_embedquestion.
+     */
     const CACHE_COMPONENT = 'report_embedquestion';
+    /**
+     * @var string Cache area for report_embedquestion.
+     */
     const CACHE_AREA = 'reportattempttracker';
 
     /**
@@ -100,7 +106,7 @@ class attempt_tracker {
                 // Update the parent context cache again.
                 $cache->set($parentcontext->id, [
                         'value' => $DB->record_exists('report_embedquestion_attempt', ['contextid' => $parentcontext->id]),
-                        'subcontext' => $cachedata
+                        'subcontext' => $cachedata,
                 ]);
             }
         } else {
@@ -146,7 +152,7 @@ class attempt_tracker {
         $cache = \cache::make(self::CACHE_COMPONENT, self::CACHE_AREA);
         $cache->set($context->id, [
                 'value' => $DB->record_exists('report_embedquestion_attempt', ['contextid' => $context->id]),
-                'subcontext' => $cachehir
+                'subcontext' => $cachehir,
         ]);
     }
 

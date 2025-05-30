@@ -105,9 +105,9 @@ class renderer extends plugin_renderer_base {
     /**
      * Render grade icon link to go to detail page.
      *
-     * @param $attempt
-     * @param $cmid
-     * @param $courseid
+     * @param \stdClass $attempt the attempt object.
+     * @param int $cmid the course module id
+     * @param int $courseid the course id
      * @return string HTML string.
      */
     public function render_attempt_link($attempt, $cmid, $courseid): string {
@@ -160,7 +160,7 @@ class renderer extends plugin_renderer_base {
                 'data-action' => 'toggle',
                 'data-togglegroup' => 'embed-attempts',
                 'data-toggle' => 'action',
-                'disabled' => true
+                'disabled' => true,
         ];
 
         $this->page->requires->event_handler('#deleteattemptsbutton', 'click', 'M.util.show_confirm_dialog',
@@ -192,7 +192,7 @@ class renderer extends plugin_renderer_base {
                 'id' => 'downloadselectedattemptsbutton',
                 'name' => 'downloadselect',
                 'value' => get_string('downloadresponse_buttonselected', 'report_embedquestion'),
-                'disabled' => true
+                'disabled' => true,
         ];
 
         $downloadallbuttonparams = [
@@ -201,7 +201,7 @@ class renderer extends plugin_renderer_base {
                 'id' => 'downloadallattemptsbutton',
                 'name' => 'downloadall',
                 'value' => get_string('downloadresponse_buttonall', 'report_embedquestion'),
-                'disabled' => true
+                'disabled' => true,
         ];
 
         $output .= html_writer::empty_tag('input', $downloadallbuttonparams);

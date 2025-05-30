@@ -41,8 +41,9 @@ require_once($CFG->dirroot . '/question/tests/privacy_helper.php');
  *
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
+ * @covers \report_embedquestion\privacy\provider
  */
-class privacy_provider_test extends \core_privacy\tests\provider_testcase {
+final class privacy_provider_test extends \core_privacy\tests\provider_testcase {
 
     use \core_question_privacy_helper;
 
@@ -73,7 +74,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Test that a user who has no data gets no contexts
      */
-    public function test_get_contexts_for_userid_no_data() {
+    public function test_get_contexts_for_userid_no_data(): void {
         global $USER;
         $this->resetAfterTest();
 
@@ -84,7 +85,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Test for provider::get_contexts_for_userid() when there is no quiz attempt at all.
      */
-    public function test_get_contexts_for_userid_with_attempt() {
+    public function test_get_contexts_for_userid_with_attempt(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -101,7 +102,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Test for provider::get_users_in_context() when there is no data.
      */
-    public function test_get_users_in_context_no_data() {
+    public function test_get_users_in_context_no_data(): void {
         $this->resetAfterTest();
 
         $userlist = new userlist(\context_course::instance(SITEID), 'report_embedquestion');
@@ -112,7 +113,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Test for provider::get_users_in_context() with data.
      */
-    public function test_get_users_in_context_with_attempt() {
+    public function test_get_users_in_context_with_attempt(): void {
         $this->resetAfterTest(true);
 
         $user = $this->getDataGenerator()->create_user();
@@ -132,7 +133,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * The export function should handle an empty contextlist properly.
      */
-    public function test_export_user_data_no_data() {
+    public function test_export_user_data_no_data(): void {
         $this->resetAfterTest();
 
         $user = $this->getDataGenerator()->create_user();
@@ -151,7 +152,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Export data for a user who has made an attempt.
      */
-    public function test_export_user_data_with_data() {
+    public function test_export_user_data_with_data(): void {
         global $CFG;
         $this->resetAfterTest(true);
         $this->setUser();
@@ -192,13 +193,13 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $this->assertEquals('The answer is true.', $attemptdata->question);
         $this->assertEquals('True', $attemptdata->answer);
         $this->assertEquals('1.00', $attemptdata->mark);
-        $this->assertEquals('You should have selected true.', $attemptdata->generalfeedback);
+        $this->assertStringContainsString('You should have selected true.', $attemptdata->generalfeedback);
     }
 
     /**
      * Test delete all data with no data.
      */
-    public function test_delete_data_for_all_users_in_context_no_data() {
+    public function test_delete_data_for_all_users_in_context_no_data(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -211,7 +212,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Test delete all data when a user has made an attempt.
      */
-    public function test_delete_data_for_all_users_in_context_with_data() {
+    public function test_delete_data_for_all_users_in_context_with_data(): void {
         global $DB;
         $this->resetAfterTest(true);
 
@@ -248,7 +249,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * The delete function should handle an empty contextlist properly.
      */
-    public function test_delete_data_for_user_no_data() {
+    public function test_delete_data_for_user_no_data(): void {
         $this->resetAfterTest();
 
         $user = $this->getDataGenerator()->create_user();
@@ -262,7 +263,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Export + Delete quiz data for a user who has made a single attempt.
      */
-    public function test_delete_data_for_user_with_data() {
+    public function test_delete_data_for_user_with_data(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -292,7 +293,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Test for provider::delete_data_for_users().
      */
-    public function test_delete_data_for_users() {
+    public function test_delete_data_for_users(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -315,7 +316,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Test for provider::export_user_preferences().
      */
-    public function test_export_user_preferences() {
+    public function test_export_user_preferences(): void {
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);

@@ -24,8 +24,8 @@
 
 require(__DIR__ . '/../../config.php');
 
-use \report_embedquestion\event\activity_report_viewed,
-    \report_embedquestion\utils;
+use report_embedquestion\event\activity_report_viewed,
+    report_embedquestion\utils;
 use report_embedquestion\local\report\progress_report;
 
 $cmid = required_param('cmid', PARAM_INT);

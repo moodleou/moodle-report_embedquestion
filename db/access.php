@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * Embedded questions progress report capability definitions.
  *
@@ -57,9 +56,9 @@ $capabilities = [
             'contextlevel' => CONTEXT_MODULE,
             'archetypes' => [
                     'editingteacher' => CAP_ALLOW,
-                    'manager' => CAP_ALLOW
+                    'manager' => CAP_ALLOW,
             ],
-            'clonepermissionsfrom' => 'report/embedquestion:deleteattempt'
+            'clonepermissionsfrom' => 'report/embedquestion:deleteattempt',
     ],
     // Ability for a user to delete the own attempts.
     'report/embedquestion:deletemyattempt' => [
@@ -69,7 +68,7 @@ $capabilities = [
                     'student' => CAP_ALLOW,
                     'teacher' => CAP_ALLOW,
                     'editingteacher' => CAP_ALLOW,
-                    'manager' => CAP_ALLOW
-            ]
-    ]
+                    'manager' => CAP_ALLOW,
+            ],
+    ],
 ];

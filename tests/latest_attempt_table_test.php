@@ -22,8 +22,9 @@ namespace report_embedquestion;
  * @package    report_embedquestion
  * @copyright  2020 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \report_embedquestion\latest_attempt_table
  */
-class report_embedquestion_latest_attempt_table_testcase extends \advanced_testcase {
+final class latest_attempt_table_test extends \advanced_testcase {
 
     /** @var \testing_data_generator */
     protected $generator;
@@ -55,14 +56,14 @@ class report_embedquestion_latest_attempt_table_testcase extends \advanced_testc
         $this->displayoptions = new report_display_options($this->course->id, null);
     }
 
-    public function test_latest_attempt_table_no_filter() {
+    public function test_latest_attempt_table_no_filter(): void {
         // Check sql query wuth no filter.
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $this->assertArrayHasKey('contextid', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
     }
 
-    public function test_latest_attempt_table_filter_lookback() {
+    public function test_latest_attempt_table_filter_lookback(): void {
         $now = time();
         $this->displayoptions->lookback = WEEKSECS * 3; // 3 weeks.
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
@@ -73,7 +74,7 @@ class report_embedquestion_latest_attempt_table_testcase extends \advanced_testc
                 $table->sql->params['lookback'], 1); // Allow 1s passing to prevent random fails.
     }
 
-    public function test_latest_attempt_table_filter_dates() {
+    public function test_latest_attempt_table_filter_dates(): void {
         $now = time();
         $this->displayoptions->datefrom = $now - (WEEKSECS * 4); // From 28 days ago.
         $this->displayoptions->dateto = $now - (DAYSECS * 6); // To 6 days ago.
@@ -92,7 +93,7 @@ class report_embedquestion_latest_attempt_table_testcase extends \advanced_testc
         $this->assertEquals($this->displayoptions->dateto + DAYSECS, $table->sql->params['dateto']);
     }
 
-    public function test_latest_attempt_table_filter_datefrom() {
+    public function test_latest_attempt_table_filter_datefrom(): void {
         $now = time();
         $this->displayoptions->datefrom = $now - (WEEKSECS * 4); // From 28 days ago.
 
@@ -107,7 +108,7 @@ class report_embedquestion_latest_attempt_table_testcase extends \advanced_testc
         $this->assertEquals($this->displayoptions->datefrom, $table->sql->params['datefrom']);
     }
 
-    public function test_latest_attempt_table_filter_dateto() {
+    public function test_latest_attempt_table_filter_dateto(): void {
         $now = time();
         $this->displayoptions->dateto = $now - (WEEKSECS * 2); // From 14 days ago.
 
@@ -124,7 +125,7 @@ class report_embedquestion_latest_attempt_table_testcase extends \advanced_testc
     /**
      * Test the latest_attempt_table with location filter.
      */
-    public function test_latest_attempt_table_filter_locations() {
+    public function test_latest_attempt_table_filter_locations(): void {
         $page1 = $this->generator->create_module('page', ['course' => $this->course->id, 'content' => '<p>Page 1: </p>']);
         $page2 = $this->generator->create_module('page', ['course' => $this->course->id, 'content' => '<p>Page 2: </p>']);
         $pagecontext1 = \context_module::instance($page1->cmid);
@@ -151,7 +152,7 @@ class report_embedquestion_latest_attempt_table_testcase extends \advanced_testc
     /**
      * Test the latest_attempt_table with last attempt status filter.
      */
-    public function test_latest_attempt_table_filter_last_attempt_status() {
+    public function test_latest_attempt_table_filter_last_attempt_status(): void {
         $this->displayoptions->lastattemptstatus = 'Correct'; // From 14 days ago.
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
         $keyparam1 = array_search('gradedright', $table->sql->params);
@@ -168,7 +169,7 @@ class report_embedquestion_latest_attempt_table_testcase extends \advanced_testc
     /**
      * Test the latest_attempt_table with question type filter.
      */
-    public function test_latest_attempt_table_filter_questiontypes() {
+    public function test_latest_attempt_table_filter_questiontypes(): void {
         $this->displayoptions->questiontype = 'Record audio/video';
         $table = new latest_attempt_table($this->context, $this->course->id, null, $this->displayoptions);
 

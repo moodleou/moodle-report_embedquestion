@@ -22,8 +22,9 @@ namespace report_embedquestion;
  * @package    report_embedquestion
  * @copyright  2020 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \report_embedquestion\attempt_tracker
  */
-class report_embedquestion_attempt_tracker_testcase extends \advanced_testcase {
+final class attempt_tracker_test extends \advanced_testcase {
 
     /**
      * @var \testing_data_generator
@@ -49,7 +50,7 @@ class report_embedquestion_attempt_tracker_testcase extends \advanced_testcase {
     /**
      * Test the user_has_attempt function.
      */
-    public function test_user_has_attempt() {
+    public function test_user_has_attempt(): void {
         global $DB;
 
         $course = $this->generator->create_course();
@@ -79,7 +80,7 @@ class report_embedquestion_attempt_tracker_testcase extends \advanced_testcase {
         // Verify that the value from the cache is False.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => false]
+                'subcontext' => [$pagecontext->id => false],
         ], $cache->get($coursecontext->id));
 
         // Insert the dummy data to report_embedquestion_attempt table.
@@ -93,7 +94,7 @@ class report_embedquestion_attempt_tracker_testcase extends \advanced_testcase {
                 'pagename' => 'Test cache',
                 'pageurl' => (new \moodle_url('/report/embedquestion/activity.php'))->out_as_local_url(false),
                 'timecreated' => $now,
-                'timemodified' => $now
+                'timemodified' => $now,
         ];
         $DB->insert_record('report_embedquestion_attempt', (object) $attemptinfo);
 
@@ -112,7 +113,7 @@ class report_embedquestion_attempt_tracker_testcase extends \advanced_testcase {
         // Verify that the value from the cache is updated to True.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => true]
+                'subcontext' => [$pagecontext->id => true],
         ], $cache->get($coursecontext->id));
         // Verify that the function will return the correct value.
         $this->assertTrue(attempt_tracker::user_has_attempt($coursecontext->id));
@@ -124,7 +125,7 @@ class report_embedquestion_attempt_tracker_testcase extends \advanced_testcase {
         // Verify that the value from the cache is still True.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => true]
+                'subcontext' => [$pagecontext->id => true],
         ], $cache->get($coursecontext->id));
         // Verify that the function will get the value from the cache, not from the database.
         $this->assertTrue(attempt_tracker::user_has_attempt($coursecontext->id));
@@ -136,7 +137,7 @@ class report_embedquestion_attempt_tracker_testcase extends \advanced_testcase {
         // Verify that the value from the cache is updated to True.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => false]
+                'subcontext' => [$pagecontext->id => false],
         ], $cache->get($coursecontext->id));
         // Verify that the function will return the correct value.
         $this->assertFalse(attempt_tracker::user_has_attempt($coursecontext->id));
@@ -146,7 +147,7 @@ class report_embedquestion_attempt_tracker_testcase extends \advanced_testcase {
     /**
      * Test the user_has_attempt function with old cache hierarchy.
      */
-    public function test_user_has_attempt_with_old_cache_hierarchy() {
+    public function test_user_has_attempt_with_old_cache_hierarchy(): void {
         $course = $this->generator->create_course();
         $coursecontext = \context_course::instance($course->id);
         $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $coursecontext->id]);
@@ -172,7 +173,7 @@ class report_embedquestion_attempt_tracker_testcase extends \advanced_testcase {
         // Verify the cache hierarchy will be converted to the new one.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => false]
+                'subcontext' => [$pagecontext->id => false],
         ], $cache->get($coursecontext->id));
 
         // Create old cache hierarchy.
@@ -182,7 +183,7 @@ class report_embedquestion_attempt_tracker_testcase extends \advanced_testcase {
         // Verify the cache hierarchy will be converted to the new one.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => false]
+                'subcontext' => [$pagecontext->id => false],
         ], $cache->get($coursecontext->id));
     }
 }

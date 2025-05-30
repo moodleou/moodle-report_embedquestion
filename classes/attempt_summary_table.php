@@ -67,7 +67,7 @@ class attempt_summary_table extends table_sql {
      * @param \cm_info|null $cm if set, this is a report for one activity, else a whole course.
      * @param int $userid if set, only show data for this one user, else all relevant.
      */
-    public function __construct(int $usageid, \context $context, int $courseid, \cm_info $cm = null,
+    public function __construct(int $usageid, \context $context, int $courseid, ?\cm_info $cm = null,
             int $userid = 0) {
 
         parent::__construct('report_embedquestion_attempt_summary');
@@ -231,7 +231,7 @@ class attempt_summary_table extends table_sql {
                                 min(prevstep.sequencenumber), qa.slot, prevstep.questionattemptid
                            FROM {question_attempt_steps} prevstep
                            JOIN {question_attempts} qa ON qa.id = prevstep.questionattemptid
-                          WHERE qa.questionusageid = r.questionusageid AND state <> :state
+                          WHERE qa.questionusageid = :subusageid AND state <> :state
                        GROUP BY qa.slot, prevstep.questionattemptid
                         ) AS attemptnumbers
                   WHERE attemptnumbers.questionattemptid = qas.questionattemptid
@@ -257,6 +257,7 @@ class attempt_summary_table extends table_sql {
         $this->sql->params['usageid'] = $this->usageid;
         $this->sql->params['state'] = 'todo';
         $this->sql->params['qasstate'] = 'todo';
+        $this->sql->params['subusageid'] = $this->usageid;
 
         if ($this->cm === null) {
             $this->sql->where .= "
@@ -286,7 +287,7 @@ class attempt_summary_table extends table_sql {
         // This sort will help the sequence number increase correctly.
         $newsorting = self::construct_order_by([
             'qa.slot' => SORT_ASC,
-            'qas.id' => SORT_ASC
+            'qas.id' => SORT_ASC,
         ]);
 
         // Combine sort settings from parent class and new sort settings.

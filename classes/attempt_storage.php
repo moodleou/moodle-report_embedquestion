@@ -29,6 +29,14 @@ use filter_embedquestion\embed_location;
  */
 class attempt_storage extends \filter_embedquestion\attempt_storage {
 
+    /**
+     * Find an existing attempt for the given embed id and location.
+     *
+     * @param embed_id $embedid The embed id.
+     * @param embed_location $embedlocation The embed location.
+     * @param \stdClass $user The user object.
+     * @return array An array containing the question usage and the last slot number, or null if not found.
+     */
     public function find_existing_attempt(embed_id $embedid, embed_location $embedlocation,
             \stdClass $user): array {
         global $DB;
@@ -46,6 +54,11 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
         return [$quba, end($allslots)];
     }
 
+    /**
+     * Update the time modified for the given question usage id.
+     *
+     * @param int $qubaid The question usage id.
+     */
     public function update_timemodified(int $qubaid): void {
         global $DB;
 
@@ -53,6 +66,14 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
                 ['questionusageid' => $qubaid]);
     }
 
+    /**
+     * Create a new question usage for the given embed id and location.
+     *
+     * @param embed_id $embedid The embed id.
+     * @param embed_location $embedlocation The embed location.
+     * @param \stdClass $user The user object.
+     * @return \question_usage_by_activity The new question usage.
+     */
     public function make_new_usage(embed_id $embedid, embed_location $embedlocation,
             \stdClass $user): \question_usage_by_activity {
         $quba = \question_engine::make_questions_usage_by_activity(
@@ -60,6 +81,14 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
         return $quba;
     }
 
+    /**
+     * Save a new usage for the given embed id and location.
+     *
+     * @param \question_usage_by_activity $quba The question usage.
+     * @param embed_id $embedid The embed id.
+     * @param embed_location $embedlocation The embed location.
+     * @param \stdClass $user The user object.
+     */
     public function new_usage_saved(\question_usage_by_activity $quba,
             embed_id $embedid, embed_location $embedlocation, \stdClass $user): void {
         global $DB;
@@ -80,6 +109,13 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
         attempt_tracker::user_attempts_changed($embedlocation->context);
     }
 
+    /**
+     * Verify that the usage belongs to the current user and context.
+     *
+     * @param \question_usage_by_activity $quba The question usage.
+     * @param \context $context The context of the usage.
+     * @throws \moodle_exception If the usage does not belong to the current user or context.
+     */
     public function verify_usage(\question_usage_by_activity $quba, \context $context): void {
         global $DB, $USER;
 
@@ -98,6 +134,11 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
         }
     }
 
+    /**
+     * Delete the attempt associated with the given question usage.
+     *
+     * @param \question_usage_by_activity $quba The question usage to delete.
+     */
     public function delete_attempt(\question_usage_by_activity $quba) {
         global $DB;
 

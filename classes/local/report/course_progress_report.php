@@ -49,14 +49,17 @@ class course_progress_report extends progress_report {
         $this->context = $context;
     }
 
+    #[\Override]
     public function get_title(): string {
         return get_string('coursereporttitle', 'report_embedquestion', $this->context->get_context_name(false, false));
     }
 
+    #[\Override]
     public function get_table_caption(): string {
         return get_string('reporttablecaption', 'report_embedquestion', $this->context->get_context_name(false, true));
     }
 
+    #[\Override]
     public function get_url_report(): moodle_url {
         return utils::get_url(['courseid' => $this->course->id]);
     }

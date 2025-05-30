@@ -36,15 +36,18 @@ namespace report_embedquestion\event;
  */
 class course_report_viewed extends \core\event\base {
 
+    #[\Override]
     protected function init() {
         $this->data['crud'] = 'r';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
     }
 
+    #[\Override]
     public static function get_name() {
         return get_string('eventcoursereportviewed', 'report_embedquestion');
     }
 
+    #[\Override]
     public function get_description() {
         if ($this->relateduserid) {
             if ($this->userid == $this->relateduserid) {
@@ -63,6 +66,7 @@ class course_report_viewed extends \core\event\base {
         }
     }
 
+    #[\Override]
     public function get_url() {
         $params = ['courseid' => $this->courseid];
         if ($this->relateduserid) {
@@ -73,6 +77,7 @@ class course_report_viewed extends \core\event\base {
         return new \moodle_url('/report/embedquestion/index.php', $params);
     }
 
+    #[\Override]
     protected function validate_data() {
         parent::validate_data();
 
@@ -89,6 +94,7 @@ class course_report_viewed extends \core\event\base {
         }
     }
 
+    #[\Override]
     public static function get_other_mapping() {
         return [
             'groupid' => ['db' => 'groups', 'restore' => 'group'],

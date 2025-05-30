@@ -30,6 +30,6 @@ $definitions = [
         'simplekeys' => true, // For better performance.
         'simpledata' => true,
         'staticacceleration' => true,
-        'staticaccelerationsize' => 50
-    ]
+        'staticaccelerationsize' => 50,
+    ],
 ];

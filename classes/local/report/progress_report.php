@@ -76,7 +76,7 @@ abstract class progress_report {
      * @param bool $isonequestiondetails
      * @return progress_report the requested object.
      */
-    public static function make(stdClass $course, context $context, cm_info $cm = null,
+    public static function make(stdClass $course, context $context, ?cm_info $cm = null,
             bool $isonequestiondetails = false): progress_report {
         if ($cm) {
             $report = new activity_progress_report($course, $context, $cm);

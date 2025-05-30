@@ -26,8 +26,9 @@ require_once(__DIR__ . '/../lib.php');
  * @package   report_embedquestion
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
+ * @covers \report_embedquestion\lib
  */
-class report_embedquestion_lib_testcase extends \advanced_testcase {
+final class lib_test extends \advanced_testcase {
 
     /**
      * @var \testing_data_generator
@@ -52,7 +53,7 @@ class report_embedquestion_lib_testcase extends \advanced_testcase {
     /**
      * Tests extending the course-level navigation..
      */
-    public function test_report_embedquestion_extend_navigation_course() {
+    public function test_report_embedquestion_extend_navigation_course(): void {
         $this->setAdminUser();
         $node = new \navigation_node(['text' => 'Parent node']);
         $course = $this->generator->create_course();
@@ -78,7 +79,7 @@ class report_embedquestion_lib_testcase extends \advanced_testcase {
     /**
      * Tests extending the course-level navigation..
      */
-    public function test_report_embedquestion_extend_navigation_module() {
+    public function test_report_embedquestion_extend_navigation_module(): void {
         $this->setAdminUser();
         $course = $this->generator->create_course();
         $coursecontext = \context_course::instance($course->id);
@@ -106,7 +107,7 @@ class report_embedquestion_lib_testcase extends \advanced_testcase {
                 ['cmid' => $activity->cmid]), $reportnode->action());
     }
 
-    public function test_report_embedquestion_questions_in_use_detects_question_in_use() {
+    public function test_report_embedquestion_questions_in_use_detects_question_in_use(): void {
         $user = $this->generator->create_user();
         $question = $this->attemptgenerator->create_embeddable_question('truefalse');
         $this->attemptgenerator->create_attempt_at_embedded_question($question, $user, 'True');
@@ -114,7 +115,7 @@ class report_embedquestion_lib_testcase extends \advanced_testcase {
         $this->assertTrue(questions_in_use([$question->id]));
     }
 
-    public function test_report_embedquestion_questions_in_use_does_not_report_unattempted_question() {
+    public function test_report_embedquestion_questions_in_use_does_not_report_unattempted_question(): void {
         $question = $this->attemptgenerator->create_embeddable_question('truefalse');
 
         $this->assertFalse(questions_in_use([$question->id]));

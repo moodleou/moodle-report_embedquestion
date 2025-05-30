@@ -72,7 +72,7 @@ class latest_attempt_table extends table_sql {
      * @param string|null $download the string used for file extension.
      */
     public function __construct(context $context, int $courseid, ?cm_info $cm,
-            report_display_options $displayoption, string $download = null) {
+            report_display_options $displayoption, ?string $download = null) {
         parent::__construct('report_embedquestion_latest_attempt');
 
         $this->context = $context;

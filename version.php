@@ -28,11 +28,11 @@ $plugin->version   = 2022032900;
 $plugin->requires  = 2021051700;
 $plugin->component = 'report_embedquestion';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.7 for Moodle 3.11+';
+$plugin->release   = '1.8 for Moodle 5.0+';
 
 $plugin->dependencies = [
     'filter_embedquestion' => 2022032900,
-    'quiz_answersheets' => 2022033000
+    'quiz_answersheets' => 2022033000,
 ];
 
 $plugin->outestssufficient = true;

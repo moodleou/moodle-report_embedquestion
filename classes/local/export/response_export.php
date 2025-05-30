@@ -106,6 +106,7 @@ class response_export {
      *
      * @param array $questionusageids Question usage ids
      * @param context $context Context
+     * @param int $userid User id
      * @return array [file => File name, size => File size]
      */
     public static function get_response_zip_file_info(array $questionusageids, context $context, int $userid): array {
@@ -185,7 +186,7 @@ class response_export {
 
         return [
                 'file' => $cleanedzipfilename,
-                'size' => filesize($filepath)
+                'size' => filesize($filepath),
         ];
     }
 
@@ -210,7 +211,7 @@ class response_export {
 
         /** @var qbehaviour_renderer $behaviouroutput */
         $behaviouroutput = $page->get_renderer(get_class($qa->get_behaviour()));
-        /** @var qtype_renderer $qoutput */
+        /** @var qtype_renderer $qtoutput */
         $qtoutput = \quiz_answersheets\utils::get_question_renderer($page, $qa);
         /** @var core_question_override_renderer $qoutput */
         $qoutput = $page->get_renderer('quiz_answersheets', 'core_question_override');
@@ -354,9 +355,9 @@ class response_export {
     /**
      * Update url for source element.
      *
-     * @param $node DOMNode The node needs to update the URL in the tags matched.
-     * @param $urlexplode array The origin URL has been exploded.
-     * @param false $iscon If icon is true we concatenation .svg with URL.
+     * @param DOMNode $node The node needs to update the URL in the tags matched.
+     * @param array $urlexplode The origin URL has been exploded.
+     * @param bool $iscon If icon is true we concatenation .svg with URL.
      */
     public function update_src_url($node, $urlexplode, $iscon = false): void {
         $newurl = './' . $urlexplode[count($urlexplode) - 1];
@@ -442,6 +443,7 @@ class response_export {
     /**
      * Format filename by removing suspicious or troublesome characters.
      *
+     * @param string $filename The filename to format.
      * @return string The filename is formatted.
      */
     public static function format_filename(string $filename): string {

@@ -1,4 +1,4 @@
-@report @report_embedquestion
+@report @report_embedquestion @app
 Feature: Testing attempt detail view and delete feature
   As a teacher/student
   I should be able to view the attempt detail or delete it in Embed Question report
