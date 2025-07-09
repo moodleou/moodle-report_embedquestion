@@ -24,15 +24,15 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2022032900;
-$plugin->requires  = 2021051700;
+$plugin->version   = 2025070900;
+$plugin->requires  = 2024042200;
 $plugin->component = 'report_embedquestion';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.8 for Moodle 5.0+';
+$plugin->release   = '1.8 for Moodle 4.4+';
 
 $plugin->dependencies = [
-    'filter_embedquestion' => 2022032900,
-    'quiz_answersheets' => 2022033000,
+    'filter_embedquestion' => 2025050100,
+    'quiz_answersheets' => 2025061000,
 ];
 
 $plugin->outestssufficient = true;

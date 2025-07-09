@@ -1,5 +1,21 @@
 # Change log for the Embedded questions progress report
 
+## Features in version 1.8
+
+* This version works with Moodle 4.5.
+* Fixed bug: downloading embedded responses failed due to special characters in the file names.
+* Added table caption to improve accessibility.
+* The attempt summary page now shows the attempt number and a View column to access previous attempts. 
+* Added “Question type” and “Last attempt status” filters to the embedded progress report.
+* Embedded question report: export student input from all questions.
+* Improved JavaScript to export student input from Drag & Drop questions.
+* Fixed a bug where viewing attempt results for a question embedded in a Label caused an error.
+* Fixed a bug: now uses a temporary directory to download the ZIP file instead of $CFG->dataroot . '/cache/'.
+* Accessibility/Progress report: made the “Select question” checkbox more descriptive.
+* Theme: increased contrast for the partially correct color to improve accessibility.
+* Fixed code checker issues and improved automated tests.
+
+
 ## Features in version 1.7
 
 * This version works with Moodle 4.0.
