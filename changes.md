@@ -1,5 +1,12 @@
 # Change log for the Embedded questions progress report
 
+## Features in version 1.8
+
+* Fix bug Downloading embedded response fails due to special characters.
+* Fix bug missing table caption.
+* New column for report view.
+* This version works with Moodle 4.5
+
 ## Features in version 1.7
 
 * This version works with Moodle 4.0.
