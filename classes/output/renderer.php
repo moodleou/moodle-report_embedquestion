@@ -153,7 +153,7 @@ class renderer extends plugin_renderer_base {
     public function render_delete_attempts_buttons() {
         $deletebuttonparams = [
                 'type' => 'submit',
-                'class' => 'btn btn-secondary mr-1',
+                'class' => 'btn btn-secondary me-1',
                 'id' => 'deleteattemptsbutton',
                 'name' => 'delete',
                 'value' => get_string('deleteselected', 'quiz_overview'),
@@ -188,7 +188,7 @@ class renderer extends plugin_renderer_base {
 
         $downloadselectbuttonparams = [
                 'type' => 'submit',
-                'class' => 'btn btn-secondary mr-1',
+                'class' => 'btn btn-secondary me-1',
                 'id' => 'downloadselectedattemptsbutton',
                 'name' => 'downloadselect',
                 'value' => get_string('downloadresponse_buttonselected', 'report_embedquestion'),
@@ -197,7 +197,7 @@ class renderer extends plugin_renderer_base {
 
         $downloadallbuttonparams = [
                 'type' => 'submit',
-                'class' => 'btn btn-secondary mr-1',
+                'class' => 'btn btn-secondary me-1',
                 'id' => 'downloadallattemptsbutton',
                 'name' => 'downloadall',
                 'value' => get_string('downloadresponse_buttonall', 'report_embedquestion'),
