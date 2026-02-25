@@ -432,7 +432,7 @@ class response_export {
      */
     public static function get_export_file_name(stdClass $course, string $activityname): string {
         $base = clean_filename(get_string('downloadresponse_filename', 'report_embedquestion'));
-        $shortname = clean_filename($course->shortname);
+        $shortname = clean_filename(format_string($course->shortname));
         if ($shortname == '' || $shortname == '_') {
             $shortname = $course->id;
         }
