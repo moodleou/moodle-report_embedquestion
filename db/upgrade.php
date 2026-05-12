@@ -21,7 +21,7 @@
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+use report_embedquestion\utils;
 /**
  * Embedded questions progress report database upgrade function.
  *
@@ -34,7 +34,6 @@ function xmldb_report_embedquestion_upgrade(int $oldversion) {
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2019082101) {
-
         // Define table report_embedquestion_attempt to be created.
         $table = new xmldb_table('report_embedquestion_attempt');
 
@@ -53,12 +52,20 @@ function xmldb_report_embedquestion_upgrade(int $oldversion) {
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
         $table->add_key('contextid', XMLDB_KEY_FOREIGN, ['contextid'], 'context', ['id']);
-        $table->add_key('questionusageid', XMLDB_KEY_FOREIGN,
-                ['questionusageid'], 'question_usages', ['id']);
+        $table->add_key(
+            'questionusageid',
+            XMLDB_KEY_FOREIGN,
+            ['questionusageid'],
+            'question_usages',
+            ['id']
+        );
 
         // Adding indexes to table report_embedquestion_attempt.
-        $table->add_index('userid-contextid-embedcode', XMLDB_INDEX_UNIQUE,
-                ['userid', 'contextid', 'embedcode']);
+        $table->add_index(
+            'userid-contextid-embedcode',
+            XMLDB_INDEX_UNIQUE,
+            ['userid', 'contextid', 'embedcode']
+        );
 
         // Conditionally launch create table for report_embedquestion_attempt.
         if (!$dbman->table_exists($table)) {
@@ -70,7 +77,6 @@ function xmldb_report_embedquestion_upgrade(int $oldversion) {
     }
 
     if ($oldversion < 2019090900) {
-
         // Define index userid-contextid-embedcode (unique) to be dropped form report_embedquestion_attempt.
         $table = new xmldb_table('report_embedquestion_attempt');
         $index = new xmldb_index('userid-contextid-embedcode', XMLDB_INDEX_UNIQUE, ['userid', 'contextid', 'embedcode']);
@@ -85,7 +91,6 @@ function xmldb_report_embedquestion_upgrade(int $oldversion) {
     }
 
     if ($oldversion < 2019090901) {
-
         // Rename field embedid on table report_embedquestion_attempt to NEWNAMEGOESHERE.
         $table = new xmldb_table('report_embedquestion_attempt');
         $field = new xmldb_field('embedcode', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, 'contextid');
@@ -98,7 +103,6 @@ function xmldb_report_embedquestion_upgrade(int $oldversion) {
     }
 
     if ($oldversion < 2019090902) {
-
         // Define index userid-contextid-embedid (unique) to be added to report_embedquestion_attempt.
         $table = new xmldb_table('report_embedquestion_attempt');
         $index = new xmldb_index('userid-contextid-embedid', XMLDB_INDEX_UNIQUE, ['userid', 'contextid', 'embedid']);
@@ -113,7 +117,6 @@ function xmldb_report_embedquestion_upgrade(int $oldversion) {
     }
 
     if ($oldversion < 2019091600) {
-
         // Define key questionusageid (foreign) to be dropped form report_embedquestion_attempt.
         $table = new xmldb_table('report_embedquestion_attempt');
         $key = new xmldb_key('questionusageid', XMLDB_KEY_FOREIGN, ['questionusageid'], 'question_usages', ['id']);
@@ -126,7 +129,6 @@ function xmldb_report_embedquestion_upgrade(int $oldversion) {
     }
 
     if ($oldversion < 2019091601) {
-
         // Define key questionusageid (foreign-unique) to be added to report_embedquestion_attempt.
         $table = new xmldb_table('report_embedquestion_attempt');
         $key = new xmldb_key('questionusageid', XMLDB_KEY_FOREIGN_UNIQUE, ['questionusageid'], 'question_usages', ['id']);
@@ -137,7 +139,18 @@ function xmldb_report_embedquestion_upgrade(int $oldversion) {
         // Embedquestion savepoint reached.
         upgrade_plugin_savepoint(true, 2019091601, 'report', 'embedquestion');
     }
-
+    if ($oldversion < 2026042102) {
+        // In Moodle >=4.6, we need to update the question prototypes in a scheduled task
+        // because (a) if this is an install, the qbank module hasn't been installed yet and
+        // (b) we need to call question_bank_helper::get_default_open_instance_system_type
+        // which cannot be used during install/upgrade.
+        // We also don't want to do this during PHPUnit tests because it will cause unit test failed in core/question.
+        if (!PHPUNIT_TEST) {
+            $task = new report_embedquestion\task\setup_placeholder_question();
+            core\task\manager::queue_adhoc_task($task);
+        }
+        // Embedquestion savepoint reached.
+        upgrade_plugin_savepoint(true, 2026042102, 'report', 'embedquestion');
+    }
     return true;
 }
-

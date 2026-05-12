@@ -69,8 +69,10 @@ class restore_report_embedquestion_plugin extends restore_report_plugin {
         $paths = [];
 
         // Our data.
-        $attempt = new restore_path_element('report_embedquestion_attempt',
-                $this->get_pathfor('/report_embedquestion_attempts/report_embedquestion_attempt'));
+        $attempt = new restore_path_element(
+            'report_embedquestion_attempt',
+            $this->get_pathfor('/report_embedquestion_attempts/report_embedquestion_attempt')
+        );
         $paths[] = $attempt;
 
         // Add question attempt data.
@@ -114,9 +116,14 @@ class restore_report_embedquestion_plugin extends restore_report_plugin {
                 // However, for this to work, we need to set the 'info' of the mapping,
                 // which we can only do at a low level.
                 $mapping = $this->get_mapping('question', $data['questionid']);
-                restore_dbops::set_backup_ids_record($this->get_restoreid(),
-                        'question', $mapping->itemid, $mapping->newitemid, $mapping->parentitemid,
-                        (object) ['qtype' => $question->qtype]);
+                restore_dbops::set_backup_ids_record(
+                    $this->get_restoreid(),
+                    'question',
+                    $mapping->itemid,
+                    $mapping->newitemid,
+                    $mapping->parentitemid,
+                    (object) ['qtype' => $question->qtype]
+                );
             }
         }
         $this->restore_question_attempt_worker($data, '');

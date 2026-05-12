@@ -25,7 +25,6 @@ namespace report_embedquestion;
  * @covers \report_embedquestion\attempt_tracker
  */
 final class attempt_tracker_test extends \advanced_testcase {
-
     /**
      * @var \testing_data_generator
      */
@@ -55,9 +54,23 @@ final class attempt_tracker_test extends \advanced_testcase {
 
         $course = $this->generator->create_course();
         $coursecontext = \context_course::instance($course->id);
-        $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $coursecontext->id]);
-        $page = $this->generator->create_module('page', ['course' => $course->id,
-                'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>']);
+        $qbank = $this->getDataGenerator()->create_module('qbank', ['course' => $course->id, 'idnumber' => 'abc123']);
+        $qbankcontext = \context_module::instance($qbank->cmid);
+        $question = $this->attemptgenerator->create_embeddable_question(
+            'truefalse',
+            null,
+            [],
+            [
+                'contextid' => $qbankcontext->id,
+            ]
+        );
+        $page = $this->generator->create_module(
+            'page',
+            [
+                'course' => $course->id,
+                'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>',
+            ]
+        );
         $pagecontext = \context_module::instance($page->cmid);
 
         // Create a student with an attempt at that question.
@@ -65,8 +78,10 @@ final class attempt_tracker_test extends \advanced_testcase {
         $this->generator->enrol_user($user->id, $course->id, 'student');
 
         // Make the cache.
-        $cache = \cache::make(attempt_tracker::CACHE_COMPONENT,
-                attempt_tracker::CACHE_AREA);
+        $cache = \cache::make(
+            attempt_tracker::CACHE_COMPONENT,
+            attempt_tracker::CACHE_AREA
+        );
 
         // Verify that there is no cache at this time.
         $this->assertFalse($cache->has($coursecontext->id));
@@ -80,7 +95,10 @@ final class attempt_tracker_test extends \advanced_testcase {
         // Verify that the value from the cache is False.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => false],
+                'subcontext' => [
+                    $qbankcontext->id => false,
+                    $pagecontext->id => false,
+                ],
         ], $cache->get($coursecontext->id));
 
         // Insert the dummy data to report_embedquestion_attempt table.
@@ -101,7 +119,10 @@ final class attempt_tracker_test extends \advanced_testcase {
         // Verify that the value from the cache is still False.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => false],
+                'subcontext' => [
+                    $qbankcontext->id => false,
+                    $pagecontext->id => false,
+                ],
         ], $cache->get($coursecontext->id));
         // Verify that the function will get the value from the cache, not from the database.
         $this->assertFalse(attempt_tracker::user_has_attempt($coursecontext->id));
@@ -113,7 +134,10 @@ final class attempt_tracker_test extends \advanced_testcase {
         // Verify that the value from the cache is updated to True.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => true],
+                'subcontext' => [
+                    $qbankcontext->id => false,
+                    $pagecontext->id => true,
+                ],
         ], $cache->get($coursecontext->id));
         // Verify that the function will return the correct value.
         $this->assertTrue(attempt_tracker::user_has_attempt($coursecontext->id));
@@ -125,7 +149,10 @@ final class attempt_tracker_test extends \advanced_testcase {
         // Verify that the value from the cache is still True.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => true],
+                'subcontext' => [
+                    $qbankcontext->id => false,
+                    $pagecontext->id => true,
+                ],
         ], $cache->get($coursecontext->id));
         // Verify that the function will get the value from the cache, not from the database.
         $this->assertTrue(attempt_tracker::user_has_attempt($coursecontext->id));
@@ -137,7 +164,10 @@ final class attempt_tracker_test extends \advanced_testcase {
         // Verify that the value from the cache is updated to True.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => false],
+                'subcontext' => [
+                    $qbankcontext->id => false,
+                    $pagecontext->id => false,
+                ],
         ], $cache->get($coursecontext->id));
         // Verify that the function will return the correct value.
         $this->assertFalse(attempt_tracker::user_has_attempt($coursecontext->id));
@@ -150,9 +180,23 @@ final class attempt_tracker_test extends \advanced_testcase {
     public function test_user_has_attempt_with_old_cache_hierarchy(): void {
         $course = $this->generator->create_course();
         $coursecontext = \context_course::instance($course->id);
-        $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $coursecontext->id]);
-        $page = $this->generator->create_module('page', ['course' => $course->id,
-                'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>']);
+        $qbank = $this->getDataGenerator()->create_module('qbank', ['course' => $course->id, 'idnumber' => 'abc123']);
+        $qbankcontext = \context_module::instance($qbank->cmid);
+        $question = $this->attemptgenerator->create_embeddable_question(
+            'truefalse',
+            null,
+            [],
+            [
+                'contextid' => $qbankcontext->id,
+            ]
+        );
+        $page = $this->generator->create_module(
+            'page',
+            [
+                'course' => $course->id,
+                'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>',
+            ]
+        );
         $pagecontext = \context_module::instance($page->cmid);
 
         // Create a student with an attempt at that question.
@@ -160,8 +204,10 @@ final class attempt_tracker_test extends \advanced_testcase {
         $this->generator->enrol_user($user->id, $course->id, 'student');
 
         // Make the cache.
-        $cache = \cache::make(attempt_tracker::CACHE_COMPONENT,
-                attempt_tracker::CACHE_AREA);
+        $cache = \cache::make(
+            attempt_tracker::CACHE_COMPONENT,
+            attempt_tracker::CACHE_AREA
+        );
 
         // Verify that there is no cache at this time.
         $this->assertFalse($cache->has($coursecontext->id));
@@ -173,7 +219,10 @@ final class attempt_tracker_test extends \advanced_testcase {
         // Verify the cache hierarchy will be converted to the new one.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => false],
+                'subcontext' => [
+                    $qbankcontext->id => false,
+                    $pagecontext->id => false,
+                ],
         ], $cache->get($coursecontext->id));
 
         // Create old cache hierarchy.
@@ -183,7 +232,10 @@ final class attempt_tracker_test extends \advanced_testcase {
         // Verify the cache hierarchy will be converted to the new one.
         $this->assertEquals([
                 'value' => false,
-                'subcontext' => [$pagecontext->id => false],
+                'subcontext' => [
+                    $qbankcontext->id => false,
+                    $pagecontext->id => false,
+                ],
         ], $cache->get($coursecontext->id));
     }
 }

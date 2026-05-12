@@ -41,7 +41,6 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/mod/quiz/report/answersheets/classes/output/match/renderer.php');
 require_once($CFG->dirroot . '/mod/quiz/report/answersheets/classes/output/renderer.php');
-
 /**
  * Attempt download functions for report_embedquestion.
  *
@@ -50,9 +49,8 @@ require_once($CFG->dirroot . '/mod/quiz/report/answersheets/classes/output/rende
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class response_export {
-
-    /** @var array Array tag name we need to get in html documment. */
-    const HTML_TAGS_WITH_SRC = ['audio', 'video', 'img', 'source'];
+    /** @var array The HTML tags which have src attribute. */
+    public const HTML_TAGS_WITH_SRC = ['audio', 'video', 'img', 'source'];
 
     /** @var array The url of resources. */
     protected $urlresources = [];
@@ -64,13 +62,13 @@ class response_export {
     protected $csscontent = '';
 
     /** @var array The list of question types have javascript need to include. */
-    const QUESTION_TYPES_HAVE_JS = ['ddmarker', 'ddimageortext', 'ddwtos', 'crossword', 'pmatch'];
+    public const QUESTION_TYPES_HAVE_JS = ['ddmarker', 'ddimageortext', 'ddwtos', 'crossword', 'pmatch'];
 
-    /** @var context The context of the course. */
-    protected $coursecontext;
+    /** @var context|null The context of the course. */
+    protected ?context $coursecontext = null;
 
-    /** @var stdClass course object */
-    protected $course;
+    /** @var stdClass|null course object */
+    protected ?stdClass $course = null;
 
     /**
      * Return an array listing all the question types which might have response files.
@@ -101,11 +99,11 @@ class response_export {
     }
 
     /**
-     * Get all the response files by the given question usage ids, context. After that, archive all the files into a zip file and
-     * return the zip file's info such as file name and file size.
+     * Get all the response files by the given question usage ids, context. If context is course, collect all activities' responses.
+     * Archive all the files into a zip file and return the zip file's info such as file name and file size.
      *
      * @param array $questionusageids Question usage ids
-     * @param context $context Context
+     * @param context $context Context (course or activity)
      * @param int $userid User id
      * @return array [file => File name, size => File size]
      */
@@ -115,7 +113,8 @@ class response_export {
 
         $self->coursecontext = $context->get_course_context();
         $self->course = get_course($self->coursecontext->instanceid);
-        $zipfilename = self::get_export_file_name($self->course, $context->get_context_name(false));
+        $iscoursecontext = $context->contextlevel === CONTEXT_COURSE;
+        $zipfilename = self::get_export_file_name($self->course, $context->get_context_name(false), $iscoursecontext);
         $cleanedzipfilename = self::format_filename($zipfilename);
         // Get zip file path from temporary folder.
         $filepath = utils::get_file_path_from_temporary_dir($cleanedzipfilename . '.zip');
@@ -135,25 +134,51 @@ class response_export {
         // If there is more than one user, we will create a subfolder for their own user information.
         $issubfolder = count($questionusageids) === 1;
 
+        // Preload all attempt info to avoid repeated DB calls.
+        $attemptinfos = [];
+        [$insql, $params] = $DB->get_in_or_equal($questionusageids);
+        $records = $DB->get_records_select('report_embedquestion_attempt', "questionusageid $insql", $params);
+        foreach ($records as $rec) {
+            $attemptinfos[$rec->questionusageid] = $rec;
+        }
         foreach ($questionusageids as $qubaid) {
-            if (!$userid) {
-                $attemptinfo = $DB->get_record('report_embedquestion_attempt', ['questionusageid' => $qubaid], '*', MUST_EXIST);
+            $attemptinfo = $attemptinfos[$qubaid] ?? null;
+            $user = null;
+            $info = null;
+            if (!$userid && $attemptinfo) {
                 [$user, $info] = utils::get_user_details($attemptinfo->userid, $context);
             }
             $quba = question_engine::load_questions_usage_by_activity($qubaid);
-            foreach ($quba->get_slots() as $slotno) {
+            $slots = $quba->get_slots();
+            foreach ($slots as $slotno) {
                 $question = $quba->get_question($slotno);
                 $qa = $quba->get_question_attempt($slotno);
 
-                if (count($quba->get_slots()) === 1 && $qa->get_state() === question_state::$todo) {
+                if (count($slots) === 1 && $qa->get_state() === question_state::$todo) {
                     continue;
                 }
 
                 // Setup directory.
                 $filedirectory = '';
-                if (!$userid && !$issubfolder) {
-                    $filedirectory = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
-                            ['fullname' => fullname($user), 'info' => implode(', ', $info)]) . '/';
+
+                if ($context->contextlevel === CONTEXT_COURSE) {
+                    // Use the activity context name (e.g., "EQ Forum") rather than pagename
+                    // which may include extra info like course shortname and site name.
+                    // Note: downloadresponse_filename already has a leading space.
+                    $activitycontext = $quba->get_owning_context();
+                    $activityname = $activitycontext->get_context_name(false);
+                    $filedirectory = clean_filename($activityname) .
+                        get_string('downloadresponse_filename', 'report_embedquestion') . '/';
+                }
+                if (!$userid && !$issubfolder && $user && $info) {
+                    $filedirectory .= get_string(
+                        'crumbtrailembedquestiondetail',
+                        'report_embedquestion',
+                        [
+                            'fullname' => fullname($user),
+                            'info' => implode(', ', $info),
+                        ]
+                    ) . '/';
                 }
                 $slotnoformat = 'attempt' . str_pad($slotno, 4, '0', STR_PAD_LEFT);
                 $questionname = self::format_filename($question->name);
@@ -198,8 +223,12 @@ class response_export {
      * @param question_usage_by_activity $quba The usage to check.
      * @param question_attempt $qa Question attempt to check.
      */
-    public function render_question_to_html_in_zip(zip_archive $ziparchive, string $filedirectory,
-            question_usage_by_activity $quba, question_attempt $qa): void {
+    public function render_question_to_html_in_zip(
+        zip_archive $ziparchive,
+        string $filedirectory,
+        question_usage_by_activity $quba,
+        question_attempt $qa
+    ): void {
         global $OUTPUT, $PAGE;
 
         $page = new moodle_page();
@@ -324,7 +353,7 @@ class response_export {
         // Load HTML and suppress any parsing errors (DOMDocument->loadHTML() does not current support HTML5 tags).
         $dom = new DOMDocument();
         libxml_use_internal_errors(true);
-        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $bodystring, LIBXML_HTML_NODEFDTD );
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $bodystring, LIBXML_HTML_NODEFDTD);
         libxml_clear_errors();
         // Find all tags.
         foreach ($tags as $tag) {
@@ -334,8 +363,10 @@ class response_export {
                     $node = $nodes->item($i);
                     $url = ($node->hasAttribute('src')) ? $node->getAttribute('src') : '';
                     $urlexplode = explode('/', ltrim($url, '/'));
-                    if (in_array("pluginfile.php", $urlexplode)
-                            || in_array("draftfile.php", $urlexplode)) {
+                    if (
+                        in_array("pluginfile.php", $urlexplode)
+                        || in_array("draftfile.php", $urlexplode)
+                    ) {
                         array_push($this->urlresources, $url);
                         $this->update_src_url($node, $urlexplode);
                     }
@@ -359,7 +390,7 @@ class response_export {
      * @param array $urlexplode The origin URL has been exploded.
      * @param bool $iscon If icon is true we concatenation .svg with URL.
      */
-    public function update_src_url($node, $urlexplode, $iscon = false): void {
+    public function update_src_url(DOMNode $node, array $urlexplode, bool $iscon = false): void {
         $newurl = './' . $urlexplode[count($urlexplode) - 1];
         if ($iscon) {
             $newurl = './' . $urlexplode[count($urlexplode) - 1] . '.svg';
@@ -374,7 +405,7 @@ class response_export {
      * @param string $url Pluginfile URL.
      * @return stored_file|bool Stored_file instance if exists, false if not.
      */
-    public static function get_file_from_pluginfile_url(string $url) {
+    public static function get_file_from_pluginfile_url(string $url): stored_file|bool {
         // Decode the URL before start processing it.
         $url = new moodle_url(urldecode($url));
 
@@ -428,16 +459,24 @@ class response_export {
      *
      * @param stdClass $course
      * @param string $activityname
+     * @param bool $iscoursecontext Whether this is a course-level context (to avoid duplicating shortname).
      * @return string
      */
-    public static function get_export_file_name(stdClass $course, string $activityname): string {
+    public static function get_export_file_name(stdClass $course, string $activityname, bool $iscoursecontext = false): string {
         $base = clean_filename(get_string('downloadresponse_filename', 'report_embedquestion'));
         $shortname = clean_filename($course->shortname);
         if ($shortname == '' || $shortname == '_') {
             $shortname = $course->id;
         }
 
-        return "$shortname $activityname $base";
+        // At course level, activityname already includes shortname via get_context_name(),
+        // so we don't prepend it again.
+        // Note: $base (downloadresponse_filename) already has a leading space.
+        if ($iscoursecontext) {
+            return "$activityname$base";
+        }
+
+        return "$shortname $activityname$base";
     }
 
     /**

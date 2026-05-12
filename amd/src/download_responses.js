@@ -29,14 +29,16 @@ define(['jquery'], function($) {
         SELECTOR: {
             ATTEMPT_CHECKBOX: '[name="questionusageid[]"]',
             BUTTON_DOWNLOAD_SELECT: '#downloadselectedattemptsbutton',
-            BUTTON_DOWNLOAD_ALL: '#downloadallattemptsbutton'
+            BUTTON_DOWNLOAD_ALL: '#downloadallattemptsbutton',
+            BUTTON_DELETE: '#deleteattemptsbutton'
         },
 
         /**
          * Initialise function
          */
         init: function() {
-            let totalChecked = 0;
+            let totalDownloadChecked = 0;
+            let totalDeleteChecked = 0;
             let allowDownloadAll = 0;
 
             $(t.SELECTOR.ATTEMPT_CHECKBOX).each(function() {
@@ -52,12 +54,21 @@ define(['jquery'], function($) {
                 let allowDownload = t.isAllowDownloading(this);
                 if (allowDownload) {
                     if (this.checked) {
-                        totalChecked++;
+                        totalDownloadChecked++;
                     } else {
-                        totalChecked--;
+                        totalDownloadChecked--;
                     }
                 }
-                $(t.SELECTOR.BUTTON_DOWNLOAD_SELECT).prop('disabled', !(totalChecked > 0));
+                let allowDelete = t.isAllowDeleting(this);
+                if (allowDelete) {
+                    if (this.checked) {
+                        totalDeleteChecked++;
+                    } else {
+                        totalDeleteChecked--;
+                    }
+                }
+                $(t.SELECTOR.BUTTON_DOWNLOAD_SELECT).prop('disabled', !(totalDownloadChecked > 0));
+                $(t.SELECTOR.BUTTON_DELETE).prop('disabled', !(totalDeleteChecked > 0));
             });
         },
 
@@ -69,6 +80,16 @@ define(['jquery'], function($) {
             let checkBox = $(element);
             let questionUsageMeta = checkBox.val().split('-');
             return questionUsageMeta[2] == 1;
+        },
+
+        /**
+         * Check that the element is allow to delete or not
+         * @param {jquery} element Element to check
+         */
+        isAllowDeleting: function(element) {
+            let checkBox = $(element);
+            let questionUsageMeta = checkBox.val().split('-');
+            return questionUsageMeta[3] == 1;
         }
     };
 

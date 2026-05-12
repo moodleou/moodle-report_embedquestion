@@ -7,7 +7,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:14
+        image: postgres:16
         env:
           POSTGRES_USER: 'postgres'
           POSTGRES_HOST_AUTH_METHOD: 'trust'
@@ -30,12 +30,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: '8.3'
-            moodle-branch: 'MOODLE_405_STABLE'
-            database: 'mariadb'
-          - php: '8.2'
-            moodle-branch: 'MOODLE_404_STABLE'
-            database: 'pgsql'
+          - { php: '8.2', moodle-branch: MOODLE_500_STABLE, database: mariadb }
+          - { php: '8.3', moodle-branch: MOODLE_501_STABLE, database: pgsql }
+          - { php: '8.4', moodle-branch: MOODLE_502_STABLE, database: pgsql }
 
     steps:
       - name: Check out repository code
@@ -115,10 +112,18 @@ jobs:
         if: ${{ always() }}
         run: moodle-plugin-ci behat --profile chrome
 
+      - name: Set embedquestion path
+        run: |
+          if [[ "${{ matrix.moodle-branch }}" == "MOODLE_500_STABLE" ]]; then
+            echo "EMBEDQUESTION_PATH=/home/runner/work/moodle-report_embedquestion/moodle-report_embedquestion/moodle/filter/embedquestion" >> $GITHUB_ENV
+          else
+            echo "EMBEDQUESTION_PATH=/home/runner/work/moodle-report_embedquestion/moodle-report_embedquestion/moodle/public/filter/embedquestion" >> $GITHUB_ENV
+          fi
+
       - name: filter_embedquestion phpunit with report
         if: ${{ always() }}
-        run: moodle-plugin-ci phpunit -- /home/runner/work/moodle-report_embedquestion/moodle-report_embedquestion/moodle/filter/embedquestion
+        run: moodle-plugin-ci phpunit -- $EMBEDQUESTION_PATH
 
       - name: filter_embedquestion behat with report
         if: ${{ always() }}
-        run: moodle-plugin-ci behat --profile chrome -- /home/runner/work/moodle-report_embedquestion/moodle-report_embedquestion/moodle/filter/embedquestion
+        run: moodle-plugin-ci behat --profile chrome -- $EMBEDQUESTION_PATH

@@ -27,23 +27,24 @@ Feature: Teachers can see their students progress on embedded questions.
       | student6 | C1     | student        |
       | teacher  | C1     | editingteacher |
     And the following "activities" exist:
-      | activity | name        | idnumber | course |
-      | page     | Test page 1 | page1    | C1     |
+      | activity | name    | intro           | course | idnumber |
+      | qbank    | Qbank 1 | Question bank 1 | C1     | qbank1   |
     And the following "question categories" exist:
-      | contextlevel | reference | name           | idnumber |
-      | Course       | C1        | Test questions | embed    |
+      | contextlevel    | reference | name           | idnumber |
+      | Activity module | qbank1    | Test questions | embed    |
     And the following "questions" exist:
       | questioncategory | qtype     | name            | idnumber | template |
       | Test questions   | truefalse | First question  | test1    |          |
       | Test questions   | truefalse | Second question | test2    |          |
     And the following "filter_embedquestion > Pages with embedded question" exist:
       | name        | idnumber | course | question    |
+      | Test page 1 | page1    | C1     | embed/test1 |
       | Test page 2 | page2    | C1     | embed/test1 |
     And the "embedquestion" filter is "on"
     And "student1" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
       | C1:page1 | embed/test1 | True     |
-      | C1:page1 | embed/test2 | Fasle    |
+      | C1:page1 | embed/test2 | False    |
     And "student2" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
       | C1:page1 | embed/test1 | False    |
@@ -252,8 +253,9 @@ Feature: Teachers can see their students progress on embedded questions.
   @javascript
   Scenario: The Embedded questions progress can filter question type.
     Given the qtype_recordrtc plugin is installed
-    And the following "question categories" exist:
-      | Test questions | recordrtc | Third question | test3 | audio |
+    And the following "questions" exist:
+      | questioncategory | qtype     | name           | idnumber | template |
+      | Test questions   | recordrtc | Third question | test3    | audio    |
     And "student1" has attempted embedded questions in "activity" context "page1":
       | pagename | question    | response |
       | C1:page1 | embed/test3 |          |
@@ -279,3 +281,30 @@ Feature: Teachers can see their students progress on embedded questions.
     And I should see "5"
     And I follow "Page 2"
     And I should see "6"
+
+  @javascript
+  Scenario: User can delete their attempts from the report.
+    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student1"
+    And I click on "Attempt summary" "link" in the "student1" "table_row"
+    When I click on "Delete attempt" "link" in the "Correct" "table_row"
+    And I click on "Yes" "button"
+    Then I should see "Nothing to display"
+    And "student1" has attempted embedded questions in "activity" context "page1":
+      | pagename | question    | response |
+      | C1:page1 | embed/test1 | False    |
+    And I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student1"
+    And I click on "Attempt summary" "link" in the "student1" "table_row"
+    And I should see "Incorrect"
+
+  @javascript
+  Scenario: User can see latest attempt status correctly after deleting an attempt.
+    Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student6"
+    And I click on "Attempt summary" "link" in the "student6" "table_row"
+    When I click on "2" "link" in the ".pagination" "css_element"
+    And I click on "Delete attempt" "link" in the "Incorrect" "table_row"
+    And I click on "Yes" "button"
+    And I follow "Embedded question progress for Test page 1"
+    Then I should see "Correct"
+    And I follow "C1:page1"
+    And I switch to "filter_embedquestion-iframe" iframe
+    And I should see "This is the right answer."

@@ -15,24 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Embedded questions progress report version information
+ * Embed question report install script.
  *
  * @package   report_embedquestion
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+use report_embedquestion\utils;
 
-$plugin->version   = 2026050400;
-$plugin->requires  = 2024042200;
-$plugin->component = 'report_embedquestion';
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.0 for Moodle 5.2+';
-
-$plugin->dependencies = [
-    'filter_embedquestion' => 2025050100,
-    'quiz_answersheets' => 2025061000,
-];
-
-$plugin->outestssufficient = true;
+/**
+ * Extra install code for the Embedded questions progress report.
+ */
+function xmldb_report_embedquestion_install() {
+    // In Moodle >=4.6, we need to update the question prototypes in a scheduled task
+    // because (a) if this is an install, the qbank module hasn't been installed yet and
+    // (b) we need to call question_bank_helper::get_default_open_instance_system_type
+    // which cannot be used during install/upgrade.
+    // We also don't want to do this during PHPUnit tests because it will cause unit test failed in core/question.
+    if (!PHPUNIT_TEST) {
+        $task = new report_embedquestion\task\setup_placeholder_question();
+        core\task\manager::queue_adhoc_task($task);
+    }
+}

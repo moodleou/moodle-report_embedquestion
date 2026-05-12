@@ -32,7 +32,6 @@ use mod_quiz\output\attempt_summary_information;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class renderer extends plugin_renderer_base {
-
     /**
      * Render the report heading.
      *
@@ -122,11 +121,68 @@ class renderer extends plugin_renderer_base {
         $url = new moodle_url('/report/embedquestion/attemptdetail.php', $params);
 
         $attempturl = html_writer::link(
-            $url, $this->output->pix_icon('i/preview', get_string('attempt-detail-page', 'report_embedquestion')), [
+            $url,
+            $this->output->pix_icon(
+                'i/preview',
+                get_string('attempt-detail-page', 'report_embedquestion')
+            ),
+            [
                 'target' => '_blank',
             ]
         );
 
+        return $attempturl;
+    }
+
+    /**
+     * Render delete icon link to delete the attempt.
+     *
+     * @param \stdClass $attempt the attempt object.
+     * @param int $usageid the question usage id
+     * @param int $courseid the course id
+     * @param int $userid the user id
+     * @param moodle_url $returnurl the return url
+     * @param int $currentrow the current row number
+     * @param int|null $cmid the course module id
+     * @return string HTML string.
+     */
+    public function render_attempt_delete_link(
+        \stdClass $attempt,
+        int $usageid,
+        int $courseid,
+        int $userid,
+        moodle_url $returnurl,
+        int $currentrow,
+        ?int $cmid
+    ): string {
+        if (is_null($cmid)) {
+            $params['courseid'] = $courseid;
+        } else {
+            $params['cmid'] = $cmid;
+        }
+        $params['returnurl'] = $returnurl->out();
+        $params['qubaid'] = $usageid;
+        $params['userid'] = $userid;
+        $params['attemptid'] = $attempt->questionattemptid;
+        $url = new moodle_url('/report/embedquestion/deleteattempt.php', $params);
+
+        $attempturl = html_writer::link(
+            $url,
+            $this->output->pix_icon(
+                'i/delete',
+                get_string('deleteattempt', 'report_embedquestion')
+            ),
+            [
+                'target' => '_blank',
+                'class' => 'delete-attempt-link' . $currentrow,
+            ]
+        );
+        $this->page->requires->event_handler(
+            '.delete-attempt-link' . $currentrow,
+            'click',
+            'M.util.show_confirm_dialog',
+            ['message' => get_string('deleteattemptwarning', 'report_embedquestion')]
+        );
         return $attempturl;
     }
 
@@ -142,8 +198,17 @@ class renderer extends plugin_renderer_base {
     public function render_show_only_link(\moodle_url $url): string {
 
         $showonlystring = get_string('viewallattemptsforthisuser', 'report_embedquestion');
-        return html_writer::span(\html_writer::link($url, get_string('showonly', 'report_embedquestion'),
-                ['title' => $showonlystring, 'aria-label' => $showonlystring]), 'view-all');
+        return html_writer::span(
+            \html_writer::link(
+                $url,
+                get_string('showonly', 'report_embedquestion'),
+                [
+                    'title' => $showonlystring,
+                    'aria-label' => $showonlystring,
+                ]
+            ),
+            'view-all'
+        );
     }
 
     /**
@@ -157,14 +222,17 @@ class renderer extends plugin_renderer_base {
                 'id' => 'deleteattemptsbutton',
                 'name' => 'delete',
                 'value' => get_string('deleteselected', 'quiz_overview'),
-                'data-action' => 'toggle',
-                'data-togglegroup' => 'embed-attempts',
-                'data-toggle' => 'action',
                 'disabled' => true,
         ];
 
-        $this->page->requires->event_handler('#deleteattemptsbutton', 'click', 'M.util.show_confirm_dialog',
-                ['message' => get_string('deleteattemptcheck', 'quiz')]);
+        $this->page->requires->event_handler(
+            '#deleteattemptsbutton',
+            'click',
+            'M.util.show_confirm_dialog',
+            [
+                'message' => get_string('deleteattemptcheck', 'quiz'),
+            ]
+        );
 
         return html_writer::empty_tag('input', $deletebuttonparams);
     }
@@ -172,9 +240,10 @@ class renderer extends plugin_renderer_base {
     /**
      * Render download response buttons.
      *
+     * @param bool $showdownloadall Whether to show the "Download all" button (requires downloadanyattempt capability).
      * @return string HTML string
      */
-    public function render_download_response_files(): string {
+    public function render_download_response_files(bool $showdownloadall = true): string {
         $output = '';
 
         $output .= html_writer::start_div('download-response');
@@ -195,22 +264,20 @@ class renderer extends plugin_renderer_base {
                 'disabled' => true,
         ];
 
-        $downloadallbuttonparams = [
-                'type' => 'submit',
-                'class' => 'btn btn-secondary me-1',
-                'id' => 'downloadallattemptsbutton',
-                'name' => 'downloadall',
-                'value' => get_string('downloadresponse_buttonall', 'report_embedquestion'),
-                'disabled' => true,
-        ];
-
-        $output .= html_writer::empty_tag('input', $downloadallbuttonparams);
+        if ($showdownloadall) {
+            $downloadallbuttonparams = [
+                    'type' => 'submit',
+                    'class' => 'btn btn-secondary me-1',
+                    'id' => 'downloadallattemptsbutton',
+                    'name' => 'downloadall',
+                    'value' => get_string('downloadresponse_buttonall', 'report_embedquestion'),
+                    'disabled' => true,
+            ];
+            $output .= html_writer::empty_tag('input', $downloadallbuttonparams);
+        }
         $output .= html_writer::empty_tag('input', $downloadselectbuttonparams);
         $output .= html_writer::end_div();
         $output .= html_writer::end_div();
-
-        // We need custom logic for whether to enable or disable the button, based on which question types are selected.
-        $this->page->requires->js_call_amd('report_embedquestion/download_responses', 'init');
 
         return $output;
     }
@@ -282,8 +349,13 @@ class renderer extends plugin_renderer_base {
      * @return string HTML string
      */
     public function render_back_to_report_link(moodle_url $reporturl): string {
-        return html_writer::div(link_arrow_left(get_string('downloadresponse_backtoreport', 'report_embedquestion'), $reporturl),
-                'back-link');
+        return html_writer::div(
+            link_arrow_left(
+                get_string('downloadresponse_backtoreport', 'report_embedquestion'),
+                $reporturl
+            ),
+            'back-link'
+        );
     }
 
     /**
@@ -299,12 +371,23 @@ class renderer extends plugin_renderer_base {
         $showeverybodystring = get_string('showeverybody', 'report_embedquestion');
 
         $output = html_writer::start_div('show-only-heading');
-        $output .= html_writer::span(get_string('showonly_heading', 'report_embedquestion', $userinfo), 'student-info');
-        $output .= html_writer::span(html_writer::link($showeverybodyurl, $showeverybodystring,
-                ['title' => $showeverybodystring, 'aria-label' => $showeverybodystring]), 'show-all-link');
+        $output .= html_writer::span(
+            get_string('showonly_heading', 'report_embedquestion', $userinfo),
+            'student-info'
+        );
+        $output .= html_writer::span(
+            html_writer::link(
+                $showeverybodyurl,
+                $showeverybodystring,
+                [
+                    'title' => $showeverybodystring,
+                    'aria-label' => $showeverybodystring,
+                ]
+            ),
+            'show-all-link'
+        );
         $output .= html_writer::end_div();
 
         return $output;
     }
-
 }

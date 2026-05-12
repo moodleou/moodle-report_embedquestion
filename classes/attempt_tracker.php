@@ -24,15 +24,14 @@ namespace report_embedquestion;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class attempt_tracker {
-
     /**
      * @var string Cache component and area for report_embedquestion.
      */
-    const CACHE_COMPONENT = 'report_embedquestion';
+    public const CACHE_COMPONENT = 'report_embedquestion';
     /**
      * @var string Cache area for report_embedquestion.
      */
-    const CACHE_AREA = 'reportattempttracker';
+    public const CACHE_AREA = 'reportattempttracker';
 
     /**
      * Check that given user has attempt at given context

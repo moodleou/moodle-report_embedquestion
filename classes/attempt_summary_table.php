@@ -32,7 +32,6 @@ use core_user\fields;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class attempt_summary_table extends table_sql {
-
     /**
      * @var int $pagesize the default number of rows on a page.
      */
@@ -67,8 +66,13 @@ class attempt_summary_table extends table_sql {
      * @param \cm_info|null $cm if set, this is a report for one activity, else a whole course.
      * @param int $userid if set, only show data for this one user, else all relevant.
      */
-    public function __construct(int $usageid, \context $context, int $courseid, ?\cm_info $cm = null,
-            int $userid = 0) {
+    public function __construct(
+        int $usageid,
+        \context $context,
+        int $courseid,
+        ?\cm_info $cm = null,
+        int $userid = 0
+    ) {
 
         parent::__construct('report_embedquestion_attempt_summary');
         $this->usageid = $usageid;
@@ -87,15 +91,28 @@ class attempt_summary_table extends table_sql {
         $this->collapsible(false);
         $this->no_sorting('attemptdetailview');
         $this->no_sorting('questionattemptnumber');
+        $this->no_sorting('attemptdetaildelete');
 
         $this->generate_query();
 
         if ($cm) {
-            $url = new moodle_url('/report/embedquestion/activity.php',
-                    ['cmid' => $cm->id, 'userid' => $userid, 'usageid' => $usageid]);
+            $url = new moodle_url(
+                '/report/embedquestion/activity.php',
+                [
+                    'cmid' => $cm->id,
+                    'userid' => $userid,
+                    'usageid' => $usageid,
+                ]
+            );
         } else {
-            $url = new moodle_url('/report/embedquestion/index.php',
-                    ['courseid' => $courseid, 'userid' => $userid, 'usageid' => $usageid]);
+            $url = new moodle_url(
+                '/report/embedquestion/index.php',
+                [
+                    'courseid' => $courseid,
+                    'userid' => $userid,
+                    'usageid' => $usageid,
+                ]
+            );
         }
         $this->define_baseurl($url);
     }
@@ -112,6 +129,7 @@ class attempt_summary_table extends table_sql {
         $headers[] = get_string('gradenoun');
         $headers[] = get_string('attemptedon', 'report_embedquestion');
         $headers[] = get_string('view');
+        $headers[] = get_string('delete');
         return $headers;
     }
 
@@ -127,6 +145,7 @@ class attempt_summary_table extends table_sql {
         $columns[] = 'fraction';
         $columns[] = 'questionattemptsteptime';
         $columns[] = 'attemptdetailview';
+        $columns[] = 'attemptdetaildelete';
         return $columns;
     }
 
@@ -184,6 +203,33 @@ class attempt_summary_table extends table_sql {
         $renderer = $PAGE->get_renderer('report_embedquestion');
 
         return $renderer->render_attempt_link($attempt, $this->cm->id ?? null, $this->courseid);
+    }
+
+    /**
+     * Generate the display of the attempt detail delete column.
+     *
+     * @param stdClass $attempt the table row being output.
+     * @return string HTML content to go inside the td.
+     */
+    public function col_attemptdetaildelete(
+        stdClass $attempt
+    ): string {
+        global $PAGE;
+
+        if ($attempt->questionstate === 'todo') {
+            return '';
+        }
+        /** @var \report_embedquestion\output\renderer $renderer */
+        $renderer = $PAGE->get_renderer('report_embedquestion');
+        return $renderer->render_attempt_delete_link(
+            $attempt,
+            $this->usageid,
+            $this->courseid,
+            $this->userid,
+            $this->baseurl,
+            $this->currentrow,
+            $this->cm->id ?? null
+        );
     }
 
     /**
@@ -253,7 +299,7 @@ class attempt_summary_table extends table_sql {
 
         $this->sql->params = $userfieldssql->params;
 
-        $this->sql->where = "r.questionusageid = :usageid";
+        $this->sql->where = "r.questionusageid = :usageid AND q.qtype <> 'description'";
         $this->sql->params['usageid'] = $this->usageid;
         $this->sql->params['state'] = 'todo';
         $this->sql->params['qasstate'] = 'todo';

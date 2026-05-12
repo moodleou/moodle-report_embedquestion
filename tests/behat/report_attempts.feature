@@ -1,4 +1,4 @@
-@report @report_embedquestion @app
+@ou @ou_vle @report @report_embedquestion
 Feature: Testing attempt detail view and delete feature
   As a teacher/student
   I should be able to view the attempt detail or delete it in Embed Question report
@@ -76,7 +76,7 @@ Feature: Testing attempt detail view and delete feature
     When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
     And I click on "Attempt summary" "link" in the "student2" "table_row"
     And I click on "Attempt detail view" "link" in the "Correct" "table_row"
-    And I switch to the browser tab opened by the app
+    And I switch to a second window
     Then I should see "First question"
     And "quizreviewsummary" "table" should exist
     And the field "True" matches value "1"
@@ -88,17 +88,17 @@ Feature: Testing attempt detail view and delete feature
     When I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher1"
     And I click on "Attempt summary" "link" in the "student3" "table_row"
     And I click on "Attempt detail view" "link" in the "Incorrect" "table_row"
-    And I switch to the browser tab opened by the app
+    And I switch to a second window
     Then I should see "First question"
     And "quizreviewsummary" "table" should exist
     And the field "False" matches value "1"
     And I should see "The correct answer is 'True'"
     And I should see "Response history"
-    And I close the browser tab opened by the app
+    And I close all opened windows
     And I press the "back" button in the browser
     And I click on "Attempt summary" "link" in the "student2" "table_row"
     And I click on "Attempt detail view" "link" in the "Correct" "table_row"
-    And I switch to the browser tab opened by the app
+    And I switch to a second window
     And I should see "First question"
     And "quizreviewsummary" "table" should exist
     And the field "True" matches value "1"
@@ -124,17 +124,24 @@ Feature: Testing attempt detail view and delete feature
       | capability                           | permission | role    | contextlevel | reference |
       | report/embedquestion:deletemyattempt | Prevent    | student | Course       | C1        |
     When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
-    Then "Select attempt" "checkbox" should not exist in the "student2" "table_row"
-    And "Delete selected attempts" "button" should exist
+    Then "Delete selected attempts" "button" should exist
+    And the "Delete selected attempts" "button" should be disabled
 
   @javascript
   Scenario: A tutor can see their students progress but only can delete his/her own progress in an activity
     When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
     Then "Select attempt" "checkbox" should exist in the "tutor" "table_row"
-    And "Select attempt" "checkbox" should not exist in the "student1" "table_row"
-    And "Select attempt" "checkbox" should not exist in the "student2" "table_row"
+    And "Select attempt" "checkbox" should exist in the "student1" "table_row"
+    And "Select attempt" "checkbox" should exist in the "student2" "table_row"
     And "Delete selected attempts" "button" should exist
+    And "Download all response files" "button" should exist
+    And "Download selected response files" "button" should exist
     And the "Delete selected attempts" "button" should be disabled
+    # Selecting a student row does not enable delete (tutor cannot delete others).
+    And I click on "Select attempt" "checkbox" in the "student1" "table_row"
+    And the "Delete selected attempts" "button" should be disabled
+    # Deselect student row and select own row - delete is now enabled (tutor can delete own).
+    And I click on "Select attempt" "checkbox" in the "student1" "table_row"
     And I click on "Select attempt" "checkbox" in the "tutor" "table_row"
     And the "Delete selected attempts" "button" should be enabled
     And I click on "Delete selected attempts" "button"
@@ -143,6 +150,24 @@ Feature: Testing attempt detail view and delete feature
     And I should not see "tutor"
     And I should see "student1"
     And I should see "student2"
+
+  @javascript
+  Scenario: A tutor can download response files without delete permission for all students
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
+    Then the "Delete selected attempts" "button" should be disabled
+    And "Download all response files" "button" should exist
+    And the "Download all response files" "button" should be enabled
+    And "Download selected response files" "button" should exist
+
+  @javascript
+  Scenario: A user without download capabilities cannot see download buttons
+    Given the following "permission overrides" exist:
+      | capability                              | permission | role    | contextlevel | reference |
+      | report/embedquestion:downloadanyattempt | Prevent    | teacher | Course       | C1        |
+      | report/embedquestion:downloadmyattempt  | Prevent    | teacher | Course       | C1        |
+    When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
+    Then "Download all response files" "button" should not exist
+    And the "Download selected response files" "button" should be disabled
 
   @javascript
   Scenario: A teacher can see their students progress and can delete their students progress in an activity
@@ -283,3 +308,11 @@ Feature: Testing attempt detail view and delete feature
     Then I should see "Download to device"
     And "Download to device" "link" should exist
     And following "Download to device" should download between "1" and "3000000" bytes
+
+  @javascript
+  Scenario: A teacher can download their students progress in a course.
+    Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher1"
+    When I click on "Download all response files" "button"
+    Then following "Download to device" should download between "500000" and "5000000" bytes
+    And I follow "Return to the embedded question progress table"
+    And I should see "Embedded question progress for Course 1"

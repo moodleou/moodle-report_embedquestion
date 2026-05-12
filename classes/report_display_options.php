@@ -28,15 +28,14 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class report_display_options {
-
     /** @var int Number of attempts to show per page. */
-    const DEFAULT_REPORT_PAGE_SIZE = 10;
+    public const DEFAULT_REPORT_PAGE_SIZE = 10;
 
     /** @var string - Last attempt status for the filter. */
-    const LAST_ATTEMPT_STATUS_ALL = 'all';
+    public const LAST_ATTEMPT_STATUS_ALL = 'all';
 
     /** @var string - Question type for the filter. */
-    const QUESTION_TYPE_ALL = 'all';
+    public const QUESTION_TYPE_ALL = 'all';
 
     /** @var cm_info The course module objects. */
     public $cm;

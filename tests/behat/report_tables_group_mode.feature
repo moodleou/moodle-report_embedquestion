@@ -1,4 +1,4 @@
-@report @report_embedquestion
+@ou @ou_vle @report @report_embedquestion
 Feature: Testing Embedded Question report with group mode
   So that I can mentor them
   As a teacher
@@ -35,11 +35,12 @@ Feature: Testing Embedded Question report with group mode
       | teacher  | G2    |
       | student3 | G2    |
     And the following "activities" exist:
-      | activity | name      | idnumber | course |
-      | page     | Test page | page1    | C1     |
+      | activity | name      | intro           | course | idnumber |
+      | qbank    | Qbank 1   | Question bank 1 | C1     | qbank1   |
+      | page     | Test page | Embed page      | C1     | page1    |
     And the following "question categories" exist:
-      | contextlevel | reference | name           | idnumber |
-      | Course       | C1        | Test questions | embed    |
+      | contextlevel    | reference | name           | idnumber |
+      | Activity module | qbank1    | Test questions | embed    |
     And the following "questions" exist:
       | questioncategory | qtype     | name           | idnumber |
       | Test questions   | truefalse | First question | test1    |

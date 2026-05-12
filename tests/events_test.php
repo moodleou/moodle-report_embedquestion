@@ -26,7 +26,6 @@ namespace report_embedquestion;
  * @covers \report_embedquestion\event\activity_report_viewed
  */
 final class events_test extends \advanced_testcase {
-
     public function setUp(): void {
         parent::setUp();
         $this->setAdminUser();
@@ -67,9 +66,12 @@ final class events_test extends \advanced_testcase {
      * @param array $extraurlparams expected extra params to see in the URL.
      * @param string $expecteddescription expected description.
      */
-    public function test_course_report_viewed(int $relateduserid, int $groupid,
-                array $extraurlparams, string $expecteddescription): void {
-
+    public function test_course_report_viewed(
+        int $relateduserid,
+        int $groupid,
+        array $extraurlparams,
+        string $expecteddescription
+    ): void {
         $course = $this->getDataGenerator()->create_course();
         $context = \context_course::instance($course->id);
 
@@ -89,10 +91,19 @@ final class events_test extends \advanced_testcase {
         $this->assertInstanceOf('\report_embedquestion\event\course_report_viewed', $event);
         $this->assertEquals($context, $event->get_context());
         $this->assertEventContextNotUsed($event);
-        $this->assertEquals(new \moodle_url('/report/embedquestion/index.php', ['courseid' => $course->id] + $extraurlparams),
-                $event->get_url());
-        $this->assertEquals(str_replace('CID', $course->id, $expecteddescription),
-                $event->get_description());
+        $this->assertEquals(
+            new \moodle_url(
+                '/report/embedquestion/index.php',
+                [
+                    'courseid' => $course->id,
+                ] + $extraurlparams
+            ),
+            $event->get_url()
+        );
+        $this->assertEquals(
+            str_replace('CID', $course->id, $expecteddescription),
+            $event->get_description()
+        );
     }
 
     /**
@@ -185,9 +196,12 @@ final class events_test extends \advanced_testcase {
      * @param array $extraurlparams expected extra params to see in the URL.
      * @param string $expecteddescription expected description.
      */
-    public function test_activity_report_viewed_all_users(int $relateduserid, int $groupid,
-            array $extraurlparams, string $expecteddescription): void {
-
+    public function test_activity_report_viewed_all_users(
+        int $relateduserid,
+        int $groupid,
+        array $extraurlparams,
+        string $expecteddescription
+    ): void {
         $activity = $this->create_page();
         $context = \context_module::instance($activity->cmid);
 
@@ -207,11 +221,19 @@ final class events_test extends \advanced_testcase {
         $this->assertInstanceOf('\report_embedquestion\event\activity_report_viewed', $event);
         $this->assertEquals($context, $event->get_context());
         $this->assertEventContextNotUsed($event);
-        $this->assertEquals(new \moodle_url('/report/embedquestion/activity.php',
-                ['cmid' => $activity->cmid] + $extraurlparams),
-                $event->get_url());
-        $this->assertEquals(str_replace('CMID', $activity->cmid, $expecteddescription),
-                $event->get_description());
+        $this->assertEquals(
+            new \moodle_url(
+                '/report/embedquestion/activity.php',
+                [
+                    'cmid' => $activity->cmid,
+                ] + $extraurlparams
+            ),
+            $event->get_url()
+        );
+        $this->assertEquals(
+            str_replace('CMID', $activity->cmid, $expecteddescription),
+            $event->get_description()
+        );
     }
 
     /**

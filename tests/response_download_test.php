@@ -27,7 +27,6 @@ use report_embedquestion\local\export\response_export;
  * @covers \report_embedquestion\local\export\response_export
  */
 final class response_download_test extends \advanced_testcase {
-
     /**
      * @var \testing_data_generator
      */
@@ -45,6 +44,10 @@ final class response_download_test extends \advanced_testcase {
      */
     private $coursecontext;
     /**
+     * @var \context_module
+     */
+    private $qbankcontext;
+    /**
      * @var \stdClass
      */
     private $student1;
@@ -60,6 +63,8 @@ final class response_download_test extends \advanced_testcase {
         $this->generator = $this->getDataGenerator();
         $this->course = $this->generator->create_course(['shortname' => 'Embedquestion_Course']);
         $this->coursecontext = \context_course::instance($this->course->id);
+        $qbank = $this->getDataGenerator()->create_module('qbank', ['course' => $this->course->id, 'idnumber' => 'abc123']);
+        $this->qbankcontext = \context_module::instance($qbank->cmid);
         $this->attemptgenerator = $this->generator->get_plugin_generator('filter_embedquestion');
         $this->student1 = $this->generator->create_user(['username' => 'student1']);
         $this->student2 = $this->generator->create_user(['username' => 'student2']);
@@ -79,10 +84,18 @@ final class response_download_test extends \advanced_testcase {
      * @param string|null $attachmentfilename The name of the attachment file to test.
      * @param string $filename File name to test.
      * @param int $expectedfiles The expected number of files.
+     * @param bool $downloadactivity Whether to download for activity or course.
      *
      */
-    public function test_get_zip_url_with_supported_qtype(string $qtype, ?string $which, string $response,
-            ?string $attachmentfilename, string $filename, int $expectedfiles): void {
+    public function test_get_zip_url_with_supported_qtype(
+        string $qtype,
+        ?string $which,
+        string $response,
+        ?string $attachmentfilename,
+        string $filename,
+        int $expectedfiles,
+        bool $downloadactivity
+    ): void {
         global $CFG, $PAGE;
         $PAGE->set_url('/');
 
@@ -90,38 +103,69 @@ final class response_download_test extends \advanced_testcase {
             $this->markTestSkipped();
         }
         $question = $this->attemptgenerator->create_embeddable_question($qtype, $which, [], [
-                'contextid' => $this->coursecontext->id]);
+                'contextid' => $this->qbankcontext->id]);
 
         $page = $this->generator->create_module('page', ['course' => $this->course->id,
                 'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>']);
 
         $pagecontext = \context_module::instance($page->cmid);
+        if ($downloadactivity) {
+            $downloadcontext = $pagecontext;
+        } else {
+            $downloadcontext = $this->coursecontext;
+        }
 
-        /** @var \filter_embedquestion\attempt $attempt1 */
+        $pagename = 'C1:P1';
         $attempt1 = $this->attemptgenerator->create_attempt_at_embedded_question(
-                $question, $this->student1, $response, $pagecontext, '', 1);
-        /** @var \filter_embedquestion\attempt $attempt2 */
+            $question,
+            $this->student1,
+            $response,
+            $pagecontext,
+            $pagename,
+            1
+        );
         $attempt2 = $this->attemptgenerator->create_attempt_at_embedded_question(
-                $question, $this->student1, $response, $pagecontext, '', 2);
-        /** @var \filter_embedquestion\attempt $attempt3 */
+            $question,
+            $this->student1,
+            $response,
+            $pagecontext,
+            $pagename,
+            2
+        );
         $attempt3 = $this->attemptgenerator->create_attempt_at_embedded_question(
-                $question, $this->student2, $response, $pagecontext, '', 1);
+            $question,
+            $this->student2,
+            $response,
+            $pagecontext,
+            $pagename,
+            1
+        );
 
         $questionusageids = [
-                $attempt1->get_question_usage()->get_id(),
-                $attempt2->get_question_usage()->get_id(),
-                $attempt3->get_question_usage()->get_id(),
+            $attempt1->get_question_usage()->get_id(),
+            $attempt2->get_question_usage()->get_id(),
+            $attempt3->get_question_usage()->get_id(),
         ];
 
-        $zipinfo = response_export::get_response_zip_file_info($questionusageids, $pagecontext, 0);
+        $zipinfo = response_export::get_response_zip_file_info($questionusageids, $downloadcontext, 0);
+        $expectedfilename = response_export::get_export_file_name(
+            $this->course,
+            $downloadcontext->get_context_name(false),
+            $downloadcontext->contextlevel === CONTEXT_COURSE
+        );
 
-        $expectedfilename = response_export::get_export_file_name($this->course, $pagecontext->get_context_name(false));
         [, $student1info] = utils::get_user_details($this->student1->id, $pagecontext);
         [, $student2info] = utils::get_user_details($this->student2->id, $pagecontext);
-        $student1folder = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
-                ['fullname' => fullname($this->student1), 'info' => implode(', ', $student1info)]);
-        $student2folder = get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
-                ['fullname' => fullname($this->student2), 'info' => implode(', ', $student2info)]);
+        $student1folder = get_string(
+            'crumbtrailembedquestiondetail',
+            'report_embedquestion',
+            ['fullname' => fullname($this->student1), 'info' => implode(', ', $student1info)]
+        );
+        $student2folder = get_string(
+            'crumbtrailembedquestiondetail',
+            'report_embedquestion',
+            ['fullname' => fullname($this->student2), 'info' => implode(', ', $student2info)]
+        );
         $questionname = str_replace('/', '-', $question->name);
 
         $this->assertIsArray($zipinfo);
@@ -140,22 +184,38 @@ final class response_download_test extends \advanced_testcase {
         $archivefiles = $ziparchive->list_files();
         $this->assertIsArray($archivefiles);
         $this->assertCount($expectedfiles, $archivefiles);
-
+        $coursefoldername = '';
+        if (!$downloadactivity) {
+            // At course level, the folder name uses the activity context name (e.g., page name),
+            // not the pagename field which may include extra info like course shortname.
+            // Note: downloadresponse_filename already has a leading space.
+            $coursefoldername = clean_filename($pagecontext->get_context_name(false))
+                . get_string('downloadresponse_filename', 'report_embedquestion') . '/';
+        }
         $possiblefilepaths = [
-            $student1folder . '/' . $questionname . '/attempt0001/' . $filename,
-            $student1folder . '/' . $questionname . '/attempt0002/' . $filename,
-            $student2folder . '/' . $questionname . '/attempt0001/' . $filename,
+            $coursefoldername . $student1folder . '/' . $questionname . '/attempt0001/' . $filename,
+            $coursefoldername . $student1folder . '/' . $questionname . '/attempt0002/' . $filename,
+            $coursefoldername . $student2folder . '/' . $questionname . '/attempt0001/' . $filename,
         ];
         if (!is_null($attachmentfilename)) {
-            $possiblefilepaths = array_merge($possiblefilepaths, [
-                $student1folder . '/' . $questionname . '/attempt0001/' . $attachmentfilename,
-                $student1folder . '/' . $questionname . '/attempt0002/' . $attachmentfilename,
-                $student2folder . '/' . $questionname . '/attempt0001/' . $attachmentfilename,
-            ]);
+            $possiblefilepaths = array_merge(
+                $possiblefilepaths,
+                [
+                    $coursefoldername . $student1folder . '/' . $questionname . '/attempt0001/' . $attachmentfilename,
+                    $coursefoldername . $student1folder . '/' . $questionname . '/attempt0002/' . $attachmentfilename,
+                    $coursefoldername . $student2folder . '/' . $questionname . '/attempt0001/' . $attachmentfilename,
+                ]
+            );
         }
         foreach ($archivefiles as $file) {
-            $this->assertContains($file->pathname, $possiblefilepaths);
-            $this->assertGreaterThan(0, $file->size);
+            $this->assertContains(
+                $file->pathname,
+                $possiblefilepaths
+            );
+            $this->assertGreaterThan(
+                0,
+                $file->size
+            );
         }
         $ziparchive->close();
     }
@@ -174,6 +234,7 @@ final class response_download_test extends \advanced_testcase {
                 'recording.ogg',
                 'Record audio question-response.html',
                 6,
+                true,
             ],
             'Export file with question type essay' => [
                 'essay',
@@ -182,6 +243,7 @@ final class response_download_test extends \advanced_testcase {
                 'greeting.txt',
                 'Essay question with filepicker and attachments-response.html',
                 6,
+                true,
             ],
             'Export file with question type truefalse' => [
                 'truefalse',
@@ -190,6 +252,7 @@ final class response_download_test extends \advanced_testcase {
                 null,
                 'True-false question-response.html',
                 3,
+                true,
             ],
             'Export file with question type shortanswer' => [
                 'shortanswer',
@@ -198,6 +261,16 @@ final class response_download_test extends \advanced_testcase {
                 null,
                 'Short answer question-response.html',
                 3,
+                true,
+            ],
+            'Export file with question type essay for download course' => [
+                'essay',
+                'editorfilepicker',
+                '<p>The <b>cat</b> sat on the mat. Then it ate a <b>frog</b>.</p>',
+                'greeting.txt',
+                'Essay question with filepicker and attachments-response.html',
+                6,
+                false,
             ],
         ];
     }
@@ -298,7 +371,12 @@ final class response_download_test extends \advanced_testcase {
      */
     public function test_replace_resource_urls(string $bodystring, string $expectedresult): void {
         $responseexport = new response_export();
-        $this->assertEquals($expectedresult,
-            $responseexport->replace_resource_urls($bodystring, response_export::HTML_TAGS_WITH_SRC));
+        $this->assertEquals(
+            $expectedresult,
+            $responseexport->replace_resource_urls(
+                $bodystring,
+                response_export::HTML_TAGS_WITH_SRC
+            )
+        );
     }
 }

@@ -14,25 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace report_embedquestion\task;
+use report_embedquestion\utils;
 /**
- * Embedded questions progress report version information
+ * Adhoc task to set up the placeholder question for the embed question report.
  *
- * @package   report_embedquestion
- * @copyright 2019 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    report_embedquestion
+ * @copyright  2025 The Open University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version   = 2026050400;
-$plugin->requires  = 2024042200;
-$plugin->component = 'report_embedquestion';
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.0 for Moodle 5.2+';
-
-$plugin->dependencies = [
-    'filter_embedquestion' => 2025050100,
-    'quiz_answersheets' => 2025061000,
-];
-
-$plugin->outestssufficient = true;
+/**
+ * Adhoc task to set up the placeholder question for the embed question report.
+ */
+class setup_placeholder_question extends \core\task\adhoc_task {
+    /**
+     * Execute the task
+     */
+    public function execute(): void {
+        utils::create_placeholder_question();
+    }
+}

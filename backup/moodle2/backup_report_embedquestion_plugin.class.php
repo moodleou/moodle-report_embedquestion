@@ -38,8 +38,9 @@ class backup_report_embedquestion_plugin extends backup_report_plugin {
     protected function get_include_condition() {
         global $DB;
 
-        if ($DB->record_exists('report_embedquestion_attempt',
-                ['contextid' => $this->task->get_contextid()])) {
+        if (
+            $DB->record_exists('report_embedquestion_attempt', ['contextid' => $this->task->get_contextid()])
+        ) {
             $result = 'include';
         } else {
             $result = '';
@@ -78,13 +79,18 @@ class backup_report_embedquestion_plugin extends backup_report_plugin {
 
         // Define each element separated.
         $attempts = new backup_nested_element('report_embedquestion_attempts');
-        $attempt = new backup_nested_element('report_embedquestion_attempt', ['id'],
-                ['userid', 'embedid', 'questionusageid', 'pagename', 'pageurl', 'timecreated', 'timemodified']);
+        $attempt = new backup_nested_element(
+            'report_embedquestion_attempt',
+            ['id'],
+            ['userid', 'embedid', 'questionusageid', 'pagename', 'pageurl', 'timecreated', 'timemodified']
+        );
 
         // Define source - which only applies if the backup includes user data.
         if ($includeusers) {
-            $attempt->set_source_table('report_embedquestion_attempt',
-                    ['contextid' => backup::VAR_CONTEXTID]);
+            $attempt->set_source_table(
+                'report_embedquestion_attempt',
+                ['contextid' => backup::VAR_CONTEXTID]
+            );
         }
 
         // Build the tree.

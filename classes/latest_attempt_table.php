@@ -37,7 +37,6 @@ use html_writer;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class latest_attempt_table extends table_sql {
-
     /** @var int $perpage the default number of rows on a page. */
     public $perpage = 10;
 
@@ -71,8 +70,13 @@ class latest_attempt_table extends table_sql {
      * @param report_display_options $displayoption The report display option ('look-back, datefrom, dateto).
      * @param string|null $download the string used for file extension.
      */
-    public function __construct(context $context, int $courseid, ?cm_info $cm,
-            report_display_options $displayoption, ?string $download = null) {
+    public function __construct(
+        context $context,
+        int $courseid,
+        ?cm_info $cm,
+        report_display_options $displayoption,
+        ?string $download = null
+    ) {
         parent::__construct('report_embedquestion_latest_attempt');
 
         $this->context = $context;
@@ -97,12 +101,24 @@ class latest_attempt_table extends table_sql {
     }
 
     /**
+     * Check whether the current user has any capability that requires the checkbox column.
+     *
+     * @return bool
+     */
+    private function user_can_act_on_attempts(): bool {
+        return has_capability('report/embedquestion:deleteanyattempt', $this->context) ||
+                has_capability('report/embedquestion:deletemyattempt', $this->context) ||
+                has_capability('report/embedquestion:downloadanyattempt', $this->context) ||
+                has_capability('report/embedquestion:downloadmyattempt', $this->context);
+    }
+
+    /**
      * Return an array of the headers
      * @return array
      */
     private function get_headers(): array {
         $headers = [];
-        if (!$this->isdownloading) {
+        if (!$this->isdownloading && $this->user_can_act_on_attempts()) {
             // We cannot use is_downloading() function here because the table constructor was called before the is_download().
             $headers[] = $this->checkbox_col_header('checkbox');
         }
@@ -154,7 +170,7 @@ class latest_attempt_table extends table_sql {
      */
     private function get_columns(): array {
         $columns = [];
-        if (!$this->isdownloading) {
+        if (!$this->isdownloading && $this->user_can_act_on_attempts()) {
             // We cannot use is_downloading() function here because the table constructor was called before the is_download().
             $columns[] = 'checkbox';
         }
@@ -178,30 +194,43 @@ class latest_attempt_table extends table_sql {
      */
     public function col_checkbox(stdClass $attempt): string {
         global $OUTPUT, $USER;
-        $allowdownload = 0;
+
+        $isown = ($USER->id == $attempt->userid);
+        $candeleteany = has_capability('report/embedquestion:deleteanyattempt', $this->context);
+        $candownloadany = has_capability('report/embedquestion:downloadanyattempt', $this->context);
+        $candeletemyown = $isown && has_capability('report/embedquestion:deletemyattempt', $this->context);
+        $candownloadmyown = $isown && has_capability('report/embedquestion:downloadmyattempt', $this->context);
+
+        // Show checkbox only if user can act on this specific row.
+        if (!$candeleteany && !$candownloadany && !$candeletemyown && !$candownloadmyown) {
+            return '';
+        }
 
         // We allow the user to download their responses in two cases:
         // 1. Attempt that has only one slot and the state is not equal to Not yet answer.
         // 2. Attempt that has more than one slot.
-        if (($attempt->slot == 1 && $attempt->questionstate != question_state::$todo) || ($attempt->slot > 1)) {
-            $allowdownload = 1;
-        }
+        $allowdownload = (($attempt->slot == 1 && $attempt->questionstate != question_state::$todo) ||
+                ($attempt->slot > 1)) ? 1 : 0;
 
-        if (has_capability('report/embedquestion:deleteanyattempt', $this->context) ||
-                ($USER->id == $attempt->userid && has_capability('report/embedquestion:deletemyattempt', $this->context))) {
-            $checkbox = new \core\output\checkbox_toggleall('embed-attempts', false, [
-                    'id' => 'questionusageid_' . $attempt->questionusageid,
-                    'name' => 'questionusageid[]',
-                    'value' => $attempt->questionusageid . '-' . $attempt->slot . '-' . $allowdownload,
-                    'label' => get_string('selectattempt', 'report_embedquestion',
-                        $this->currentrow + 1),
-                    'labelclasses' => 'accesshide',
-            ]);
+        // Can user actually download this specific row? (Flag for AMD).
+        $candownload = ($allowdownload && ($candownloadany || $candownloadmyown)) ? 1 : 0;
 
-            return $OUTPUT->render($checkbox);
-        } else {
-            return '';
-        }
+        // Can user delete this specific row? (Flag for AMD).
+        $candelete = ($candeleteany || $candeletemyown) ? 1 : 0;
+
+        $checkbox = new \core\output\checkbox_toggleall('embed-attempts', false, [
+            'id' => 'questionusageid_' . $attempt->questionusageid,
+            'name' => 'questionusageid[]',
+            'value' => $attempt->questionusageid . '-' . $attempt->slot . '-' . $candownload . '-' . $candelete,
+            'label' => get_string(
+                'selectattempt',
+                'report_embedquestion',
+                $this->currentrow + 1
+            ),
+            'labelclasses' => 'accesshide',
+        ]);
+
+        return $OUTPUT->render($checkbox);
     }
 
     /**
@@ -311,8 +340,12 @@ class latest_attempt_table extends table_sql {
         $this->sql = new stdClass();
 
         $userfieldssql = $this->userfields->get_sql('u', true);
-        $enroljoin = get_enrolled_with_capabilities_join($this->context, '',
-                'report/embedquestion:viewmyprogress', $this->groupid);
+        $enroljoin = get_enrolled_with_capabilities_join(
+            $this->context,
+            '',
+            'report/embedquestion:viewmyprogress',
+            $this->groupid
+        );
 
         $this->sql->fields = "
                 qas.id              AS questionattemptstepid,
@@ -348,7 +381,11 @@ class latest_attempt_table extends table_sql {
                 JOIN {question_usages} qu ON qu.id = r.questionusageid
                 -- Latest attempt in each usage.
                 JOIN {question_attempts} qa ON qa.questionusageid = r.questionusageid AND
-                        qa.slot = (SELECT MAX(slot) FROM {question_attempts} WHERE questionusageid = qu.id)
+                        qa.slot = (SELECT MAX(slot)
+                                     FROM {question_attempts} qa2
+                                     JOIN {question} q2 ON q2.id = qa2.questionid
+                                    WHERE questionusageid = qu.id AND q2.qtype <> 'description'
+                                   )
                 JOIN {question} q ON q.id = qa.questionid
                 -- Latest step in each question_attempt.
                 JOIN {question_attempt_steps} qas ON qa.id = qas.questionattemptid
@@ -371,6 +408,7 @@ class latest_attempt_table extends table_sql {
         }
         $this->sql->where = "
                 $contextwhere
+                AND q.qtype <> 'description'
                 AND $enroljoin->wheres";
         // Single user report.
         if ($this->userid) {
@@ -384,19 +422,16 @@ class latest_attempt_table extends table_sql {
             $this->sql->where .= "
                 AND qas.timecreated > :lookback";
             $this->sql->params['lookback'] = time() - $displayoption->lookback;
-
         } else if ($displayoption->datefrom > 0 && $displayoption->dateto > 0) { // From - To.
             $this->sql->where .= "
                 AND qas.timecreated > :datefrom
                 AND qas.timecreated < :dateto";
             $this->sql->params['datefrom'] = $displayoption->datefrom;
             $this->sql->params['dateto'] = $displayoption->dateto + DAYSECS;
-
         } else if ($displayoption->datefrom > 0) { // From.
             $this->sql->where .= "
                 AND qas.timecreated > :datefrom";
             $this->sql->params['datefrom'] = $displayoption->datefrom;
-
         } else if ($displayoption->dateto > 0) { // To.
             $this->sql->where .= "
                 AND qas.timecreated < :dateto";
@@ -405,28 +440,36 @@ class latest_attempt_table extends table_sql {
 
         // Location.
         if (!empty($displayoption->locationids)) {
-            list($locationidssql, $params) = $DB->get_in_or_equal(
-                    $displayoption->locationids, SQL_PARAMS_NAMED, 'location');
+            [$locationidssql, $params] = $DB->get_in_or_equal(
+                $displayoption->locationids,
+                SQL_PARAMS_NAMED,
+                'location'
+            );
             $this->sql->where .= "
                 AND r.contextid $locationidssql";
             $this->sql->params = array_merge($this->sql->params, $params);
         }
 
         // Last attempt state.
-        if (!empty($displayoption->lastattemptstatus) &&
-                $displayoption->lastattemptstatus !== report_display_options::LAST_ATTEMPT_STATUS_ALL) {
-
+        if (
+            !empty($displayoption->lastattemptstatus)
+            && $displayoption->lastattemptstatus !== report_display_options::LAST_ATTEMPT_STATUS_ALL
+        ) {
             $states = utils::get_question_states_for_filter_option($displayoption->lastattemptstatus);
-
-            list($lastattempstatussql, $lastattempstatusparams) =
-                $DB->get_in_or_equal($states, SQL_PARAMS_NAMED, 'lastattemptstatus');
+            [$lastattempstatussql, $lastattempstatusparams] = $DB->get_in_or_equal(
+                $states,
+                SQL_PARAMS_NAMED,
+                'lastattemptstatus'
+            );
             $this->sql->where .= "
                 AND qas.state $lastattempstatussql";
             $this->sql->params = array_merge($this->sql->params, $lastattempstatusparams);
         }
         // Question type.
-        if (!empty($displayoption->questiontype) &&
-            $displayoption->questiontype !== report_display_options::QUESTION_TYPE_ALL) {
+        if (
+            !empty($displayoption->questiontype) &&
+            $displayoption->questiontype !== report_display_options::QUESTION_TYPE_ALL
+        ) {
             $this->sql->where .= "
                 AND q.qtype = :questiontype";
             $this->sql->params['questiontype'] = $displayoption->questiontype;
@@ -439,8 +482,14 @@ class latest_attempt_table extends table_sql {
      * downloading.
      */
     public function wrap_html_start() {
-        $output = html_writer::start_tag('form',
-                ['id' => 'attemptsform', 'method' => 'post', 'action' => $this->baseurl]);
+        $output = html_writer::start_tag(
+            'form',
+            [
+                'id' => 'attemptsform',
+                'method' => 'post',
+                'action' => $this->baseurl,
+            ]
+        );
         $url = $this->baseurl;
         $url->param('sesskey', sesskey());
         $output .= html_writer::input_hidden_params($url);
@@ -459,9 +508,13 @@ class latest_attempt_table extends table_sql {
         $renderer = $PAGE->get_renderer('report_embedquestion');
 
         $output = html_writer::start_div('commands');
+        // Always render all action buttons. They start disabled by default.
+        // JS manages enable/disable based on per-row permission flags in checkbox values.
         $output .= $renderer->render_delete_attempts_buttons();
-        if ($this->context->contextlevel == CONTEXT_MODULE) {
-            $output .= $renderer->render_download_response_files();
+        $showdownloadall = has_capability('report/embedquestion:downloadanyattempt', $this->context);
+        $output .= $renderer->render_download_response_files($showdownloadall);
+        if ($this->user_can_act_on_attempts()) {
+            $PAGE->requires->js_call_amd('report_embedquestion/download_responses', 'init');
         }
         $output .= html_writer::end_div();
 
@@ -481,9 +534,7 @@ class latest_attempt_table extends table_sql {
         if (optional_param('delete', 0, PARAM_BOOL) && confirm_sesskey()) {
             if ($questionusagemetas = optional_param_array('questionusageid', [], PARAM_ALPHANUMEXT)) {
                 foreach ($questionusagemetas as $questionusagemeta) {
-                    $qubameta = explode('-', $questionusagemeta);
-                    $qubaid = $qubameta[0];
-                    $slot = $qubameta[1];
+                    [$qubaid, $slot] = explode('-', $questionusagemeta);
 
                     $quba = \question_engine::load_questions_usage_by_activity($qubaid);
                     $userid = $quba->get_question_attempt($slot)->get_last_step()->get_user_id();
@@ -493,8 +544,12 @@ class latest_attempt_table extends table_sql {
                     } else if (has_capability('report/embedquestion:deletemyattempt', $this->context) && $USER->id == $userid) {
                         attempt_storage::instance()->delete_attempt($quba);
                     } else {
-                        throw new \required_capability_exception($this->context, 'report/embedquestion:deletemyattempt',
-                                'nopermissions', '');
+                        throw new \required_capability_exception(
+                            $this->context,
+                            'report/embedquestion:deletemyattempt',
+                            'nopermissions',
+                            ''
+                        );
                     }
                 }
                 redirect($redirect);
@@ -502,20 +557,55 @@ class latest_attempt_table extends table_sql {
         }
 
         if (optional_param('downloadselect', 0, PARAM_BOOL) && confirm_sesskey()) {
+            $candownloadany = has_capability('report/embedquestion:downloadanyattempt', $this->context);
+            $candownloadmy = has_capability('report/embedquestion:downloadmyattempt', $this->context);
+            if (!$candownloadany && !$candownloadmy) {
+                throw new \required_capability_exception(
+                    $this->context,
+                    'report/embedquestion:downloadmyattempt',
+                    'nopermissions',
+                    ''
+                );
+            }
             if ($questionusagemetas = optional_param_array('questionusageid', [], PARAM_ALPHANUMEXT)) {
                 $qubaids = [];
                 foreach ($questionusagemetas as $questionusagemeta) {
-                    $qubameta = explode('-', $questionusagemeta);
-                    $qubaids[] = $qubameta[0];
+                    [$qubaid, $slot] = explode('-', $questionusagemeta);
+                    if (!$candownloadany) {
+                        // Must verify this is the user's own attempt.
+                        $quba = \question_engine::load_questions_usage_by_activity($qubaid);
+                        $userid = $quba->get_question_attempt($slot)->get_last_step()->get_user_id();
+                        if ($USER->id != $userid) {
+                            throw new \required_capability_exception(
+                                $this->context,
+                                'report/embedquestion:downloadanyattempt',
+                                'nopermissions',
+                                ''
+                            );
+                        }
+                    }
+                    $qubaids[] = $qubaid;
                 }
                 $params = response_export::get_response_zip_file_info($qubaids, $this->context, $this->userid);
-                $params['cmid'] = $this->cm->id;
+                if ($this->context->contextlevel === CONTEXT_COURSE) {
+                    $params['courseid'] = $this->courseid;
+                } else {
+                    $params['cmid'] = $this->cm->id;
+                }
                 $downloadurl = new moodle_url('/report/embedquestion/responsedownload.php', $params);
                 redirect($downloadurl);
             }
         }
 
         if (optional_param('downloadall', 0, PARAM_BOOL) && confirm_sesskey()) {
+            if (!has_capability('report/embedquestion:downloadanyattempt', $this->context)) {
+                throw new \required_capability_exception(
+                    $this->context,
+                    'report/embedquestion:downloadanyattempt',
+                    'nopermissions',
+                    ''
+                );
+            }
             $sql = "SELECT DISTINCT r.questionusageid
                       FROM {$this->sql->from}
                      WHERE {$this->sql->where}";
@@ -526,7 +616,11 @@ class latest_attempt_table extends table_sql {
                 $qubaids[] = $qubaid;
             }
             $params = response_export::get_response_zip_file_info($qubaids, $this->context, $this->userid);
-            $params['cmid'] = $this->cm->id;
+            if ($this->context->contextlevel === CONTEXT_COURSE) {
+                $params['courseid'] = $this->courseid;
+            } else {
+                $params['cmid'] = $this->cm->id;
+            }
             $downloadurl = new moodle_url('/report/embedquestion/responsedownload.php', $params);
             redirect($downloadurl);
         }

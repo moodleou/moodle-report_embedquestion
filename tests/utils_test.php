@@ -25,7 +25,6 @@ namespace report_embedquestion;
  * @covers \report_embedquestion\utils
  */
 final class utils_test extends \advanced_testcase {
-
     /** @var \testing_data_generator */
     protected $generator;
 
@@ -125,12 +124,18 @@ final class utils_test extends \advanced_testcase {
 
     public function test_get_question_states_for_filter_option(): void {
         $this->assertEquals(
-                [(string) \question_state::$gradedright, (string) \question_state::$mangrright],
-                utils::get_question_states_for_filter_option(\question_state::$gradedright->default_string(true)));
+            [(string) \question_state::$gradedright, (string) \question_state::$mangrright],
+            utils::get_question_states_for_filter_option(
+                \question_state::$gradedright->default_string(true)
+            )
+        );
 
         $this->assertEquals(
-                [(string) \question_state::$complete],
-                utils::get_question_states_for_filter_option(\question_state::$complete->default_string(true)));
+            [(string) \question_state::$complete],
+            utils::get_question_states_for_filter_option(
+                \question_state::$complete->default_string(true)
+            )
+        );
     }
 
     public function test_get_qtype_names_filter_options(): void {
@@ -206,5 +211,44 @@ final class utils_test extends \advanced_testcase {
         global $CFG;
         $actual = utils::get_file_path_from_temporary_dir('sample' . '.zip');
         $this->assertEquals($CFG->tempdir . '/reportembedquestiontemp/sample.zip', $actual);
+    }
+
+    /**
+     * Test delete attempt utility function.
+     *
+     * @covers \utils::delete_specific_attempt
+     */
+    public function test_delete_specific_attempt(): void {
+        $this->resetAfterTest();
+        utils::create_placeholder_question();
+        $qbank = $this->getDataGenerator()->create_module('qbank', ['course' => $this->course->id, 'idnumber' => 'abc123']);
+        $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], [
+            'contextid' => \context_module::instance($qbank->cmid)->id]);
+        $student1 = $this->generator->create_user(['username' => 'student1']);
+        $page = $this->generator->create_module('page', ['course' => $this->course->id,
+            'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>']);
+        $placeholderquestionid = get_config('report_embedquestion', 'deletedquestionplaceholderid');
+        $pagename = 'C1:P1';
+        $attempt1 = $this->attemptgenerator->create_attempt_at_embedded_question(
+            $question,
+            $student1,
+            true,
+            \context_module::instance($page->cmid),
+            $pagename
+        );
+
+        // Delete the first attempt.
+        $qa = $attempt1->get_question_usage();
+        $questionattempt = $qa->get_question_attempt(1);
+        utils::delete_specific_attempt(
+            $questionattempt->get_database_id(),
+            $attempt1->get_question_usage()->get_id(),
+            $placeholderquestionid
+        );
+        $quba = \question_engine::load_questions_usage_by_activity($attempt1->get_question_usage()->get_id());
+        $deletedattempt = $quba->get_question_attempt(1);
+        // Verify the first attempt has been deleted and replaced with placeholder question.
+        $this->assertEquals('description', $deletedattempt->get_question()->get_type_name());
+        $this->assertEquals($placeholderquestionid, $deletedattempt->get_question(false)->id);
     }
 }

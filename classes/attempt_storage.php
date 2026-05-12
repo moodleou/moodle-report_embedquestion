@@ -28,15 +28,18 @@ use filter_embedquestion\embed_location;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class attempt_storage extends \filter_embedquestion\attempt_storage {
-
     #[\Override]
-    public function find_existing_attempt(embed_id $embedid, embed_location $embedlocation,
-            \stdClass $user): array {
+    public function find_existing_attempt(
+        embed_id $embedid,
+        embed_location $embedlocation,
+        \stdClass $user
+    ): array {
         global $DB;
 
-        $attemptinfo = $DB->get_record('report_embedquestion_attempt',
-                ['userid' => $user->id, 'contextid' => $embedlocation->context->id,
-                        'embedid' => (string) $embedid]);
+        $attemptinfo = $DB->get_record(
+            'report_embedquestion_attempt',
+            ['userid' => $user->id, 'contextid' => $embedlocation->context->id, 'embedid' => (string) $embedid]
+        );
 
         if (!$attemptinfo) {
             return [null, 0];
@@ -51,21 +54,34 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
     public function update_timemodified(int $qubaid): void {
         global $DB;
 
-        $DB->set_field('report_embedquestion_attempt', 'timemodified', time(),
-                ['questionusageid' => $qubaid]);
+        $DB->set_field(
+            'report_embedquestion_attempt',
+            'timemodified',
+            time(),
+            ['questionusageid' => $qubaid]
+        );
     }
 
     #[\Override]
-    public function make_new_usage(embed_id $embedid, embed_location $embedlocation,
-            \stdClass $user): \question_usage_by_activity {
+    public function make_new_usage(
+        embed_id $embedid,
+        embed_location $embedlocation,
+        \stdClass $user
+    ): \question_usage_by_activity {
         $quba = \question_engine::make_questions_usage_by_activity(
-                'report_embedquestion', $embedlocation->context);
+            'report_embedquestion',
+            $embedlocation->context
+        );
         return $quba;
     }
 
     #[\Override]
-    public function new_usage_saved(\question_usage_by_activity $quba,
-            embed_id $embedid, embed_location $embedlocation, \stdClass $user): void {
+    public function new_usage_saved(
+        \question_usage_by_activity $quba,
+        embed_id $embedid,
+        embed_location $embedlocation,
+        \stdClass $user
+    ): void {
         global $DB;
 
         $now = time();
@@ -92,8 +108,12 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
             throw new \moodle_exception('notyourattempt', 'filter_embedquestion');
         }
 
-        $attemptinfo = $DB->get_record('report_embedquestion_attempt',
-                ['questionusageid' => $quba->get_id()], '*', MUST_EXIST);
+        $attemptinfo = $DB->get_record(
+            'report_embedquestion_attempt',
+            ['questionusageid' => $quba->get_id()],
+            '*',
+            MUST_EXIST
+        );
 
         if ($attemptinfo->contextid != $quba->get_owning_context()->id) {
             throw new \moodle_exception('notyourattempt', 'filter_embedquestion');
@@ -109,8 +129,11 @@ class attempt_storage extends \filter_embedquestion\attempt_storage {
 
         $transaction = $DB->start_delegated_transaction();
         \question_engine::delete_questions_usage_by_activity($quba->get_id());
-        $contextid = $DB->get_field('report_embedquestion_attempt', 'contextid',
-                ['questionusageid' => $quba->get_id()]);
+        $contextid = $DB->get_field(
+            'report_embedquestion_attempt',
+            'contextid',
+            ['questionusageid' => $quba->get_id()]
+        );
         $DB->delete_records('report_embedquestion_attempt', ['questionusageid' => $quba->get_id()]);
         if ($contextid) {
             attempt_tracker::user_attempts_changed(\context::instance_by_id($contextid));

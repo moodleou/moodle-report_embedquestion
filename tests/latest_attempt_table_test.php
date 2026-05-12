@@ -25,7 +25,6 @@ namespace report_embedquestion;
  * @covers \report_embedquestion\latest_attempt_table
  */
 final class latest_attempt_table_test extends \advanced_testcase {
-
     /** @var \testing_data_generator */
     protected $generator;
 
@@ -70,8 +69,11 @@ final class latest_attempt_table_test extends \advanced_testcase {
         $this->assertArrayHasKey('contextid', $table->sql->params);
         $this->assertEquals($this->context->id, $table->sql->params['contextid']);
         $this->assertArrayHasKey('lookback', $table->sql->params);
-        $this->assertEqualsWithDelta($now - $this->displayoptions->lookback,
-                $table->sql->params['lookback'], 1); // Allow 1s passing to prevent random fails.
+        $this->assertEqualsWithDelta(
+            $now - $this->displayoptions->lookback,
+            $table->sql->params['lookback'],
+            1
+        ); // Allow 1s passing to prevent random fails.
     }
 
     public function test_latest_attempt_table_filter_dates(): void {
