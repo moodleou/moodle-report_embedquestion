@@ -35,7 +35,6 @@ namespace report_embedquestion\event;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class course_report_viewed extends \core\event\base {
-
     #[\Override]
     protected function init() {
         $this->data['crud'] = 'r';

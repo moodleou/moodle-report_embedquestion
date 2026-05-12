@@ -33,7 +33,6 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class behat_report_embedquestion extends behat_base {
-
     /**
      * Convert page names to URLs for steps like 'When I am on the "[identifier]" "[page type]" page'.
      *
@@ -50,14 +49,19 @@ class behat_report_embedquestion extends behat_base {
     protected function resolve_page_instance_url(string $type, string $identifier): moodle_url {
         switch ($type) {
             case 'Progress report for Course':
-                return new moodle_url('/report/embedquestion/index.php',
-                        ['courseid' => $this->get_course_by_course_shortname($identifier)]);
+                return new moodle_url(
+                    '/report/embedquestion/index.php',
+                    [
+                        'courseid' => $this->get_course_by_course_shortname($identifier),
+                    ]
+                );
             case 'Progress report for Activity':
-                return new moodle_url('/report/embedquestion/activity.php',
-                        ['cmid' => $this->get_cmid_by_idnumber($identifier)]);
-            case 'Course admin':
-                return new moodle_url('/course/admin.php',
-                        ['courseid' => $this->get_course_by_course_shortname($identifier)]);
+                return new moodle_url(
+                    '/report/embedquestion/activity.php',
+                    [
+                        'cmid' => $this->get_cmid_by_idnumber($identifier),
+                    ]
+                );
             default:
                 throw new Exception('Unrecognised filter_embedquestion page type "' . $type . '."');
         }

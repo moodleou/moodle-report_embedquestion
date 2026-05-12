@@ -41,7 +41,6 @@ require_once($CFG->libdir . '/formslib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class filter extends \moodleform {
-
     /**
      * Form definition
      *
@@ -67,8 +66,16 @@ class filter extends \moodleform {
                     }
                 }
 
-                $mform->addElement('autocomplete', 'locationids', get_string('reportattemptsfrom', 'quiz'), $locations,
-                        ['multiple' => true, 'noselectionstring' => get_string('allactivities')]);
+                $mform->addElement(
+                    'autocomplete',
+                    'locationids',
+                    get_string('reportattemptsfrom', 'quiz'),
+                    $locations,
+                    [
+                        'multiple' => true,
+                        'noselectionstring' => get_string('allactivities'),
+                    ]
+                );
             }
         }
 
@@ -100,18 +107,31 @@ class filter extends \moodleform {
         $mform->disabledIf('dateto', 'lookback', 'neq', 0);
 
         // Question types.
-        $mform->addElement('select', 'questiontype', get_string('questiontype', 'admin'),
-            utils::get_qtype_names_filter_options());
+        $mform->addElement(
+            'select',
+            'questiontype',
+            get_string('questiontype', 'admin'),
+            utils::get_qtype_names_filter_options()
+        );
 
         // Last attempt status.
-        $mform->addElement('select', 'lastattemptstatus', get_string('latestattemptstatus', 'report_embedquestion'),
-                utils::get_question_state_filter_options());
+        $mform->addElement(
+            'select',
+            'lastattemptstatus',
+            get_string('latestattemptstatus', 'report_embedquestion'),
+            utils::get_question_state_filter_options()
+        );
 
         // Page size.
         $mform->addElement('text', 'pagesize', get_string('pagesize', 'mod_quiz'));
         $mform->setType('pagesize', PARAM_INT);
-        $mform->setDefault('pagesize',
-                get_user_preferences('report_embedquestion_pagesize', report_display_options::DEFAULT_REPORT_PAGE_SIZE));
+        $mform->setDefault(
+            'pagesize',
+            get_user_preferences(
+                'report_embedquestion_pagesize',
+                report_display_options::DEFAULT_REPORT_PAGE_SIZE
+            )
+        );
         $mform->addRule('pagesize', get_string('err_numeric', 'form'), 'numeric', '', 'client');
         $mform->addRule('pagesize', get_string('err_maxlength', 'form', ['format' => 3]), 'maxlength', 3, 'client');
 

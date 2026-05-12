@@ -29,7 +29,6 @@ require_once(__DIR__ . '/../lib.php');
  * @covers \report_embedquestion\lib
  */
 final class lib_test extends \advanced_testcase {
-
     /**
      * @var \testing_data_generator
      */
@@ -58,7 +57,9 @@ final class lib_test extends \advanced_testcase {
         $node = new \navigation_node(['text' => 'Parent node']);
         $course = $this->generator->create_course();
         $context = \context_course::instance($course->id);
-        $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $context->id]);
+        $qbank = $this->getDataGenerator()->create_module('qbank', ['course' => $course->id, 'idnumber' => 'abc123']);
+        $qbankcontext = \context_module::instance($qbank->cmid);
+        $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $qbankcontext->id]);
         $user = $this->generator->create_user();
         $this->generator->enrol_user($user->id, $course->id, 'student');
 
@@ -72,8 +73,15 @@ final class lib_test extends \advanced_testcase {
         $this->assertContains('embedquestionreport', $node->get_children_key_list());
         $reportnode = $node->find('embedquestionreport', \navigation_node::TYPE_SETTING);
         $this->assertEquals('Embedded questions progress', $reportnode->get_content());
-        $this->assertEquals(new \moodle_url('/report/embedquestion/index.php',
-                ['courseid' => $course->id]), $reportnode->action());
+        $this->assertEquals(
+            new \moodle_url(
+                '/report/embedquestion/index.php',
+                [
+                    'courseid' => $course->id,
+                ]
+            ),
+            $reportnode->action()
+        );
     }
 
     /**
@@ -82,9 +90,10 @@ final class lib_test extends \advanced_testcase {
     public function test_report_embedquestion_extend_navigation_module(): void {
         $this->setAdminUser();
         $course = $this->generator->create_course();
-        $coursecontext = \context_course::instance($course->id);
         $pagegenerator = $this->generator->get_plugin_generator('mod_page');
-        $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $coursecontext->id]);
+        $qbank = $this->getDataGenerator()->create_module('qbank', ['course' => $course->id, 'idnumber' => 'abc123']);
+        $qbankcontext = \context_module::instance($qbank->cmid);
+        $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $qbankcontext->id]);
         $activity = $pagegenerator->create_instance(['course' => $course,
                 'content' => '<p>Try this question: ' . $this->attemptgenerator->get_embed_code($question) . '</p>']);
         $pagecontext = \context_module::instance($activity->cmid);
@@ -103,8 +112,15 @@ final class lib_test extends \advanced_testcase {
         $this->assertContains('embedquestionreport', $node->get_children_key_list());
         $reportnode = $node->find('embedquestionreport', \navigation_node::TYPE_SETTING);
         $this->assertEquals('Embedded questions progress', $reportnode->get_content());
-        $this->assertEquals(new \moodle_url('/report/embedquestion/activity.php',
-                ['cmid' => $activity->cmid]), $reportnode->action());
+        $this->assertEquals(
+            new \moodle_url(
+                '/report/embedquestion/activity.php',
+                [
+                    'cmid' => $activity->cmid,
+                ]
+            ),
+            $reportnode->action()
+        );
     }
 
     public function test_report_embedquestion_questions_in_use_detects_question_in_use(): void {

@@ -32,9 +32,17 @@
 function report_embedquestion_extend_navigation_course(navigation_node $navigation, stdClass $course, context $context) {
     if (has_any_capability(['report/embedquestion:viewmyprogress', 'report/embedquestion:viewallprogress'], $context)) {
         if (report_embedquestion\utils::user_can_see_report($context->id)) {
-            $navigation->add(get_string('pluginname', 'report_embedquestion'),
-                    new moodle_url('/report/embedquestion/index.php', ['courseid' => $course->id]),
-                    navigation_node::TYPE_SETTING, null, 'embedquestionreport', new pix_icon('i/report', ''));
+            $navigation->add(
+                get_string('pluginname', 'report_embedquestion'),
+                new moodle_url(
+                    '/report/embedquestion/index.php',
+                    ['courseid' => $course->id]
+                ),
+                navigation_node::TYPE_SETTING,
+                null,
+                'embedquestionreport',
+                new pix_icon('i/report', '')
+            );
         }
     }
 }
@@ -49,9 +57,13 @@ function report_embedquestion_extend_navigation_module(navigation_node $navigati
     $context = context_module::instance($cm->id);
     if (has_any_capability(['report/embedquestion:viewmyprogress', 'report/embedquestion:viewallprogress'], $context)) {
         if (report_embedquestion\utils::user_can_see_report($context->id)) {
-            $navigation->add(get_string('pluginname', 'report_embedquestion'),
-                    new moodle_url('/report/embedquestion/activity.php', ['cmid' => $cm->id]),
-                    navigation_node::TYPE_SETTING, null, 'embedquestionreport');
+            $navigation->add(
+                get_string('pluginname', 'report_embedquestion'),
+                new moodle_url('/report/embedquestion/activity.php', ['cmid' => $cm->id]),
+                navigation_node::TYPE_SETTING,
+                null,
+                'embedquestionreport'
+            );
         }
     }
 }
@@ -89,13 +101,31 @@ function report_embedquestion_page_type_list(string $pagetype, context $parentco
  * @param bool $forcedownload whether the user must be forced to download the file.
  * @param array $fileoptions additional options affecting the file serving
  */
-function report_embedquestion_question_pluginfile($givencourse, $context, $component,
-        $filearea, $qubaid, $slot, $args, $forcedownload, $fileoptions) {
+function report_embedquestion_question_pluginfile(
+    $givencourse,
+    $context,
+    $component,
+    $filearea,
+    $qubaid,
+    $slot,
+    $args,
+    $forcedownload,
+    $fileoptions
+) {
     global $CFG;
 
     require_once($CFG->dirroot . '/filter/embedquestion/lib.php');
-    filter_embedquestion_question_pluginfile($givencourse, $context, $component,
-            $filearea, $qubaid, $slot, $args, $forcedownload, $fileoptions);
+    filter_embedquestion_question_pluginfile(
+        $givencourse,
+        $context,
+        $component,
+        $filearea,
+        $qubaid,
+        $slot,
+        $args,
+        $forcedownload,
+        $fileoptions
+    );
 }
 
 /**
@@ -109,6 +139,8 @@ function report_embedquestion_question_pluginfile($givencourse, $context, $compo
 function report_embedquestion_questions_in_use($questionids) {
     global $CFG;
     require_once($CFG->libdir . '/questionlib.php');
-    return question_engine::questions_in_use($questionids,
-            new qubaid_join('{report_embedquestion_attempt} reqa', 'reqa.questionusageid'));
+    return question_engine::questions_in_use(
+        $questionids,
+        new qubaid_join('{report_embedquestion_attempt} reqa', 'reqa.questionusageid')
+    );
 }

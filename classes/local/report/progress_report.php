@@ -49,7 +49,6 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class progress_report {
-
     /** @var stdClass Course object. */
     protected $course;
     /** @var context Context. */
@@ -76,8 +75,12 @@ abstract class progress_report {
      * @param bool $isonequestiondetails
      * @return progress_report the requested object.
      */
-    public static function make(stdClass $course, context $context, ?cm_info $cm = null,
-            bool $isonequestiondetails = false): progress_report {
+    public static function make(
+        stdClass $course,
+        context $context,
+        ?cm_info $cm = null,
+        bool $isonequestiondetails = false
+    ): progress_report {
         if ($cm) {
             $report = new activity_progress_report($course, $context, $cm);
         } else {
@@ -130,10 +133,13 @@ abstract class progress_report {
 
         if ($this->isonequestiondetails) {
             $this->displayoptions->process_settings_from_params();
-            $this->reporttable = new attempt_summary_table($this->displayoptions->usageid,
-                    $this->context, $this->course->id, $this->cm,
-                    $this->displayoptions->userid);
-
+            $this->reporttable = new attempt_summary_table(
+                $this->displayoptions->usageid,
+                $this->context,
+                $this->course->id,
+                $this->cm,
+                $this->displayoptions->userid
+            );
         } else {
             $formurl = $this->get_url_report();
             $formurl->params($this->displayoptions->get_general_params());
@@ -147,9 +153,17 @@ abstract class progress_report {
                 $this->displayoptions->userid = $this->singlereportforuser;
             }
             $this->filterform->set_data($this->displayoptions->get_initial_form_data());
-            $this->reporttable = new latest_attempt_table($this->context, $this->course->id, $this->cm,
-                    $this->displayoptions, $this->displayoptions->download);
-            $this->reporttable->set_caption($this->get_table_caption(), null);
+            $this->reporttable = new latest_attempt_table(
+                $this->context,
+                $this->course->id,
+                $this->cm,
+                $this->displayoptions,
+                $this->displayoptions->download
+            );
+            $this->reporttable->set_caption(
+                $this->get_table_caption(),
+                null
+            );
         }
     }
 
@@ -191,7 +205,7 @@ abstract class progress_report {
     /**
      * Display the report table.
      */
-    public function display() {
+    public function display(): void {
         if ($this->isonequestiondetails) {
             $this->display_attempt_summary();
         } else {
@@ -214,7 +228,7 @@ abstract class progress_report {
     /**
      * Display the attempt summary table.
      */
-    public function display_attempt_summary() {
+    public function display_attempt_summary(): void {
         // We need information from rendering the table to display the information above it.
         // So, render the table and catch the output.
         ob_start();
@@ -224,7 +238,9 @@ abstract class progress_report {
 
         // Display heading content.
         $attempt = end($this->reporttable->rawdata);
-        echo utils::get_embed_location_summary($this->course->id, $attempt);
+        if ($attempt) {
+            echo utils::get_embed_location_summary($this->course->id, $attempt);
+        }
 
         // Then display the table.
         echo $tablehtml;

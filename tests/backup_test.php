@@ -38,7 +38,6 @@ use restore_controller;
  * @covers \backup_report_embedquestion_plugin
  */
 final class backup_test extends \advanced_testcase {
-
     /**
      * @var \testing_data_generator
      */
@@ -67,19 +66,34 @@ final class backup_test extends \advanced_testcase {
 
         // Create a course with a page that embeds a question.
         $course = $this->generator->create_course();
-        $coursecontext = \context_course::instance($course->id);
-        $question = $this->attemptgenerator->create_embeddable_question('truefalse',
-                null, [], ['contextid' => $coursecontext->id]);
-        $page = $this->generator->create_module('page', ['course' => $course->id,
+        $qbank = $this->getDataGenerator()->create_module('qbank', ['course' => $course->id, 'idnumber' => 'abc123']);
+        $question = $this->attemptgenerator->create_embeddable_question(
+            'truefalse',
+            null,
+            [],
+            [
+                'contextid' => \context_module::instance($qbank->cmid)->id,
+            ]
+        );
+        $page = $this->generator->create_module(
+            'page',
+            [
+                'course' => $course->id,
                 'content' => '<p>Try this question: ' .
-                        $this->attemptgenerator->get_embed_code($question) . '</p>']);
+                    $this->attemptgenerator->get_embed_code($question) . '</p>',
+            ]
+        );
         $pagecontext = \context_module::instance($page->cmid);
 
         // Create a student with an attempt at that question.
         $user = $this->generator->create_user();
         $this->generator->enrol_user($user->id, $course->id, 'student');
         $this->attemptgenerator->create_attempt_at_embedded_question(
-                $question, $user, 'True', $pagecontext);
+            $question,
+            $user,
+            'True',
+            $pagecontext
+        );
 
         // Save some counts, so we can verify that they don't change.
         $numberofembeddedattempts = $DB->count_records('report_embedquestion_attempt');
@@ -92,8 +106,10 @@ final class backup_test extends \advanced_testcase {
         $this->assertCount(2, get_fast_modinfo($course)->instances['page']);
 
         // Verify that the attempt was not copied.
-        $this->assertEquals($numberofembeddedattempts,
-                $DB->count_records('report_embedquestion_attempt'));
+        $this->assertEquals(
+            $numberofembeddedattempts,
+            $DB->count_records('report_embedquestion_attempt')
+        );
         $this->assertEquals($numberofusages, $DB->count_records('question_usages'));
     }
 
@@ -113,8 +129,16 @@ final class backup_test extends \advanced_testcase {
         [$course, $page, $user] = $this->create_course_with_page_with_attempted_question();
 
         // Backup and restore the course with user data.
-        $newcourseinfo = \core_course_external::duplicate_course($course->id, 'Copied course',
-                'CC', $course->category, true, [['name' => 'users', 'value' => true]]);
+        $newcourseinfo = \core_course_external::duplicate_course(
+            $course->id,
+            'Copied course',
+            'CC',
+            $course->category,
+            true,
+            [
+                ['name' => 'users', 'value' => true],
+            ]
+        );
         $newcourse = get_course($newcourseinfo['id']);
 
         // Verify the copied page.
@@ -124,8 +148,14 @@ final class backup_test extends \advanced_testcase {
 
         // Verify the copied attempt in the course context.
         $newcoursecontext = \context_course::instance($newcourse->id);
-        $copiedattempt = $DB->get_record('report_embedquestion_attempt',
-                ['contextid' => $newcoursecontext->id], '*', MUST_EXIST);
+        $copiedattempt = $DB->get_record(
+            'report_embedquestion_attempt',
+            [
+                'contextid' => $newcoursecontext->id,
+            ],
+            '*',
+            MUST_EXIST
+        );
         $this->assertEquals($user->id, $copiedattempt->userid);
         $quba = \question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
         $this->assertCount(1, $quba->get_slots());
@@ -133,8 +163,14 @@ final class backup_test extends \advanced_testcase {
 
         // Verify the copied attempt in the page.
         $newpagecontext = \context_module::instance($newpage->id);
-        $copiedattempt = $DB->get_record('report_embedquestion_attempt',
-                ['contextid' => $newpagecontext->id], '*', MUST_EXIST);
+        $copiedattempt = $DB->get_record(
+            'report_embedquestion_attempt',
+            [
+                'contextid' => $newpagecontext->id,
+            ],
+            '*',
+            MUST_EXIST
+        );
         $this->assertEquals($user->id, $copiedattempt->userid);
         $quba = \question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
         $this->assertCount(1, $quba->get_slots());
@@ -174,8 +210,14 @@ final class backup_test extends \advanced_testcase {
 
         // Verify the attempt is in the page.
         $newpagecontext = \context_module::instance($restoredpage->id);
-        $copiedattempt = $DB->get_record('report_embedquestion_attempt',
-            ['contextid' => $newpagecontext->id], '*', MUST_EXIST);
+        $copiedattempt = $DB->get_record(
+            'report_embedquestion_attempt',
+            [
+                'contextid' => $newpagecontext->id,
+            ],
+            '*',
+            MUST_EXIST
+        );
         $this->assertEquals($user->id, $copiedattempt->userid);
         $quba = \question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
         $this->assertCount(1, $quba->get_slots());
@@ -198,9 +240,14 @@ final class backup_test extends \advanced_testcase {
         [$course, $page, $user] = $this->create_course_with_page_with_attempted_question();
 
         // Backup the page. To make restore easy, we use MODE_IMPORT, but then re-enable users.
-        $bc = new backup_controller(backup::TYPE_1ACTIVITY, $page->cmid,
-                backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT,
-                $USER->id);
+        $bc = new backup_controller(
+            backup::TYPE_1ACTIVITY,
+            $page->cmid,
+            backup::FORMAT_MOODLE,
+            backup::INTERACTIVE_NO,
+            backup::MODE_IMPORT,
+            $USER->id
+        );
 
         $bc->get_plan()->get_setting('users')->set_status(base_setting::NOT_LOCKED);
         $bc->get_plan()->get_setting('users')->set_value(true);
@@ -214,9 +261,14 @@ final class backup_test extends \advanced_testcase {
         $DB->set_field('page', 'name', 'Original page', ['id' => $page->id]);
 
         // Restore the page into the same course.
-        $rc = new restore_controller($backupid, $course->id,
-                backup::INTERACTIVE_NO, backup::MODE_GENERAL, $USER->id,
-                backup::TARGET_CURRENT_ADDING);
+        $rc = new restore_controller(
+            $backupid,
+            $course->id,
+            backup::INTERACTIVE_NO,
+            backup::MODE_GENERAL,
+            $USER->id,
+            backup::TARGET_CURRENT_ADDING
+        );
         $precheck = $rc->execute_precheck();
         $this->assertTrue($precheck);
         $rc->execute_plan();
@@ -232,8 +284,14 @@ final class backup_test extends \advanced_testcase {
 
         // Verify the copied attempt in the page.
         $newpagecontext = \context_module::instance($newpage->id);
-        $copiedattempt = $DB->get_record('report_embedquestion_attempt',
-                ['contextid' => $newpagecontext->id], '*', MUST_EXIST);
+        $copiedattempt = $DB->get_record(
+            'report_embedquestion_attempt',
+            [
+                'contextid' => $newpagecontext->id,
+            ],
+            '*',
+            MUST_EXIST
+        );
         $this->assertEquals($user->id, $copiedattempt->userid);
         $quba = \question_engine::load_questions_usage_by_activity($copiedattempt->questionusageid);
         $this->assertCount(1, $quba->get_slots());
@@ -247,24 +305,49 @@ final class backup_test extends \advanced_testcase {
     protected function create_course_with_page_with_attempted_question(): array {
         // Create a course with a page that embeds a question.
         $course = $this->generator->create_course(
-                ['fullname' => 'Original course', 'shortname' => 'OC']);
+            [
+                'fullname' => 'Original course',
+                'shortname' => 'OC',
+            ]
+        );
         $coursecontext = \context_course::instance($course->id);
-        $question = $this->attemptgenerator->create_embeddable_question('truefalse',
-                null, [], ['contextid' => $coursecontext->id]);
-        $page = $this->generator->create_module('page', ['course' => $course->id,
+        $qbank = $this->getDataGenerator()->create_module('qbank', ['course' => $course->id, 'idnumber' => 'abc123']);
+        $qbankcontext = \context_module::instance($qbank->cmid);
+        $question = $this->attemptgenerator->create_embeddable_question(
+            'truefalse',
+            null,
+            [],
+            [
+                'contextid' => $qbankcontext->id,
+            ]
+        );
+        $page = $this->generator->create_module(
+            'page',
+            [
+                'course' => $course->id,
                 'content' => '<p>Try this question: ' .
-                        $this->attemptgenerator->get_embed_code($question) . '</p>']);
+                    $this->attemptgenerator->get_embed_code($question) . '</p>',
+            ]
+        );
         $pagecontext = \context_module::instance($page->cmid);
 
         // Create a student with an attempt at that question.
         $user = $this->generator->create_user();
         $this->generator->enrol_user($user->id, $course->id, 'student');
         $this->attemptgenerator->create_attempt_at_embedded_question(
-                $question, $user, 'True', $pagecontext);
+            $question,
+            $user,
+            'True',
+            $pagecontext
+        );
 
         // Also add an attempt in the course context (as if the question was embedded in a label).
         $this->attemptgenerator->create_attempt_at_embedded_question(
-                $question, $user, 'False', $coursecontext);
+            $question,
+            $user,
+            'False',
+            $coursecontext
+        );
         return [$course, $page, $user];
     }
 }

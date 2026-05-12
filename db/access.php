@@ -71,4 +71,27 @@ $capabilities = [
                     'manager' => CAP_ALLOW,
             ],
     ],
+
+    // Ability for a user to download response files for any user's attempts.
+    'report/embedquestion:downloadanyattempt' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+
+    // Ability for a user to download response files for own attempts only.
+    'report/embedquestion:downloadmyattempt' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 ];

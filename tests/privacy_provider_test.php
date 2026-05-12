@@ -44,7 +44,6 @@ require_once($CFG->dirroot . '/question/tests/privacy_helper.php');
  * @covers \report_embedquestion\privacy\provider
  */
 final class privacy_provider_test extends \core_privacy\tests\provider_testcase {
-
     use \core_question_privacy_helper;
 
     /**
@@ -95,8 +94,10 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         $contextlist = provider::get_contexts_for_userid($user->id);
         $this->assertCount(1, $contextlist);
-        $this->assertEquals($DB->get_field('question_categories', 'contextid', ['id' => $question->category]),
-                $contextlist->current()->id);
+        $this->assertEquals(
+            $DB->get_field('question_categories', 'contextid', ['id' => $question->category]),
+            $contextlist->current()->id
+        );
     }
 
     /**
@@ -138,7 +139,10 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         $user = $this->getDataGenerator()->create_user();
         $approvedcontextlist = new approved_contextlist(
-                \core_user::get_user($user->id), 'report_embedquestion', []);
+            \core_user::get_user($user->id),
+            'report_embedquestion',
+            []
+        );
 
         provider::export_user_data($approvedcontextlist);
 
@@ -154,12 +158,16 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
      */
     public function test_export_user_data_with_data(): void {
         global $CFG;
-        $this->resetAfterTest(true);
+        $this->resetAfterTest();
         $this->setUser();
 
         $user = $this->getDataGenerator()->create_user();
         $anotheruser = $this->getDataGenerator()->create_user();
-        $question = $this->attemptgenerator->create_embeddable_question('truefalse');
+        $course = $this->getDataGenerator()->create_course();
+        $qbank = $this->getDataGenerator()->create_module('qbank', ['course' => $course->id, 'idnumber' => 'abc123']);
+        $qbankcontext = \context_module::instance($qbank->cmid);
+        $question = $this->attemptgenerator->create_embeddable_question('truefalse', null, [], ['contextid' => $qbankcontext->id]);
+
         $this->attemptgenerator->create_attempt_at_embedded_question($question, $user, 'True');
         $this->attemptgenerator->create_attempt_at_embedded_question($question, $anotheruser, 'False');
 
@@ -169,8 +177,11 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         // Perform the export and check the data.
         $this->setUser($user);
-        $approvedcontextlist = new approved_contextlist(\core_user::get_user($user->id),
-                'report_embedquestion', $contextlist->get_contextids());
+        $approvedcontextlist = new approved_contextlist(
+            \core_user::get_user($user->id),
+            'report_embedquestion',
+            $contextlist->get_contextids()
+        );
         provider::export_user_data($approvedcontextlist);
 
         // Ensure that the overall was exported correctly.
@@ -181,7 +192,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         $exporteddata = $writer->get_data($subcontext);
         $this->assertEquals('Test embed location', $exporteddata->pagename);
-        $this->assertEquals($CFG->wwwroot . '/', $exporteddata->pageurl);
+        $this->assertEquals($CFG->wwwroot . '/mod/qbank/view.php?id=' . $qbank->cmid, $exporteddata->pageurl);
 
         // Fetch the attempt data.
         $questionscontext = $subcontext;
@@ -214,36 +225,56 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
      */
     public function test_delete_data_for_all_users_in_context_with_data(): void {
         global $DB;
-        $this->resetAfterTest(true);
+        $this->resetAfterTest();
 
         // This is the attempt we will try to delete.
         $course = $this->getDataGenerator()->create_course();
-        $coursecontext = \context_course::instance($course->id);
-        $question = $this->attemptgenerator->create_embeddable_question('truefalse',
-                null, null, ['contextid' => $coursecontext->id]);
+        $qbank = $this->getDataGenerator()->create_module('qbank', ['course' => $course->id, 'idnumber' => 'abc123']);
+        $qbankcontext = \context_module::instance($qbank->cmid);
+        $course2 = $this->getDataGenerator()->create_course();
+        $qbank2 = $this->getDataGenerator()->create_module('qbank', ['course' => $course2->id, 'idnumber' => 'abc123']);
+        $qbankcontext2 = \context_module::instance($qbank2->cmid);
+        $question = $this->attemptgenerator->create_embeddable_question(
+            'truefalse',
+            null,
+            null,
+            ['contextid' => $qbankcontext->id]
+        );
         $user = $this->getDataGenerator()->create_user();
         $this->attemptgenerator->create_attempt_at_embedded_question($question, $user, 'True');
 
         // This attempt should not be affected.
-        $otherquestion = $this->attemptgenerator->create_embeddable_question('truefalse');
+        $otherquestion = $this->attemptgenerator->create_embeddable_question(
+            'truefalse',
+            null,
+            null,
+            ['contextid' => $qbankcontext2->id]
+        );
         $otheruser = $this->getDataGenerator()->create_user();
         $this->attemptgenerator->create_attempt_at_embedded_question($otherquestion, $otheruser, 'True');
 
         // Delete all data for all users in the context under test.
-        provider::delete_data_for_all_users_in_context($coursecontext);
+        provider::delete_data_for_all_users_in_context($qbankcontext);
 
         // The quiz attempt should have been deleted from this quiz.
-        $this->assertEquals(0, $DB->count_records('report_embedquestion_attempt',
-                ['contextid' => $coursecontext->id]));
-        $this->assertEquals(0, $DB->count_records('question_usages',
-                ['contextid' => $coursecontext->id]));
+        $this->assertEquals(
+            0,
+            $DB->count_records('report_embedquestion_attempt', ['contextid' => $qbankcontext->id])
+        );
+        $this->assertEquals(
+            0,
+            $DB->count_records('question_usages', ['contextid' => $qbankcontext->id])
+        );
 
         // But not for the other quiz.
-        $frontpagecontext = \context_course::instance(SITEID);
-        $this->assertEquals(1, $DB->count_records('report_embedquestion_attempt',
-                ['contextid' => $frontpagecontext->id]));
-        $this->assertEquals(1, $DB->count_records('question_usages',
-                ['contextid' => $frontpagecontext->id]));
+        $this->assertEquals(
+            1,
+            $DB->count_records('report_embedquestion_attempt', ['contextid' => $qbankcontext2->id])
+        );
+        $this->assertEquals(
+            1,
+            $DB->count_records('question_usages', ['contextid' => $qbankcontext2->id])
+        );
     }
 
     /**
@@ -254,7 +285,10 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         $user = $this->getDataGenerator()->create_user();
         $approvedcontextlist = new approved_contextlist(
-                \core_user::get_user($user->id), 'report_embedquestion', []);
+            \core_user::get_user($user->id),
+            'report_embedquestion',
+            []
+        );
 
         provider::delete_data_for_user($approvedcontextlist);
         $this->assertDebuggingNotCalled();
@@ -266,9 +300,16 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
     public function test_delete_data_for_user_with_data(): void {
         global $DB;
         $this->resetAfterTest();
-
+        $course = $this->getDataGenerator()->create_course();
+        $qbank = $this->getDataGenerator()->create_module('qbank', ['course' => $course->id, 'idnumber' => 'abc123']);
+        $qbankcontext = \context_module::instance($qbank->cmid);
         // This is the attempt we will try to delete.
-        $question = $this->attemptgenerator->create_embeddable_question('truefalse');
+        $question = $this->attemptgenerator->create_embeddable_question(
+            'truefalse',
+            null,
+            null,
+            ['contextid' => $qbankcontext->id]
+        );
         $user = $this->getDataGenerator()->create_user();
         $this->attemptgenerator->create_attempt_at_embedded_question($question, $user, 'True');
 
@@ -277,17 +318,23 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $this->attemptgenerator->create_attempt_at_embedded_question($question, $otheruser, 'True');
 
         // Delete data for $user in the context under test.
-        $context = \context_course::instance(SITEID);
         $approvedcontextlist = new approved_contextlist(
-                \core_user::get_user($user->id), 'report_embedquestion', [$context->id]);
+            \core_user::get_user($user->id),
+            'report_embedquestion',
+            [$qbankcontext->id]
+        );
         provider::delete_data_for_user($approvedcontextlist);
         $this->assertDebuggingNotCalled();
 
         // The quiz attempt should have been deleted from this quiz.
-        $this->assertEquals(1, $DB->count_records('report_embedquestion_attempt',
-                ['contextid' => $context->id]));
-        $this->assertEquals(1, $DB->count_records('question_usages',
-                ['contextid' => $context->id]));
+        $this->assertEquals(
+            1,
+            $DB->count_records('report_embedquestion_attempt', ['contextid' => $qbankcontext->id])
+        );
+        $this->assertEquals(
+            1,
+            $DB->count_records('question_usages', ['contextid' => $qbankcontext->id])
+        );
     }
 
     /**
@@ -309,8 +356,15 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         // Only the attempt of user2 should be remained in quiz1.
         // Only attempt by $otheruser is left.
-        $this->assertEquals([$otheruser->id => 1], $DB->get_records_menu(
-                'report_embedquestion_attempt', ['contextid' => $context->id], 'id', 'userid, 1'));
+        $this->assertEquals(
+            [$otheruser->id => 1],
+            $DB->get_records_menu(
+                'report_embedquestion_attempt',
+                ['contextid' => $context->id],
+                'id',
+                'userid, 1'
+            )
+        );
     }
 
     /**
@@ -332,6 +386,5 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         $this->assertNotEmpty($preferences->pagesize);
         $this->assertEquals(15, $preferences->pagesize->value);
-
     }
 }

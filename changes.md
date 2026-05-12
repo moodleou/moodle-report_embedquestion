@@ -1,5 +1,18 @@
 # Change log for the Embedded questions progress report
 
+# Features in version 2.0
+
+* This version works with Moodle 5.2+.
+* Allow question attempt-level deletion.
+
+
+## Features in version 1.9
+
+* This version works with Moodle 5.0.
+* Add delete specific attempt functionality for users with the appropriate capability.
+* Allow downloading of response files for all question types that support file responses in course.
+
+
 ## Features in version 1.8
 
 * This version works with Moodle 4.5.

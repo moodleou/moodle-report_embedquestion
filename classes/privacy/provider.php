@@ -33,11 +33,10 @@ use filter_embedquestion\question_options;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements
-        \core_privacy\local\metadata\provider,
-        \core_privacy\local\request\plugin\provider,
-        \core_privacy\local\request\core_userlist_provider,
-        \core_privacy\local\request\user_preference_provider {
-
+    \core_privacy\local\metadata\provider,
+    \core_privacy\local\request\core_userlist_provider,
+    \core_privacy\local\request\plugin\provider,
+    \core_privacy\local\request\user_preference_provider {
     #[\Override]
     public static function get_metadata(collection $items): collection {
 
@@ -92,7 +91,7 @@ class provider implements
         if (empty($contextids)) {
             return;
         }
-        list($contextsql, $params) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED);
+        [$contextsql, $params] = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED);
         $params['userid'] = $contextlist->get_user()->id;
 
         $attempts = $DB->get_recordset_sql("SELECT *
@@ -118,8 +117,14 @@ class provider implements
             writer::with_context($context)->export_data($subcontext, $data);
 
             // Export the related question attempt data.
-            \core_question\privacy\provider::export_question_usage($attempt->userid,
-                    $context, $subcontext, $attempt->questionusageid, new question_options(), true);
+            \core_question\privacy\provider::export_question_usage(
+                $attempt->userid,
+                $context,
+                $subcontext,
+                $attempt->questionusageid,
+                new question_options(),
+                true
+            );
         }
         $attempts->close();
     }
@@ -128,8 +133,13 @@ class provider implements
     public static function delete_data_for_all_users_in_context(\context $context) {
         global $DB;
         $transaction = $DB->start_delegated_transaction();
-        $attempts = $DB->get_records_menu('report_embedquestion_attempt',
-                ['contextid' => $context->id], '', 'id, questionusageid');
+        $attempts = $DB->get_records_menu(
+            'report_embedquestion_attempt',
+            ['contextid' => $context->id],
+            '',
+            'id,
+             questionusageid'
+        );
 
         \question_engine::delete_questions_usage_by_activities(new \qubaid_list($attempts));
         $DB->delete_records_list('report_embedquestion_attempt', 'id', array_keys($attempts));
@@ -149,12 +159,13 @@ class provider implements
         $params['userid'] = $user->id;
 
         $transaction = $DB->start_delegated_transaction();
-        $attempts = $DB->get_records_sql_menu("
-                SELECT id, questionusageid
-                  FROM {report_embedquestion_attempt}
-                 WHERE userid = :userid
-                   AND contextid $contextsql",
-                $params);
+        $attempts = $DB->get_records_sql_menu(
+            "SELECT id, questionusageid
+               FROM {report_embedquestion_attempt}
+              WHERE userid = :userid
+                    AND contextid $contextsql",
+            $params
+        );
 
         \question_engine::delete_questions_usage_by_activities(new \qubaid_list($attempts));
         $DB->delete_records_list('report_embedquestion_attempt', 'id', array_keys($attempts));
@@ -174,12 +185,13 @@ class provider implements
         $params['contextid'] = $context->id;
 
         $transaction = $DB->start_delegated_transaction();
-        $attempts = $DB->get_records_sql_menu("
-                SELECT id, questionusageid
-                  FROM {report_embedquestion_attempt}
-                 WHERE userid $useridsql
-                   AND contextid = :contextid",
-                $params);
+        $attempts = $DB->get_records_sql_menu(
+            "SELECT id, questionusageid
+               FROM {report_embedquestion_attempt}
+              WHERE userid $useridsql
+                    AND contextid = :contextid",
+            $params
+        );
 
         \question_engine::delete_questions_usage_by_activities(new \qubaid_list($attempts));
         $DB->delete_records_list('report_embedquestion_attempt', 'id', array_keys($attempts));
@@ -195,8 +207,12 @@ class provider implements
         // Page size.
         $pagesize = get_user_preferences('report_embedquestion_pagesize', null, $userid);
         if ($pagesize !== null) {
-            writer::export_user_preference('report_embedquestion', 'pagesize', $pagesize,
-                    get_string('privacy:preference:report_embedquestion_attempt:pagesize', 'report_embedquestion'));
+            writer::export_user_preference(
+                'report_embedquestion',
+                'pagesize',
+                $pagesize,
+                get_string('privacy:preference:report_embedquestion_attempt:pagesize', 'report_embedquestion')
+            );
         }
     }
 }

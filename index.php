@@ -86,7 +86,6 @@ if (!$download) {
     }
     $report->display();
     echo $OUTPUT->footer();
-
 } else {
     $report->display();
 }

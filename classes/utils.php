@@ -23,6 +23,9 @@ use html_writer;
 use moodle_url;
 use user_picture;
 use stdClass;
+use question_bank;
+use question_engine;
+use core_question\local\bank\question_bank_helper;
 
 /**
  * Helper functions for report_embedquestion.
@@ -32,7 +35,6 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class utils {
-
     /**
      * Used at the top of the drill-down for a single question. Give more info about the location.
      *
@@ -41,18 +43,28 @@ class utils {
      */
     public static function get_embed_location_summary(int $courseid, stdClass $attempt) {
         global $USER;
-        $context = html_writer::tag('span', get_string('attemptsummarycontext', 'report_embedquestion',
-                self::get_activity_link($attempt)), ['class' => 'heading-context']);
-        $questionlink = self::get_question_link($courseid, $attempt->questionid,
-                $attempt->questiontype, $attempt->questionname);
+        $context = html_writer::tag(
+            'span',
+            get_string('attemptsummarycontext', 'report_embedquestion', self::get_activity_link($attempt)),
+            ['class' => 'heading-context']
+        );
+        $questionlink = self::get_question_link(
+            $courseid,
+            $attempt->questionid,
+            $attempt->questiontype,
+            $attempt->questionname
+        );
         $questionlink = html_writer::tag('span', $questionlink, ['class' => 'heading-question']);
 
         // Print users link when the viewer is not the current user.
         $userlink = '';
         if ($USER->id !== $attempt->userid) {
             $userlink = self::get_user_link($courseid, $attempt->userid, fullname($attempt));
-            $userlink = html_writer::tag('span', get_string(
-                    'attemptsummaryby', 'report_embedquestion', $userlink), ['class' => 'heading-user']);
+            $userlink = html_writer::tag(
+                'span',
+                get_string('attemptsummaryby', 'report_embedquestion', $userlink),
+                ['class' => 'heading-user']
+            );
         }
         $heading = get_string('attemptsummaryfor', 'report_embedquestion');
         echo html_writer::tag('p', $heading . ' ' . $questionlink . ' | ' . $userlink . ' ' . $context);
@@ -100,13 +112,16 @@ class utils {
             throw new \coding_exception('If usage id is set, user id must also be set.');
         }
 
-        if (!$DB->record_exists_sql("
-                SELECT 1
-                  FROM {question_usages} qu
-                  JOIN {report_embedquestion_attempt} r ON r.questionusageid = qu.id
-                 WHERE qu.id = ?
-                   AND r.userid = ?
-                ", [$usageid, $userid])) {
+        if (
+            !$DB->record_exists_sql(
+                "SELECT 1
+                   FROM {question_usages} qu
+                   JOIN {report_embedquestion_attempt} r ON r.questionusageid = qu.id
+                  WHERE qu.id = ?
+                        AND r.userid = ?",
+                [$usageid, $userid]
+            )
+        ) {
             throw new \coding_exception('Unknown usage id.');
         }
     }
@@ -117,7 +132,7 @@ class utils {
      * @param string $qtype the question type string.
      * @return string HTML fragment.
      */
-    public static function get_question_icon($qtype) {
+    public static function get_question_icon(string $qtype): string {
         global $OUTPUT;
         return $OUTPUT->pix_icon('icon', get_string('pluginname', 'qtype_' . $qtype), 'qtype_' . $qtype);
     }
@@ -170,7 +185,7 @@ class utils {
      * @param string $state the string such as 'gradedright', 'gradedwrong', 'gradedpartial'.
      * @return string html fragment.
      */
-    public static function get_question_state(string $state) {
+    public static function get_question_state(string $state): string {
         global $OUTPUT;
         $icon = 'i/grade_';
         if ($state === 'gradedright') {
@@ -193,8 +208,12 @@ class utils {
 
         $output .= html_writer::start_span('que correctness ' . $correctness);
         $output .= get_string($correctness, 'question');
-        $output .= $OUTPUT->pix_icon($icon . $correctness,
-                get_string($correctness, 'question'), 'moodle', ['class' => 'state-icon']);
+        $output .= $OUTPUT->pix_icon(
+            $icon . $correctness,
+            get_string($correctness, 'question'),
+            'moodle',
+            ['class' => 'state-icon']
+        );
         $output .= html_writer::end_span();
 
         return $output;
@@ -208,7 +227,7 @@ class utils {
     public static function get_activity_link(stdClass $attempt): string {
         $url = new moodle_url($attempt->pageurl);
         $url->set_anchor(embed_id::create_from_string($attempt->embedid)->to_html_id());
-        return \html_writer::link($url->out(), $attempt->pagename);;
+        return \html_writer::link($url->out(), $attempt->pagename);
     }
 
     /**
@@ -226,8 +245,11 @@ class utils {
         $url->param('userid', $attempt->userid);
         $url->param('usageid', $attempt->questionusageid);
 
-        return \html_writer::link($url, userdate($attempt->questionattemptsteptime),
-            ['title' => get_string('attemptsummary', 'report_embedquestion')]);
+        return \html_writer::link(
+            $url,
+            userdate($attempt->questionattemptsteptime),
+            ['title' => get_string('attemptsummary', 'report_embedquestion')]
+        );
     }
 
     /**
@@ -253,10 +275,15 @@ class utils {
      * @param string $title the report title
      * @param context $context the report context object
      */
-    public static function allow_downloadability_for_attempt_table(latest_attempt_table $table,
-            string $title, context $context): void {
-        if (has_capability('report/embedquestion:viewallprogress', $context) ||
-            has_capability('report/embedquestion:viewmyprogress', $context)) {
+    public static function allow_downloadability_for_attempt_table(
+        latest_attempt_table $table,
+        string $title,
+        context $context
+    ): void {
+        if (
+            has_capability('report/embedquestion:viewallprogress', $context) ||
+            has_capability('report/embedquestion:viewmyprogress', $context)
+        ) {
             $download = optional_param('download', '', PARAM_ALPHA);
             $table->is_downloading($download);
         }
@@ -267,9 +294,8 @@ class utils {
      * @param array|null $params
      * @param string $type php file name without extension ('index', 'activity')
      * @return moodle_url
-     * @throws \moodle_exception
      */
-    public static function get_url($params, $type = 'index') {
+    public static function get_url(?array $params, string $type = 'index'): moodle_url {
         global $CFG;
         return new moodle_url($CFG->wwwroot . "/report/embedquestion/$type.php", $params);
     }
@@ -281,19 +307,23 @@ class utils {
      * @param \question_attempt $attemptobj
      * @return array List of summary information.
      */
-    public static function prepare_summary_attempt_information($courseid, $attemptobj): array {
+    public static function prepare_summary_attempt_information(int $courseid, \question_attempt $attemptobj): array {
         $sumdata = [];
 
         $question = $attemptobj->get_question();
-        $student = \core_user::get_user($attemptobj->get_last_step()->get_user_id(),
-                'id, picture, imagealt, firstname, lastname, firstnamephonetic, ' .
-                'lastnamephonetic, middlename, alternatename, email');
+        $student = \core_user::get_user(
+            $attemptobj->get_last_step()->get_user_id(),
+            'id, picture, imagealt, firstname, lastname, firstnamephonetic, ' .
+            'lastnamephonetic, middlename, alternatename, email'
+        );
         $userpicture = new user_picture($student);
         $userpicture->courseid = $courseid;
         $sumdata['user'] = [
                 'title' => $userpicture,
-                'content' => new action_link(new moodle_url('/user/view.php',
-                        ['id' => $student->id]), fullname($student, true)),
+                'content' => new action_link(
+                    new moodle_url('/user/view.php', ['id' => $student->id]),
+                    fullname($student, true)
+                ),
         ];
         $sumdata['question'] = [
                 'title' => get_string('question', 'moodle'),
@@ -314,8 +344,11 @@ class utils {
      * @return string the string title.
      */
     public static function get_title(context $context): string {
-        return get_string($context->contextlevel == CONTEXT_COURSE ? 'coursereporttitle' : 'activityreporttitle',
-                'report_embedquestion', $context->get_context_name(false, false));
+        return get_string(
+            $context->contextlevel == CONTEXT_COURSE ? 'coursereporttitle' : 'activityreporttitle',
+            'report_embedquestion',
+            $context->get_context_name(false, false)
+        );
     }
 
     /**
@@ -337,7 +370,7 @@ class utils {
      */
     public static function get_user_details(int $userid, context $context): array {
         global $CFG;
-        require_once($CFG->dirroot.'/user/profile/lib.php');
+        require_once($CFG->dirroot . '/user/profile/lib.php');
 
         $user = \core_user::get_user($userid);
         profile_load_data($user);
@@ -385,8 +418,11 @@ class utils {
      */
     public static function get_user_display(stdClass $user, array $info): string {
         if ($info) {
-            return get_string('crumbtrailembedquestiondetail', 'report_embedquestion',
-                    ['fullname' => fullname($user), 'info' => implode(', ', $info)]);
+            return get_string(
+                'crumbtrailembedquestiondetail',
+                'report_embedquestion',
+                ['fullname' => fullname($user), 'info' => implode(', ', $info)]
+            );
         } else {
             return fullname($user);
         }
@@ -470,5 +506,70 @@ class utils {
      */
     public static function get_file_path_from_temporary_dir(string $fullname): string {
         return make_temp_directory('reportembedquestiontemp') . '/' . $fullname;
+    }
+
+    /**
+     * Deletes a specific question attempt from a usage, replacing it with a dummy question.
+     * If all questions in the usage are deleted questions, delete the whole usage.
+     *
+     * @param int $attemptid The database id of the question attempt.
+     * @param int $qubaid The id of the question usage.
+     * @param int $questionid The id of the dummy question to use as replacement.
+     */
+    public static function delete_specific_attempt(
+        int $attemptid,
+        int $qubaid,
+        int $questionid
+    ): void {
+        global $DB;
+        $question = question_bank::load_question($questionid);
+        $quba = question_engine::load_questions_usage_by_activity($qubaid);
+        foreach ($quba->get_attempt_iterator() as $attempt) {
+            if ($attempt->get_database_id() == $attemptid) {
+                $transaction = $DB->start_delegated_transaction();
+                $quba->add_question_in_place_of_other($attempt->get_slot(), $question, null, false);
+                $quba->start_question($attempt->get_slot());
+                question_engine::save_questions_usage_by_activity($quba);
+                $transaction->allow_commit();
+                break;
+            }
+        }
+    }
+
+    /**
+     * Create a placeholder question to use when deleting attempts.
+     */
+    public static function create_placeholder_question(): void {
+        global $DB;
+        try {
+            $course = get_site();
+            $qbank = question_bank_helper::get_default_open_instance_system_type($course, true);
+            $newtopcategory = question_get_top_category($qbank->context->id, true);
+            $idnumber = 'EMBED_QUESTION_PLACEHOLDER_FOR_DELETION';
+            $sql = "SELECT qbe.id
+                      FROM {question_bank_entries} qbe
+                     WHERE qbe.idnumber = :idnumber
+                           AND qbe.questioncategoryid = :categoryid";
+            if ($DB->record_exists_sql($sql, ['idnumber' => $idnumber, 'categoryid' => $newtopcategory->id])) {
+                // The question already exists, so no need to create it again.
+                return;
+            }
+            // Now create a placeholder description question in that category.
+            $form = new \stdClass();
+            $form->category = $newtopcategory->id . ',' . $qbank->context->id;
+            $form->name = 'Placeholder question for deleted embedded question attempts';
+            $form->includesubcategories = false;
+            $form->questiontext = ['text' => '0', 'format' => 0]; // Needed for the test to pass in Moodle 3.4.
+            $form->defaultmark = 1;
+            $form->hidden = 1;
+            $form->stamp = make_unique_id_code(); // Set the unique code (not to be changed).
+            $form->idnumber = $idnumber;
+            $question = new \stdClass();
+            $question->qtype = 'description';
+            $newquestion = question_bank::get_qtype('description')->save_question($question, $form);
+            set_config('deletedquestionplaceholderid', $newquestion->id, 'report_embedquestion');
+        } catch (\Exception $e) {
+            throw new \coding_exception("Upgrade failed: error creating system question bank: " . $e->getMessage());
+        }
     }
 }
