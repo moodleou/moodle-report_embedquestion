@@ -20,5 +20,7 @@ Or you can install using git. Type this commands in the root of your Moodle inst
     git clone https://github.com/moodleou/moodle-report_embedquestion.git report/embedquestion/
     echo '/report/embedquestion/' >> .git/info/exclude
 
+Checkout the correct tag to correspond to your particular version of Moodle.
+
 Then run the moodle update process
 Site administration > Notifications
