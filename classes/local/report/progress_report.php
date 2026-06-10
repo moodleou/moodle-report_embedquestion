@@ -173,7 +173,7 @@ abstract class progress_report {
      * @return string
      */
     public function get_download_filename(): string {
-        return $this->course->shortname . '_' . str_replace(' ', '_', $this->get_title());
+        return format_string($this->course->shortname) . '_' . str_replace(' ', '_', $this->get_title());
     }
 
     /**
