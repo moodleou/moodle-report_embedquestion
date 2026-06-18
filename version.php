@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2026050400;
-$plugin->requires  = 2024042200;
+$plugin->requires  = 2026042000;
 $plugin->component = 'report_embedquestion';
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->release   = '2.0 for Moodle 5.2+';
