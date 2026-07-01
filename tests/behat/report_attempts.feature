@@ -109,11 +109,11 @@ Feature: Testing attempt detail view and delete feature
   Scenario: A student can delete his/her own progress in an activity
     When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
     Then "Select attempt" "checkbox" should exist in the "student2" "table_row"
-    And "Delete selected attempts" "button" should exist
-    And the "Delete selected attempts" "button" should be disabled
+    And "Delete selected question attempts (all)" "button" should exist
+    And the "Delete selected question attempts (all)" "button" should be disabled
     And I click on "Select attempt" "checkbox" in the "student2" "table_row"
-    And the "Delete selected attempts" "button" should be enabled
-    And I click on "Delete selected attempts" "button"
+    And the "Delete selected question attempts (all)" "button" should be enabled
+    And I click on "Delete selected question attempts (all)" "button"
     And I should see "Are you absolutely sure you want to completely delete these attempts?" in the "Confirmation" "dialogue"
     And I click on "Yes" "button"
     And I should see "Nothing to display"
@@ -124,8 +124,8 @@ Feature: Testing attempt detail view and delete feature
       | capability                           | permission | role    | contextlevel | reference |
       | report/embedquestion:deletemyattempt | Prevent    | student | Course       | C1        |
     When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
-    Then "Delete selected attempts" "button" should exist
-    And the "Delete selected attempts" "button" should be disabled
+    Then "Delete selected question attempts (all)" "button" should exist
+    And the "Delete selected question attempts (all)" "button" should be disabled
 
   @javascript
   Scenario: A tutor can see their students progress but only can delete his/her own progress in an activity
@@ -133,18 +133,18 @@ Feature: Testing attempt detail view and delete feature
     Then "Select attempt" "checkbox" should exist in the "tutor" "table_row"
     And "Select attempt" "checkbox" should exist in the "student1" "table_row"
     And "Select attempt" "checkbox" should exist in the "student2" "table_row"
-    And "Delete selected attempts" "button" should exist
+    And "Delete selected question attempts (all)" "button" should exist
     And "Download all response files" "button" should exist
     And "Download selected response files" "button" should exist
-    And the "Delete selected attempts" "button" should be disabled
+    And the "Delete selected question attempts (all)" "button" should be disabled
     # Selecting a student row does not enable delete (tutor cannot delete others).
     And I click on "Select attempt" "checkbox" in the "student1" "table_row"
-    And the "Delete selected attempts" "button" should be disabled
+    And the "Delete selected question attempts (all)" "button" should be disabled
     # Deselect student row and select own row - delete is now enabled (tutor can delete own).
     And I click on "Select attempt" "checkbox" in the "student1" "table_row"
     And I click on "Select attempt" "checkbox" in the "tutor" "table_row"
-    And the "Delete selected attempts" "button" should be enabled
-    And I click on "Delete selected attempts" "button"
+    And the "Delete selected question attempts (all)" "button" should be enabled
+    And I click on "Delete selected question attempts (all)" "button"
     And I should see "Are you absolutely sure you want to completely delete these attempts?" in the "Confirmation" "dialogue"
     And I click on "Yes" "button"
     And I should not see "tutor"
@@ -154,7 +154,7 @@ Feature: Testing attempt detail view and delete feature
   @javascript
   Scenario: A tutor can download response files without delete permission for all students
     When I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
-    Then the "Delete selected attempts" "button" should be disabled
+    Then the "Delete selected question attempts (all)" "button" should be disabled
     And "Download all response files" "button" should exist
     And the "Download all response files" "button" should be enabled
     And "Download selected response files" "button" should exist
@@ -175,13 +175,13 @@ Feature: Testing attempt detail view and delete feature
     Then "Select attempt" "checkbox" should exist in the "tutor" "table_row"
     And "Select attempt" "checkbox" should exist in the "student1" "table_row"
     And "Select attempt" "checkbox" should exist in the "student2" "table_row"
-    And "Delete selected attempts" "button" should exist
-    And the "Delete selected attempts" "button" should be disabled
+    And "Delete selected question attempts (all)" "button" should exist
+    And the "Delete selected question attempts (all)" "button" should be disabled
     And I click on "Select attempt" "checkbox" in the "student1" "table_row"
     And I click on "Select attempt" "checkbox" in the "student2" "table_row"
     And I click on "Select attempt" "checkbox" in the "tutor" "table_row"
-    And the "Delete selected attempts" "button" should be enabled
-    And I click on "Delete selected attempts" "button"
+    And the "Delete selected question attempts (all)" "button" should be enabled
+    And I click on "Delete selected question attempts (all)" "button"
     And I should see "Are you absolutely sure you want to completely delete these attempts?" in the "Confirmation" "dialogue"
     And I click on "Yes" "button"
     And I should not see "tutor"

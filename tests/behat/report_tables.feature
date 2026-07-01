@@ -118,6 +118,11 @@ Feature: Teachers can see their students progress on embedded questions.
   Scenario: A student can only see his/her own progress in an activity
     Given I am on the "page1" "report_embedquestion > Progress report for Activity" page logged in as "student2"
     Then I should see "Embedded question progress for Test page"
+    # The breadcrumb shows the report crumb once and the user crumb, not the
+    # verbose page heading (the heading repeats it, so this must be scoped).
+    And I should see "Embedded questions progress" in the ".breadcrumb" "css_element"
+    And I should see "Student B (student2)" in the ".breadcrumb" "css_element"
+    And I should not see "Embedded question progress for Test page" in the ".breadcrumb" "css_element"
     And I should see "Download table data as"
     And I should see "Embedded question attempts in Test page"
     And I should see "student2"
@@ -133,6 +138,9 @@ Feature: Teachers can see their students progress on embedded questions.
   Scenario: A student can only see his/her own progress in a course
     Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "student2"
     Then I should see "Embedded question progress for Course 1"
+    And I should see "Embedded questions progress" in the ".breadcrumb" "css_element"
+    And I should see "Student B (student2)" in the ".breadcrumb" "css_element"
+    And I should not see "Embedded question progress for Course 1" in the ".breadcrumb" "css_element"
     And I should see "student2"
     And I should not see "student1"
     And I click on "Attempt summary" "link" in the "student2" "table_row"
@@ -214,6 +222,8 @@ Feature: Teachers can see their students progress on embedded questions.
     And ".initialbar.lastinitial " "css_element" should exist
     And I click on "Show only" "link" in the "student1" "table_row"
     And I should see "Student A (student1)" in the ".breadcrumb" "css_element"
+    And I should see "Embedded questions progress" in the ".breadcrumb" "css_element"
+    And I should not see "Embedded question progress for Test page" in the ".breadcrumb" "css_element"
     And I should see "Showing only Student A (student1)"
     And "Show everybody" "link" should exist
     And ".initialbar.firstinitial" "css_element" should not exist
@@ -232,6 +242,9 @@ Feature: Teachers can see their students progress on embedded questions.
     Given I am on the "C1" "report_embedquestion > Progress report for Course" page logged in as "teacher"
     Then I should see "Embedded question progress for Course 1"
     And I click on "Show only" "link" in the "student5" "table_row"
+    And I should see "Embedded questions progress" in the ".breadcrumb" "css_element"
+    And I should see "Student E (student5)" in the ".breadcrumb" "css_element"
+    And I should not see "Embedded question progress for Course 1" in the ".breadcrumb" "css_element"
     And I should see "Show everybody"
 
     # Filter the result, the Show everybody link shouldn't disappear.
@@ -303,7 +316,7 @@ Feature: Teachers can see their students progress on embedded questions.
     When I click on "2" "link" in the ".pagination" "css_element"
     And I click on "Delete attempt" "link" in the "Incorrect" "table_row"
     And I click on "Yes" "button"
-    And I follow "Embedded question progress for Test page 1"
+    And I follow "Embedded questions progress"
     Then I should see "Correct"
     And I follow "C1:page1"
     And I switch to "filter_embedquestion-iframe" iframe

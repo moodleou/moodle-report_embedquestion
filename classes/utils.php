@@ -231,12 +231,12 @@ class utils {
     }
 
     /**
-     * Return attempt summary link.
+     * Return attempt summary URL.
      *
      * @param stdClass $attempt row of data from the queries used to build the report tables.
-     * @return string Question attempt time or attempt summary link.
+     * @return moodle_url The URL to the attempt summary page.
      */
-    public static function get_attempt_summary_link(stdClass $attempt): string {
+    public static function get_attempt_summary_url(stdClass $attempt): moodle_url {
         if ($attempt->contextlevel == CONTEXT_COURSE) {
             $url = new moodle_url('/report/embedquestion/index.php', ['courseid' => $attempt->instanceid]);
         } else {
@@ -244,11 +244,27 @@ class utils {
         }
         $url->param('userid', $attempt->userid);
         $url->param('usageid', $attempt->questionusageid);
+        return $url;
+    }
 
+    /**
+     * Return attempt summary link.
+     *
+     * @param stdClass $attempt row of data from the queries used to build the report tables.
+     * @return string Question attempt time or attempt summary link.
+     */
+    public static function get_attempt_summary_link(stdClass $attempt): string {
+        global $OUTPUT;
         return \html_writer::link(
-            $url,
-            userdate($attempt->questionattemptsteptime),
-            ['title' => get_string('attemptsummary', 'report_embedquestion')]
+            self::get_attempt_summary_url($attempt),
+            $OUTPUT->pix_icon(
+                'i/preview',
+                get_string('attemptsummary', 'report_embedquestion'),
+                'moodle'
+            ),
+            [
+                'title' => get_string('attemptsummary', 'report_embedquestion'),
+            ]
         );
     }
 
@@ -387,26 +403,34 @@ class utils {
     }
 
     /**
+     * Set the navbar for the embedded questions progress report.
      *
-     * Set navbar in the embedded report.
+     * On the full report (no specific user) the page URL is just the course/activity
+     * report URL, which the settings-navigation node registered in lib.php matches
+     * exactly, so that node already supplies the 'Embedded questions progress'
+     * breadcrumb and there is nothing to add here.
      *
-     * @param string $title
-     * @param context $context
-     * @param string $showonly
+     * On a single-user view the page URL carries a userid, so the settings-navigation
+     * node no longer matches and drops out of the breadcrumb. In that case we add the
+     * report crumb (linking back to the full report) followed by the user's name.
+     *
+     * @param context $context course or module context of the report.
+     * @param string $showonly display name of the user being shown, or '' for the full report.
      */
-    public static function set_report_navbar(string $title, context $context, string $showonly = ''): void {
+    public static function set_report_navbar(context $context, string $showonly = ''): void {
         global $PAGE;
 
+        if (empty($showonly)) {
+            return;
+        }
+
         if ($context->contextlevel == CONTEXT_MODULE) {
-            $PAGE->navbar->add($title, new moodle_url('/report/embedquestion/activity.php', ['cmid' => $context->instanceid]));
-        } else if ($context->contextlevel == CONTEXT_COURSE && !empty($showonly)) {
-            $PAGE->navbar->add($title, new moodle_url('/report/embedquestion/index.php', ['courseid' => $context->instanceid]));
+            $reporturl = new moodle_url('/report/embedquestion/activity.php', ['cmid' => $context->instanceid]);
         } else {
-            $PAGE->navbar->add($title);
+            $reporturl = new moodle_url('/report/embedquestion/index.php', ['courseid' => $context->instanceid]);
         }
-        if (!empty($showonly)) {
-            $PAGE->navbar->add($showonly);
-        }
+        $PAGE->navbar->add(get_string('pluginname', 'report_embedquestion'), $reporturl);
+        $PAGE->navbar->add($showonly);
     }
 
     /**

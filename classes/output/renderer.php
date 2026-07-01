@@ -215,13 +215,13 @@ class renderer extends plugin_renderer_base {
      * Render the delete attempt button.
      * @return string HTML string
      */
-    public function render_delete_attempts_buttons() {
+    public function render_delete_attempts_buttons(): string {
         $deletebuttonparams = [
                 'type' => 'submit',
                 'class' => 'btn btn-secondary me-1',
                 'id' => 'deleteattemptsbutton',
                 'name' => 'delete',
-                'value' => get_string('deleteselected', 'quiz_overview'),
+                'value' => get_string('deleteselectedattempts', 'report_embedquestion'),
                 'disabled' => true,
         ];
 
@@ -234,7 +234,14 @@ class renderer extends plugin_renderer_base {
             ]
         );
 
-        return html_writer::empty_tag('input', $deletebuttonparams);
+        $output = html_writer::empty_tag('input', $deletebuttonparams);
+        $output .= $this->output->help_icon(
+            'userresponsedeletion',
+            'report_embedquestion',
+            true
+        );
+
+        return $output;
     }
 
     /**

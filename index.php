@@ -38,6 +38,12 @@ $download = optional_param('download', null, PARAM_RAW);
 require_login($courseid);
 $context = context_course::instance($courseid);
 
+$userid = utils::require_report_permissions($context, $userid);
+utils::validate_usageid($usageid, $userid);
+
+// Resolve $userid before set_url so single-user views carry it in $PAGE->url.
+// Otherwise the settings-navigation node added by lib.php would match the page
+// URL exactly and contribute a duplicate 'Embedded questions progress' crumb.
 $params = ['courseid' => $courseid];
 if ($groupid !== 0) {
     $params['groupid'] = $groupid;
@@ -47,9 +53,6 @@ if ($userid !== 0) {
 }
 $PAGE->set_url('/report/embedquestion/index.php', $params);
 $PAGE->set_pagelayout('report');
-
-$userid = utils::require_report_permissions($context, $userid);
-utils::validate_usageid($usageid, $userid);
 
 // Log the view.
 course_report_viewed::create(['context' => $context,
@@ -66,7 +69,7 @@ if ($userid) {
 $report->init();
 
 // Set navbar in the report.
-utils::set_report_navbar($report->get_title(), $context, $showonly);
+utils::set_report_navbar($context, $showonly);
 
 // Display the report.
 if (!$download) {

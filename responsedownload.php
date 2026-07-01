@@ -84,11 +84,10 @@ if ($download) {
 
 if ($cmid) {
     $params = ['cmid' => $cmid, 'file' => $file, 'size' => $size];
-    $navtitle = get_string('activityreporttitle', 'report_embedquestion', $context->get_context_name(false));
 } else {
     $params = ['courseid' => $courseid, 'file' => $file, 'size' => $size];
-    $navtitle = get_string('coursereporttitle', 'report_embedquestion', $context->get_context_name(false));
 }
+$navtitle = get_string('pluginname', 'report_embedquestion');
 $pagetitle = get_string('downloadresponse_title', 'report_embedquestion');
 $PAGE->navbar->add($navtitle, $reporturl);
 $PAGE->navbar->add($pagetitle);

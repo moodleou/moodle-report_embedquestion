@@ -35,12 +35,12 @@ Feature: Testing response file download permissions
       | report/embedquestion:deleteanyattempt | Prevent    | teacher | Course       | C1        |
       | report/embedquestion:deletemyattempt  | Prevent    | teacher | Course       | C1        |
     When I am on the "page2" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
-    Then the "Delete selected attempts" "button" should be disabled
+    Then the "Delete selected question attempts (all)" "button" should be disabled
     And "Download all response files" "button" should exist
     And the "Download all response files" "button" should be enabled
     And the "Download selected response files" "button" should be disabled
     And I click on "Select attempt" "checkbox" in the "student1" "table_row"
-    And the "Delete selected attempts" "button" should be disabled
+    And the "Delete selected question attempts (all)" "button" should be disabled
     And the "Download selected response files" "button" should be enabled
     And I click on "Download selected response files" "button"
     And I should see "Download to device"
@@ -61,7 +61,7 @@ Feature: Testing response file download permissions
       | report/embedquestion:downloadanyattempt | Prevent    | teacher | Course       | C1        |
     When I am on the "page2" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
     Then "Download all response files" "button" should not exist
-    And the "Delete selected attempts" "button" should be disabled
+    And the "Delete selected question attempts (all)" "button" should be disabled
     And "Download selected response files" "button" should exist
     And the "Download selected response files" "button" should be disabled
     And "Select attempt" "checkbox" should not exist in the "student1" "table_row"
@@ -82,7 +82,7 @@ Feature: Testing response file download permissions
       | report/embedquestion:downloadanyattempt | Prevent    | teacher | Course       | C1        |
     When I am on the "page2" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
     Then "Download all response files" "button" should not exist
-    And the "Delete selected attempts" "button" should be disabled
+    And the "Delete selected question attempts (all)" "button" should be disabled
     And "Download selected response files" "button" should exist
     And the "Download selected response files" "button" should be disabled
     And I should see "Not yet answered" in the "tutor" "table_row"
@@ -105,7 +105,7 @@ Feature: Testing response file download permissions
       | report/embedquestion:downloadmyattempt  | Prevent    | teacher | Course       | C1        |
     When I am on the "page2" "report_embedquestion > Progress report for Activity" page logged in as "tutor1"
     Then "Download all response files" "button" should not exist
-    And the "Delete selected attempts" "button" should be disabled
+    And the "Delete selected question attempts (all)" "button" should be disabled
     And "Download selected response files" "button" should exist
     And the "Download selected response files" "button" should be disabled
     And "Select attempt" "checkbox" should not exist in the "student1" "table_row"
@@ -143,12 +143,12 @@ Feature: Testing response file download permissions
       | report/embedquestion:downloadmyattempt  | Prevent    | editingteacher | Course       | C1        |
     When I am on the "page2" "report_embedquestion > Progress report for Activity" page logged in as "teacher1"
     Then "Download all response files" "button" should not exist
-    And the "Delete selected attempts" "button" should be disabled
+    And the "Delete selected question attempts (all)" "button" should be disabled
     And "Download selected response files" "button" should exist
     And the "Download selected response files" "button" should be disabled
     And "Select attempt" "checkbox" should exist in the "student1" "table_row"
     And I click on "Select attempt" "checkbox" in the "student1" "table_row"
-    And the "Delete selected attempts" "button" should be enabled
+    And the "Delete selected question attempts (all)" "button" should be enabled
     And the "Download selected response files" "button" should be disabled
 
   Scenario: A tutor cannot use Download all when every visible attempt is unfinished
