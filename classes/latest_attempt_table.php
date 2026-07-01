@@ -94,6 +94,7 @@ class latest_attempt_table extends table_sql {
         $this->define_headers($this->get_headers());
         $this->define_columns($this->get_columns());
         $this->collapsible(false);
+        $this->no_sorting('attemptsaction');
 
         $url = $displayoption->get_url();
         $this->define_baseurl($url);
@@ -131,6 +132,7 @@ class latest_attempt_table extends table_sql {
         $headers[] = get_string('location');
         $headers[] = get_string('latestattemptstatus', 'report_embedquestion');
         $headers[] = get_string('attemptfinal', 'report_embedquestion');
+        $headers[] = get_string('attemptscolumn', 'report_embedquestion');
         return $headers;
     }
 
@@ -183,6 +185,7 @@ class latest_attempt_table extends table_sql {
         $columns[] = 'pagename';
         $columns[] = 'questionstate';
         $columns[] = 'questionattemptstepid';
+        $columns[] = 'attemptsaction';
         return $columns;
     }
 
@@ -323,8 +326,18 @@ class latest_attempt_table extends table_sql {
      * @return string HTML content to go inside the td.
      */
     protected function col_questionattemptstepid(stdClass $attempt): string {
+        return userdate($attempt->questionattemptsteptime);
+    }
+
+    /**
+     * Generate the display of the attempts action column.
+     *
+     * @param stdClass $attempt the table row being output.
+     * @return string HTML content to go inside the td.
+     */
+    protected function col_attemptsaction(stdClass $attempt): string {
         if ($this->is_downloading()) {
-            return userdate($attempt->questionattemptsteptime);
+            return '';
         }
         return utils::get_attempt_summary_link($attempt);
     }

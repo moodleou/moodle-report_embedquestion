@@ -159,10 +159,11 @@ final class utils_test extends \advanced_testcase {
      * @param object $attempt The attempt object.
      * @param string $expectedurl The expected url link.
      */
-    public function test_get_attempt_summary_link(object $attempt, string $expectedurl): void {
+    public function test_get_attempt_summary_url(object $attempt, string $expectedurl): void {
         $this->setTimezone('UTC');
-        $actual = utils::get_attempt_summary_link($attempt);
-        $this->assertEquals($expectedurl, $actual);
+        $actual = utils::get_attempt_summary_url($attempt);
+        $this->assertInstanceOf(\moodle_url::class, $actual);
+        $this->assertEquals($expectedurl, $actual->out(false));
     }
 
     /**
@@ -182,9 +183,7 @@ final class utils_test extends \advanced_testcase {
                     'questionusageid' => '470',
                     'questionattemptsteptime' => 1675326072,
                 ],
-                '<a title="Attempt summary" href=' .
-                    '"https://www.example.com/moodle/report/embedquestion/index.php?courseid=4&amp;userid=3&amp;usageid=470">' .
-                        'Thursday, 2 February 2023, 8:21 AM</a>',
+                'https://www.example.com/moodle/report/embedquestion/index.php?courseid=4&userid=3&usageid=470',
             ],
             'Activity' => [
                 (object) [
@@ -195,9 +194,7 @@ final class utils_test extends \advanced_testcase {
                     'questionusageid' => '477',
                     'questionattemptsteptime' => 1675241978,
                 ],
-                '<a title="Attempt summary" href=' .
-                    '"https://www.example.com/moodle/report/embedquestion/activity.php?cmid=30&amp;userid=4&amp;usageid=477">' .
-                        'Wednesday, 1 February 2023, 8:59 AM</a>',
+                'https://www.example.com/moodle/report/embedquestion/activity.php?cmid=30&userid=4&usageid=477',
             ],
         ];
     }

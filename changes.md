@@ -1,5 +1,14 @@
 # Change log for the Embedded questions progress report
 
+# Features in version 2.1
+
+* This version works with Moodle 5.2+.
+* New help/changed help text
+* minor UI improvements for attempt review
+* Remove redundant breadcrumb
+* Allow format string in the report title
+
+
 # Features in version 2.0
 
 * This version works with Moodle 5.2+.

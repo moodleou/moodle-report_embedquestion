@@ -38,6 +38,12 @@ $usageid = optional_param('usageid', 0, PARAM_INT);
 require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
 
+$userid = utils::require_report_permissions($context, $userid);
+utils::validate_usageid($usageid, $userid);
+
+// Resolve $userid before set_url so single-user views carry it in $PAGE->url.
+// Otherwise the settings-navigation node added by lib.php would match the page
+// URL exactly and contribute a duplicate 'Embedded questions progress' crumb.
 $params = ['cmid' => $cm->id];
 if ($groupid !== 0) {
     $params['groupid'] = $groupid;
@@ -48,9 +54,6 @@ if ($userid !== 0) {
 $PAGE->set_url('/report/embedquestion/activity.php', $params);
 $PAGE->set_pagelayout('report');
 
-$userid = utils::require_report_permissions($context, $userid);
-utils::validate_usageid($usageid, $userid);
-
 // Log the view.
 activity_report_viewed::create(['context' => $context,
         'relateduserid' => $userid, 'other' => ['groupid' => $groupid]])->trigger();
@@ -60,7 +63,7 @@ $report = progress_report::make($course, $context, $cm, $usageid ? true : false)
 if ($userid) {
     [$user, $info] = utils::get_user_details($userid, $context);
     $showonly = utils::get_user_display($user, $info);
-    utils::set_report_navbar($report->get_title(), $context, $showonly);
+    utils::set_report_navbar($context, $showonly);
     $report->single_report($userid);
 }
 $report->init();

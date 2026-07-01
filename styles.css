@@ -16,6 +16,7 @@
 #page-report-embedquestion-activity .que.correctness,
 #page-report-embedquestion-index .que.correctness {
     font-weight: bold;
+    margin: 0;
 }
 
 #page-report-embedquestion-activity .que.correctness.correct,

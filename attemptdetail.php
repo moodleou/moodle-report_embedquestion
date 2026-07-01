@@ -66,7 +66,10 @@ $PAGE->set_pagelayout('popup');
 
 // Set the navbar.
 if (is_null($cmid)) {
-    $PAGE->navbar->add($title, new moodle_url('/report/embedquestion/index.php', ['courseid' => $courseid]));
+    $PAGE->navbar->add(
+        get_string('pluginname', 'report_embedquestion'),
+        new moodle_url('/report/embedquestion/index.php', ['courseid' => $courseid])
+    );
     $PAGE->navbar->add(
         get_string('page-report-embedquestion-progress-detail', 'report_embedquestion'),
         new moodle_url(
@@ -75,7 +78,10 @@ if (is_null($cmid)) {
         )
     );
 } else {
-    $PAGE->navbar->add($title, new moodle_url('/report/embedquestion/activity.php', ['cmid' => $cmid]));
+    $PAGE->navbar->add(
+        get_string('pluginname', 'report_embedquestion'),
+        new moodle_url('/report/embedquestion/activity.php', ['cmid' => $cmid])
+    );
     $PAGE->navbar->add(
         get_string('page-report-embedquestion-progress-detail', 'report_embedquestion'),
         new moodle_url(
