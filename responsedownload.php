@@ -37,6 +37,7 @@ if ($cmid) {
     [$course, $cm] = get_course_and_cm_from_cmid($cmid);
     require_login($course, false, $cm);
     $context = context_module::instance($cm->id);
+    utils::require_report_permissions($context, $USER->id);
     $pageurl = new moodle_url(
         '/report/embedquestion/responsedownload.php',
         ['cmid' => $cmid, 'file' => $file, 'size' => $size]
