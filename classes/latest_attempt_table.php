@@ -28,6 +28,7 @@ use report_embedquestion\local\export\response_export;
 use stdClass;
 use table_sql;
 use html_writer;
+use filter_embedquestion\attempt_storage;
 
 /**
  * The report table shows the latest attempt at each different embedded question which matches the conditions.
@@ -550,6 +551,8 @@ class latest_attempt_table extends table_sql {
                     [$qubaid, $slot] = explode('-', $questionusagemeta);
 
                     $quba = \question_engine::load_questions_usage_by_activity($qubaid);
+                    attempt_storage::instance()->verify_usage($quba, $this->context);
+
                     $userid = $quba->get_question_attempt($slot)->get_last_step()->get_user_id();
 
                     if (has_capability('report/embedquestion:deleteanyattempt', $this->context)) {

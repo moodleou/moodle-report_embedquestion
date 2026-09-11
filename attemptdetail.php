@@ -57,6 +57,12 @@ $qa = (new question_engine_data_mapper())->load_question_attempt($attemptid);
 $attemptinfo = $DB->get_record('report_embedquestion_attempt', ['questionusageid' => $qa->get_usage_id()], '*', MUST_EXIST);
 $userattemptid = $attemptinfo->userid;
 
+// Verify context.
+$attemptcontext = context::instance_by_id($attemptinfo->contextid);
+if (!$attemptcontext || !$context->is_parent_of($attemptcontext, true)) {
+    throw new moodle_exception('invalidcontext', 'core_error', '', '');
+}
+
 require_login($course, false, $cm);
 $pagetitle = get_string('attempt-detail-page', 'report_embedquestion');
 
