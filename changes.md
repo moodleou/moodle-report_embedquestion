@@ -1,5 +1,11 @@
 # Change log for the Embedded questions progress report
 
+# Features in version 2.2
+
+* This version works with Moodle 5.3.
+* Correctness and file size text stays readable in Boost's dark colour mode.
+
+
 # Features in version 2.1
 
 * This version works with Moodle 5.2+.

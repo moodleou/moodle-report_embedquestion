@@ -15,7 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace report_embedquestion\task;
+
 use report_embedquestion\utils;
+
 /**
  * Adhoc task to set up the placeholder question for the embed question report.
  *

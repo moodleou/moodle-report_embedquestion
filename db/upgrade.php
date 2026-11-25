@@ -21,7 +21,9 @@
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 use report_embedquestion\utils;
+
 /**
  * Embedded questions progress report database upgrade function.
  *

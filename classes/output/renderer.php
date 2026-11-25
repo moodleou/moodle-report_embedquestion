@@ -331,7 +331,7 @@ class renderer extends plugin_renderer_base {
         $output = '';
 
         if ($cloudtype != 'local') {
-            // TODO: Remove this if we turn on the cloud service in the future.
+            // Cloud export is not enabled yet. Remove this check if the cloud service is turned on.
             throw new coding_exception("Download type {$cloudtype} does not support");
         }
 

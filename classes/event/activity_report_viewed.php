@@ -21,6 +21,7 @@
  * @copyright 2019 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace report_embedquestion\event;
 
 /**
