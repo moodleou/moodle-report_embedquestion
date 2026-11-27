@@ -86,3 +86,23 @@
     padding-left: 5px;
     color: #676463;
 }
+
+/* Moodle 5.3+ Boost dark colour mode: keep the fixed text colours above readable on a dark surface. */
+[data-bs-theme="dark"] #page-report-embedquestion-activity .que.correctness.correct,
+[data-bs-theme="dark"] #page-report-embedquestion-index .que.correctness.correct {
+    color: var(--bs-success-text-emphasis);
+}
+
+[data-bs-theme="dark"] #page-report-embedquestion-activity .que.correctness.incorrect,
+[data-bs-theme="dark"] #page-report-embedquestion-index .que.correctness.incorrect {
+    color: var(--bs-danger-text-emphasis);
+}
+
+[data-bs-theme="dark"] #page-report-embedquestion-activity .que.correctness.partiallycorrect,
+[data-bs-theme="dark"] #page-report-embedquestion-index .que.correctness.partiallycorrect {
+    color: var(--bs-warning-text-emphasis);
+}
+
+[data-bs-theme="dark"] #page-report-embedquestion-responsedownload .downloadexport.sizer {
+    color: var(--bs-secondary-color);
+}

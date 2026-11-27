@@ -353,7 +353,12 @@ class response_export {
         // Load HTML and suppress any parsing errors (DOMDocument->loadHTML() does not current support HTML5 tags).
         $dom = new DOMDocument();
         libxml_use_internal_errors(true);
-        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $bodystring, LIBXML_HTML_NODEFDTD);
+        // Use a meta charset tag so the HTML is read as UTF-8. The XML declaration approach
+        // no longer works with libxml2 >= 2.14.0 (see MDL-87482).
+        $dom->loadHTML(
+            '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">' . $bodystring,
+            LIBXML_HTML_NODEFDTD
+        );
         libxml_clear_errors();
         // Find all tags.
         foreach ($tags as $tag) {
@@ -380,7 +385,26 @@ class response_export {
             }
         }
 
-        return $dom->saveHTML();
+        // Return the content without the html, head and body wrapper, because it is placed inside the body of
+        // the exported page. The parser can move leading content into the head (for example a script, or an
+        // HTML5 element such as audio that libxml2 < 2.14 does not know), so collect the children of both the
+        // head and the body, skipping only the meta tag added above.
+        $html = '';
+        $skippedmeta = false;
+        foreach (['head', 'body'] as $tagname) {
+            $element = $dom->getElementsByTagName($tagname)->item(0);
+            if (!$element) {
+                continue;
+            }
+            foreach ($element->childNodes as $child) {
+                if (!$skippedmeta && $child->nodeType === XML_ELEMENT_NODE && $child->nodeName === 'meta') {
+                    $skippedmeta = true;
+                    continue;
+                }
+                $html .= $dom->saveHTML($child);
+            }
+        }
+        return $html;
     }
 
     /**

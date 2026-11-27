@@ -431,21 +431,25 @@ class latest_attempt_table extends table_sql {
         }
 
         // Filter data.
-        if ($displayoption->lookback > 0) { // Look back.
+        if ($displayoption->lookback > 0) {
+            // Look back.
             $this->sql->where .= "
                 AND qas.timecreated > :lookback";
             $this->sql->params['lookback'] = time() - $displayoption->lookback;
-        } else if ($displayoption->datefrom > 0 && $displayoption->dateto > 0) { // From - To.
+        } else if ($displayoption->datefrom > 0 && $displayoption->dateto > 0) {
+            // From - To.
             $this->sql->where .= "
                 AND qas.timecreated > :datefrom
                 AND qas.timecreated < :dateto";
             $this->sql->params['datefrom'] = $displayoption->datefrom;
             $this->sql->params['dateto'] = $displayoption->dateto + DAYSECS;
-        } else if ($displayoption->datefrom > 0) { // From.
+        } else if ($displayoption->datefrom > 0) {
+            // From.
             $this->sql->where .= "
                 AND qas.timecreated > :datefrom";
             $this->sql->params['datefrom'] = $displayoption->datefrom;
-        } else if ($displayoption->dateto > 0) { // To.
+        } else if ($displayoption->dateto > 0) {
+            // To.
             $this->sql->where .= "
                 AND qas.timecreated < :dateto";
             $this->sql->params['dateto'] = $displayoption->dateto + DAYSECS;

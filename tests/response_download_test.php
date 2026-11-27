@@ -312,23 +312,23 @@ final class response_download_test extends \advanced_testcase {
      * @return array The test case data.
      */
     public static function get_resources(): array {
+        // Libxml2 >= 2.14.0 knows that source is a void element, so it does not add a closing tag.
+        $sourceclose = LIBXML_VERSION >= 21400 ? '' : '</source>';
         return [
             'Invalid HTML without closing p tag' => [
                 '<p>This is broken but it might happen when HTML without closing p tag:
                     <img class="icon " alt="Correct"
                     title="Correct" src="https://192.168.216.49/OU1422/theme/image.php/osep/core/1665974909/i/grade_correct">',
-                '<?xml encoding="utf-8" ?><html><body><p>This is broken but it might happen when HTML without closing p tag:
-                    <img class="icon " alt="Correct" title="Correct" src="./grade_correct.svg"></p></body></html>
-'],
+                '<p>This is broken but it might happen when HTML without closing p tag:
+                    <img class="icon " alt="Correct" title="Correct" src="./grade_correct.svg"></p>'],
             'Valid HTML with closing p tag' => [
                 '<p>This is valid HTML via closing p tag:
                     <img class="icon " alt="Correct"
                     title="Correct" src="https://192.168.216.49/OU1422/theme/image.php/osep/core/1665974909/i/grade_correct">
                 </p>',
-                '<?xml encoding="utf-8" ?><html><body><p>This is valid HTML via closing p tag:
+                '<p>This is valid HTML via closing p tag:
                     <img class="icon " alt="Correct" title="Correct" src="./grade_correct.svg">
-                </p></body></html>
-'],
+                </p>'],
             'HTML5 with audio/source tag' => [
                 '<span class="qtype_recordrtc-media-player flex-grow-1">
                     <p>This is audio tag that is not supported in DOMDocument. We hide the warning messages when rendering.</p>
@@ -336,13 +336,12 @@ final class response_download_test extends \advanced_testcase {
                         <source src="https://192.168.216.49/OU1422/draftfile.php/5/user/draft/922115512/recording.mp3">
                     </audio>
                 </span>',
-                '<?xml encoding="utf-8" ?><html><body><span class="qtype_recordrtc-media-player flex-grow-1">
+                '<span class="qtype_recordrtc-media-player flex-grow-1">
                     <p>This is audio tag that is not supported in DOMDocument. We hide the warning messages when rendering.</p>
                     <audio controls="" class="w-100, mw-100">
                         <source src="./recording.mp3">
-                    </source></audio>
-                </span></body></html>
-'],
+                    ' . $sourceclose . '</audio>
+                </span>'],
             'HTML5 with svg tag' => [
                 '<span class="filter_oumaths_equation filter_oumaths_svg">
                     <p>This is SVG tag that is not supported in DOMDocument. We hide the warning messages when rendering.</p>
@@ -350,13 +349,21 @@ final class response_download_test extends \advanced_testcase {
                         <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
                     </svg>
                 </span>',
-                '<?xml encoding="utf-8" ?><html><body><span class="filter_oumaths_equation filter_oumaths_svg">
+                '<span class="filter_oumaths_equation filter_oumaths_svg">
                     <p>This is SVG tag that is not supported in DOMDocument. We hide the warning messages when rendering.</p>
                     <svg width="100" height="100">
                         <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow"></circle>
                     </svg>
-                </span></body></html>
-'],
+                </span>'],
+            'UTF-8 text' => [
+                '<p>Café, naïve, Ελληνικά, السلام عليكم:
+                    <img src="https://192.168.216.49/OU1422/pluginfile.php/5/question/response_attachments/1/1/2/photo.png"></p>',
+                '<p>Café, naïve, Ελληνικά, السلام عليكم:
+                    <img src="./photo.png"></p>'],
+            'HTML starting with an audio tag' => [
+                '<audio controls=""><source src="https://192.168.216.49/OU1422/draftfile.php/5/user/draft/922115512/recording.mp3">'
+                    . '</audio><p>After the audio.</p>',
+                '<audio controls=""><source src="./recording.mp3">' . $sourceclose . '</audio><p>After the audio.</p>'],
         ];
     }
 
